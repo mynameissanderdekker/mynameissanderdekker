@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node scripts/import-purchases.mjs)",
+      "Bash(node *)",
+      "Bash(npm install *)"
+    ]
+  }
+}
