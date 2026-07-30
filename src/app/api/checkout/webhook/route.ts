@@ -42,8 +42,8 @@ export async function POST(req: NextRequest) {
     const customFields = session.custom_fields ?? []
     const companyName  = customFields.find(f => f.key === 'company_name')?.text?.value ?? undefined
     const vatNumber    = customFields.find(f => f.key === 'vat_number')?.text?.value ?? undefined
-    // Newsletter opt-in
-    const newsletterOptIn = session.consent?.promotions === 'opt_in'
+    // Newsletter opt-in (consent_collection.promotions not available for NL merchants)
+    const newsletterOptIn = false
 
     // Parse items — ondersteun zowel oud formaat (string[]) als nieuw (json met prijs + artworkId)
     let parsedItems: { title: string; price: number; quantity: number; artworkId?: string | null }[] = []

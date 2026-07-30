@@ -44,9 +44,6 @@ export async function POST(req: NextRequest) {
           optional: true,
         },
       ],
-      consent_collection: {
-        promotions: 'auto', // opt-in voor marketing / newsletter
-      },
       customer_email: undefined, // Stripe vraagt dit zelf
       success_url: `${BASE_URL}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${BASE_URL}/cart`,
