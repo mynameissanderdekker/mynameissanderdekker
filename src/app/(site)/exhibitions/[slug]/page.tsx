@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: Props) {
 
 async function getExhibition(slug: string) {
   return client.fetch(
-    `*[_type == "exhibition" && slug.current == $slug][0]{
+    `*[_type == "exhibition" && slug.current == $slug && hasPage == true][0]{
       _id, title, slug, gallery, location, startDate, endDate, isSolo, description,
       images[]{ asset->{ _id, url }, hotspot, crop },
       "artworks": [
@@ -171,7 +171,7 @@ export default async function ExhibitionPage({ params }: Props) {
 export async function generateStaticParams() {
   try {
     const items = await client.fetch<{ slug: { current: string } }[]>(
-      `*[_type == "exhibition" && defined(slug.current)]{ slug }`
+      `*[_type == "exhibition" && defined(slug.current) && hasPage == true]{ slug }`
     )
     return items.map(e => ({ slug: e.slug.current }))
   } catch { return [] }
