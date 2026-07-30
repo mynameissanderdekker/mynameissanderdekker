@@ -161,13 +161,6 @@ export async function POST(req: NextRequest) {
           await sanity.patch(contactId).setIfMissing({ purchases: [] }).append('purchases', purchaseEntries).commit()
             .then(() => console.log('[webhook] purchases bijgeschreven voor contact', contactId))
             .catch(err => console.error('[webhook] purchases append mislukt:', err))
-
-          // Markeer elk artwork als sold_out
-          for (const item of artworkItems) {
-            await sanity.patch(item.artworkId!).set({ status: 'sold_out' }).commit()
-              .then(() => console.log('[webhook] artwork sold_out:', item.artworkId))
-              .catch(err => console.error('[webhook] artwork status update mislukt:', err))
-          }
         } else {
           console.log('[webhook] geen artworkIds gevonden in parsedItems:', JSON.stringify(parsedItems))
         }
