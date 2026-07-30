@@ -39,8 +39,8 @@ export async function POST(req: NextRequest) {
     const shipping = session.collected_information?.shipping_details?.address
     const total    = (session.amount_total ?? 0) / 100
 
-    // Parse items — ondersteun zowel oud formaat (string[]) als nieuw (json met prijs)
-    let parsedItems: { title: string; price: number; quantity: number }[] = []
+    // Parse items — ondersteun zowel oud formaat (string[]) als nieuw (json met prijs + artworkId)
+    let parsedItems: { title: string; price: number; quantity: number; artworkId?: string | null }[] = []
     try {
       parsedItems = JSON.parse(session.metadata?.itemsJson ?? '[]')
     } catch {
@@ -95,12 +95,12 @@ export async function POST(req: NextRequest) {
           { email }
         )
 
+        let contactId: string
         if (existing) {
-          // Voeg type "webshop_customer" toe als het nog niet zo is
           await sanity.patch(existing._id).setIfMissing({ type: 'webshop_customer' }).commit()
+          contactId = existing._id
         } else {
-          // Nieuw contact aanmaken
-          await sanity.create({
+          const created = await sanity.create({
             _type:     'contact',
             firstName,
             lastName,
@@ -112,6 +112,28 @@ export async function POST(req: NextRequest) {
             subscribedAt: new Date().toISOString(),
             source:    `webshop — ${orderNumber}`,
           })
+          contactId = created._id
+        }
+
+        // Voeg aankopen toe aan het contact + markeer artwork als sold_out
+        const purchaseEntries = parsedItems
+          .filter(i => i.artworkId)
+          .map(i => ({
+            _key:          crypto.randomUUID(),
+            _type:         'object',
+            artwork:       { _type: 'reference', _ref: i.artworkId! },
+            soldVia:       'webshop',
+            editionNumber: orderNumber,
+            price:         i.price,
+          }))
+
+        if (purchaseEntries.length > 0) {
+          await sanity.patch(contactId).append('purchases', purchaseEntries).commit()
+
+          // Markeer elk artwork als sold_out
+          for (const item of parsedItems.filter(i => i.artworkId)) {
+            await sanity.patch(item.artworkId!).set({ status: 'sold_out' }).commit()
+          }
         }
 
         // Sync naar Mailchimp

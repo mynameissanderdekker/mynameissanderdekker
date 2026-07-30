@@ -36,8 +36,12 @@ export class ArtworkBuyers extends React.Component<FieldProps, State> {
   }
 
   componentDidMount() {
-    const match = window.location.href.match(/artworks;([A-Za-z0-9]+)/)
-    const artworkId = match?.[1] ?? null
+    // The Studio URL is nested, e.g. /studio/structure/artwork;artwork-list;artwork-all;[id]
+    // The document _id is always the last semicolon-separated segment
+    const segments = window.location.pathname.split(';')
+    const last = segments[segments.length - 1] ?? ''
+    // Only treat it as a valid Sanity document ID (alphanum + hyphens/dots)
+    const artworkId = /^[A-Za-z0-9._-]{5,}$/.test(last) ? last : null
     if (!artworkId) { this.setState({ loading: false }); return }
     this.setState({ artworkId }, () => this.fetchBuyers(artworkId))
   }

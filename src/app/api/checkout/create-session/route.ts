@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     const session = await getStripeClient().checkout.sessions.create({
       mode: 'payment',
       payment_method_types: ['card', 'ideal', 'bancontact'],
-      line_items: items.map((item: { title: string; priceIncl: number; imageUrl?: string }) => ({
+      line_items: items.map((item: { id?: string; title: string; priceIncl: number; imageUrl?: string }) => ({
         price_data: {
           currency: 'eur',
           product_data: {
@@ -33,10 +33,12 @@ export async function POST(req: NextRequest) {
       cancel_url: `${BASE_URL}/cart`,
       metadata: {
         items: JSON.stringify(items.map((i: { title: string }) => i.title)),
-        itemsJson: JSON.stringify(items.map((i: { title: string; priceIncl: number }) => ({
-          title: i.title,
-          price: i.priceIncl,
-          quantity: 1,
+        itemsJson: JSON.stringify(items.map((i: { id?: string; title: string; priceIncl: number }) => ({
+          title:     i.title,
+          price:     i.priceIncl,
+          quantity:  1,
+          // id is artwork._id or artwork._id::variantKey — strip the variant suffix
+          artworkId: i.id ? i.id.split('::')[0] : null,
         }))),
       },
     })
