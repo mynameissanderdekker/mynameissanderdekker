@@ -146,13 +146,23 @@ strong { font-weight: var(--weight-bold); }
    ABOUT PAGE
 ═══════════════════════════════════════════════════════ */
 
-/* Portrait block — photo left (5:4), bio text right */
+/* Portrait block — photo left 50%, first paragraph right 50% */
 .about-portrait {
   display: grid;
-  grid-template-columns: 5fr 7fr;
+  grid-template-columns: 1fr 1fr;
   gap: 56px;
   align-items: start;
-  margin-bottom: 0;
+  margin-bottom: 40px;
+}
+
+/* Remaining bio paragraphs — full width below the portrait row */
+.about-bio-rest {
+  max-width: 720px;
+  margin-bottom: 40px;
+}
+.about-bio-rest p {
+  line-height: 1.75;
+  margin: 0 0 20px 0;
 }
 .about-portrait-img-wrap {
   aspect-ratio: 5 / 4;

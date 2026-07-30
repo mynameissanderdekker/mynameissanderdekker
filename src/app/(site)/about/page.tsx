@@ -93,12 +93,13 @@ export default function AboutPage() {
   }, [])
 
   const bioLines = blockText(data?.bio)
+  const [firstPara, ...restParas] = bioLines
   const quotes = data?.quotes ?? []
   const portraitUrl = data?.portrait?.asset ? urlFor(data.portrait).width(800).fit('max').url() : null
 
   return (
     <>
-      {/* Portrait + bio side by side */}
+      {/* Row 1: Photo (50%) + first paragraph (50%) */}
       <div className="about-portrait">
         <div className="about-portrait-img-wrap">
           {portraitUrl ? (
@@ -115,9 +116,16 @@ export default function AboutPage() {
           )}
         </div>
         <div className="about-bio">
-          {bioLines.map((para, i) => <p key={i}>{para}</p>)}
+          {firstPara && <p>{firstPara}</p>}
         </div>
       </div>
+
+      {/* Row 2: remaining paragraphs, full width */}
+      {restParas.length > 0 && (
+        <div className="about-bio-rest">
+          {restParas.map((para, i) => <p key={i}>{para}</p>)}
+        </div>
+      )}
 
       {quotes.length > 0 && (
         <>
