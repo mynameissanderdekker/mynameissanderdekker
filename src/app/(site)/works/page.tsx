@@ -1,5 +1,40 @@
 import Link from 'next/link'
+import { PortableText, type PortableTextComponents } from '@portabletext/react'
 import { client } from '@/sanity/lib/client'
+import { WorksAllSection } from '@/components/WorksAllSection'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type PT = any[]
+
+const ptComponents: PortableTextComponents = {
+  marks: {
+    link: ({ children, value }) => (
+      <a
+        href={value?.href}
+        target={value?.blank ? '_blank' : undefined}
+        rel={value?.blank ? 'noopener noreferrer' : undefined}
+        className="works-section-link"
+      >
+        {children}
+      </a>
+    ),
+  },
+  types: {
+    button: ({ value }) => (
+      <div style={{ marginTop: '0.75rem' }}>
+        <a
+          href={value?.href}
+          target={value?.blank ? '_blank' : undefined}
+          rel={value?.blank ? 'noopener noreferrer' : undefined}
+          className="works-btn"
+          style={{ display: 'inline-block' }}
+        >
+          {value?.label}
+        </a>
+      </div>
+    ),
+  },
+}
 
 interface ArtworkCard {
   _id: string
@@ -10,39 +45,65 @@ interface ArtworkCard {
   priceExclVAT?: number
   vatRate?: number
   status?: string
-  showInWebshop?: boolean
   category?: string
+  featured?: boolean
+  order?: number
+  _type?: string
+  buyUrl?: string
 }
 
 interface SectionConfig {
-  category: string
+  title?: string
+  categories?: string[]
   visible: boolean
-  max: number
+  columns: number
+  max2col?: number
+  max3col?: number
+  max4col?: number
+  description?: PT
+  showViewAll?: boolean
 }
 
 interface WorksPageConfig {
   sections?: SectionConfig[]
 }
 
-const ALL_KEY = '__all__'
-
 async function getWorksData(): Promise<{ config: WorksPageConfig | null; works: ArtworkCard[] }> {
-  const [config, works] = await Promise.all([
+  const [config, artworks, zines] = await Promise.all([
     client.fetch<WorksPageConfig | null>(
-      `*[_type == "worksPage"][0]{ sections }`,
+      `*[_type == "worksPage"][0]{ sections[]{ title, categories, visible, columns, max2col, max3col, max4col, showViewAll, description } }`,
       {},
-      { next: { revalidate: 60 } },
+      { next: { revalidate: 0 } },
     ),
     client.fetch<ArtworkCard[]>(
-      `*[_type == "artwork" && defined(slug.current)] | order(year desc){
-        _id, title, year, slug,
-        "mainImage": images[0].asset->{ url },
-        priceExclVAT, vatRate, status, showInWebshop, category
+      `*[_type == "artwork" && defined(slug.current) && showInWebshop == true] | order(featured desc, order asc, year desc){
+        _id, _type, title, year, slug, order,
+        "mainImage": { "url": coalesce(images[0].asset->url, coverImageUrl) },
+        priceExclVAT, vatRate, status, category, featured, buyUrl
       }`,
       {},
-      { next: { revalidate: 60 } },
+      { next: { revalidate: 0 } },
+    ),
+    client.fetch<ArtworkCard[]>(
+      `*[_type == "zine" && defined(category)] | order(featured desc, order asc){
+        _id, _type, title, category, status, priceExclVAT, vatRate, featured, order,
+        "year": null,
+        "slug": { "current": coalesce(slug.current, projectSlug) },
+        "mainImage": { "url": coalesce(coverImage.asset->url, coverImageUrl) }
+      }`,
+      {},
+      { next: { revalidate: 0 } },
     ),
   ])
+
+  const works = [...artworks, ...zines.filter(z => z.slug?.current)]
+    .sort((a, b) => {
+      // Items with an explicit order come first (ascending), items without go to the end
+      if (a.order != null && b.order != null) return a.order - b.order
+      if (a.order != null) return -1
+      if (b.order != null) return 1
+      return 0
+    })
 
   return { config, works }
 }
@@ -52,13 +113,53 @@ function formatPrice(excl: number, vatRate = 9) {
   return new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(incl)
 }
 
-function WorkCard({ w }: { w: ArtworkCard }) {
-  const imgUrl = w.mainImage?.url ? `${w.mainImage.url}?w=600&auto=format&q=80` : null
-  const soldOut = w.status === 'sold_out'
-  const price = w.showInWebshop && w.priceExclVAT ? formatPrice(w.priceExclVAT, w.vatRate) : null
+function CartIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+      <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+    </svg>
+  )
+}
 
-  const inner = (
-    <>
+// A few "Publications" artwork docs are really zines readable on their own
+// project page rather than purchasable products — link them there instead.
+const ZINE_PROJECT_LINKS: Record<string, string> = {
+  'zine-no-9-asia': '/projects/asia',
+  'zine-no-8-the-warsaw-saga': '/projects/warsaw-saga',
+  'zine-no-2-girls-in-paris': '/projects/girls-in-paris',
+}
+
+function WorkCard({ w }: { w: ArtworkCard }) {
+  const rawUrl = w.mainImage?.url ?? null
+  const imgUrl = rawUrl
+    ? rawUrl.includes('cdn.sanity.io')
+      ? `${rawUrl}?w=600&auto=format&q=80`
+      : rawUrl
+    : null
+  const soldOut = w.status === 'sold_out'
+  const price = w.priceExclVAT ? formatPrice(w.priceExclVAT, w.vatRate) : null
+
+  const zineProjectHref = ZINE_PROJECT_LINKS[w.slug.current]
+  const isZine = w._type === 'zine' || !!zineProjectHref
+
+  const isGetInTouch = w.slug.current === 'get-in-touch'
+
+  const href = isGetInTouch
+    ? '/contact'
+    : zineProjectHref
+    ?? (w._type === 'zine' ? `/projects/${w.slug.current}` : `/works/${w.slug.current}`)
+
+  const overlayLabel = isGetInTouch
+    ? 'Get in touch'
+    : isZine
+    ? 'Read the zine'
+    : soldOut
+    ? 'More information'
+    : <><CartIcon /> Add to cart</>
+
+  return (
+    <Link href={href} className={`works-grid-item-link${soldOut ? ' is-sold-out' : ''}`}>
       <div className="works-grid-img-wrap">
         {imgUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -67,17 +168,13 @@ function WorkCard({ w }: { w: ArtworkCard }) {
           <div className="works-grid-img" style={{ background: '#f0f0f0' }} />
         )}
         {soldOut && <span className="works-badge works-badge-sold">SOLD OUT</span>}
+        <div className="works-hover-overlay">{overlayLabel}</div>
       </div>
-      <h3 className="works-grid-title">{w.title}</h3>
-      {w.year && <p className="works-grid-year">{w.year}</p>}
+      <h3 className="works-grid-title">
+        {w.title}{isZine && <span style={{ color: '#999', fontStyle: 'normal' }}> (click to read)</span>}
+      </h3>
       {price && <p className="works-price">{price}</p>}
-    </>
-  )
-
-  return soldOut ? (
-    <div className="works-grid-item is-sold-out">{inner}</div>
-  ) : (
-    <Link href={`/works/${w.slug.current}`} className="works-grid-item-link">{inner}</Link>
+    </Link>
   )
 }
 
@@ -85,15 +182,11 @@ export default async function WorksPage() {
   const { config, works } = await getWorksData()
 
   const sections = config?.sections ?? []
-  const allEntry = sections.find(s => s.category === ALL_KEY)
-  // Default: show all artworks flat (when nothing is configured or __all__ is visible)
-  const showAll = !sections.length || (allEntry?.visible ?? true)
+  const visibleSections = sections.filter(s => s.visible)
 
-  if (showAll) {
-    // ── Flat grid — alle werken ──────────────────────────────────────────────
+  if (visibleSections.length === 0) {
     return (
       <>
-        <h1 className="project-title">Works</h1>
         <section className="works-section">
           <div className="works-grid">
             {works.map(w => <WorkCard key={w._id} w={w} />)}
@@ -104,37 +197,67 @@ export default async function WorksPage() {
     )
   }
 
-  // ── Sectie-weergave ───────────────────────────────────────────────────────
-  const visibleSections = sections.filter(s => s.category !== ALL_KEY && s.visible)
-
-  const grouped = visibleSections.map(s => ({
-    title: s.category,
-    max: s.max ?? 6,
-    works: works.filter(w => w.category === s.category).slice(0, s.max ?? 6),
-  })).filter(g => g.works.length > 0)
+  const grouped = visibleSections.map(s => {
+    const cats = s.categories ?? []
+    const isAll = cats.length === 0 || cats.includes('Alle werken')
+    const filtered = isAll
+      ? works
+      : works.filter(w => w.category && cats.includes(w.category))
+    const cols = s.columns ?? 3
+    const effectiveMax = cols === 2
+      ? (s.max2col ?? 4)
+      : cols === 4
+      ? (s.max4col ?? 4)
+      : (s.max3col ?? 6)
+    const showAll = effectiveMax === 0
+    return {
+      title: s.title || (s.categories ?? []).join(' & ') || '',
+      isAll,
+      columns: cols,
+      max: effectiveMax,
+      showAll,
+      description: s.description,
+      showViewAll: s.showViewAll ?? false,
+      works: showAll ? filtered : filtered.slice(0, effectiveMax),
+      total: filtered.length,
+    }
+  }).filter(g => g.works.length > 0)
 
   return (
     <>
-      <h1 className="project-title">Works</h1>
-
       {grouped.map((group, i) => (
-        <section
-          key={group.title}
-          className="works-section"
-          style={i > 0 ? { marginTop: '4rem' } : undefined}
-        >
-          <h2 className="works-section-title">{group.title}</h2>
-          <div className="works-grid">
-            {group.works.map(w => <WorkCard key={w._id} w={w} />)}
-          </div>
-        </section>
+        <div key={group.title} style={i > 0 ? { marginTop: '4rem' } : undefined}>
+          {group.isAll ? (
+            // "Alle werken" — interactive filter + highlighted
+            <WorksAllSection works={works} columns={group.columns} />
+          ) : (
+            <section className="works-section">
+              <h2 className="works-section-title">{group.title}</h2>
+              {group.description && group.description.length > 0 && (
+                <div className="works-section-desc">
+                  <PortableText value={group.description} components={ptComponents} />
+                </div>
+              )}
+              <div
+                className="works-grid"
+                style={{ gridTemplateColumns: `repeat(${group.columns}, 1fr)` }}
+              >
+                {group.works.map(w => <WorkCard key={w._id} w={w} />)}
+              </div>
+              {group.showViewAll && !group.showAll && group.total > group.max && (
+                <div style={{ marginTop: '1.5rem' }}>
+                  <Link
+                    href={`/works/all?cat=${encodeURIComponent(group.title)}`}
+                    className="works-view-all"
+                  >
+                    Bekijk alle {group.title} ({group.total}) →
+                  </Link>
+                </div>
+              )}
+            </section>
+          )}
+        </div>
       ))}
-
-      {grouped.length === 0 && (
-        <section className="works-section">
-          <p style={{ color: '#999' }}>Geen secties zichtbaar. Configureer de webshop secties in Sanity Studio.</p>
-        </section>
-      )}
 
       <ContactSection />
     </>
@@ -142,14 +265,5 @@ export default async function WorksPage() {
 }
 
 function ContactSection() {
-  return (
-    <section className="works-section" style={{ marginTop: '3rem' }}>
-      <p className="works-desc">
-        Looking for something specific — or not sure where to start?
-      </p>
-      <a href="mailto:hello@mynameissanderdekker.com" className="works-btn" style={{ display: 'inline-block' }}>
-        Get in touch
-      </a>
-    </section>
-  )
+  return null
 }

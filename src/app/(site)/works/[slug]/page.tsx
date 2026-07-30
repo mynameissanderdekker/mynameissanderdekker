@@ -12,9 +12,11 @@ async function getArtwork(slug: string): Promise<ArtworkData | null> {
       year,
       medium,
       dimensions,
+      dimensionsExclFrame,
       images[]{ asset->{ _id, url }, hotspot, crop },
       priceExclVAT,
       vatRate,
+      options,
       status,
       showInWebshop,
       "roomImageUrl": roomImage.asset->url,
@@ -27,7 +29,7 @@ async function getArtwork(slug: string): Promise<ArtworkData | null> {
       description
     }`,
     { slug },
-    { next: { revalidate: 60 } },
+    { next: { revalidate: false } },
   )
 }
 
@@ -35,7 +37,7 @@ async function getAllSlugs(): Promise<string[]> {
   const rows = await client.fetch<Array<{ slug: { current: string } }>>(
     `*[_type == "artwork" && defined(slug.current)]{ slug }`,
     {},
-    { next: { revalidate: 3600 } },
+    { next: { revalidate: false } },
   )
   return rows.map(r => r.slug.current)
 }

@@ -36,6 +36,14 @@ interface Contact {
   firstName?: string
 }
 
+interface CampaignSection {
+  heading?: string
+  body?: string
+  imageUrl?: string
+  buttonText?: string
+  buttonUrl?: string
+}
+
 interface CampaignDoc {
   _id: string
   subject: string
@@ -47,6 +55,15 @@ interface CampaignDoc {
   segment: string
   sentAt?: string
   image?: { url?: string }
+  sections?: CampaignSection[]
+  calendarEvent?: {
+    eventTitle?: string
+    startDate?: string
+    startTime?: string
+    endTime?: string
+    eventLocation?: string
+    eventUrl?: string
+  }
 }
 
 /** Base64-encode a contact ID for use in the unsubscribe link */
@@ -73,7 +90,9 @@ export async function POST(req: NextRequest) {
       `*[_type == "campaign" && _id == $id][0]{
         _id, subject, previewText, heading, body,
         buttonText, buttonUrl, segment, sentAt,
-        "image": image.asset->{ url }
+        "image": image.asset->{ url },
+        sections[]{ heading, body, buttonText, buttonUrl, "imageUrl": image.asset->url },
+        calendarEvent
       }`,
       { id: campaignId }
     )
@@ -120,14 +139,16 @@ export async function POST(req: NextRequest) {
           const unsubscribeUrl = `${SITE}/api/unsubscribe?token=${token}`
 
           const html = buildCampaignEmail({
-            heading:       doc.heading,
-            body:          doc.body,
-            imageUrl:      doc.image?.url,
-            buttonText:    doc.buttonText,
-            buttonUrl:     doc.buttonUrl,
-            previewText:   doc.previewText,
+            heading:        doc.heading,
+            body:           doc.body,
+            imageUrl:       doc.image?.url,
+            buttonText:     doc.buttonText,
+            buttonUrl:      doc.buttonUrl,
+            previewText:    doc.previewText,
             unsubscribeUrl,
-            firstName:     contact.firstName,
+            firstName:      contact.firstName,
+            sections:       doc.sections,
+            calendarEvent:  doc.calendarEvent,
           })
 
           try {

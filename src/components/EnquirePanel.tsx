@@ -32,7 +32,7 @@ export default function EnquirePanel({ artwork, viewingRoomSlug, onClose }: Enqu
     if (artwork) {
       requestAnimationFrame(() => setVisible(true))
       // Pre-fill message
-      setMessage(artwork.title ? `Ik heb interesse in "${artwork.title}" (${artwork.year}).` : '')
+      setMessage(artwork.title ? `I am interested in "${artwork.title}" (${artwork.year}).` : '')
       setStatus('idle')
       setErrorMsg('')
     } else {
@@ -89,11 +89,11 @@ export default function EnquirePanel({ artwork, viewingRoomSlug, onClose }: Enqu
         setStatus('success')
       } else {
         setStatus('error')
-        setErrorMsg(data.error ?? 'Er ging iets mis.')
+        setErrorMsg(data.error ?? 'Something went wrong.')
       }
     } catch {
       setStatus('error')
-      setErrorMsg('Er ging iets mis. Probeer het later opnieuw.')
+      setErrorMsg('Something went wrong. Please try again later.')
     }
   }
 
@@ -116,11 +116,11 @@ export default function EnquirePanel({ artwork, viewingRoomSlug, onClose }: Enqu
         style={{ transform: visible ? 'translateX(0)' : 'translateX(100%)' }}
         role="dialog"
         aria-modal="true"
-        aria-label={`Interesse in ${artwork.title}`}
+        aria-label={`Enquire about ${artwork.title}`}
       >
         {/* Header */}
         <div className="enquire-panel-header">
-          <button className="enquire-close" onClick={handleClose} aria-label="Sluiten">
+          <button className="enquire-close" onClick={handleClose} aria-label="Close">
             ×
           </button>
         </div>
@@ -144,12 +144,12 @@ export default function EnquirePanel({ artwork, viewingRoomSlug, onClose }: Enqu
         {/* Form */}
         {status === 'success' ? (
           <div className="enquire-success">
-            <p>Bedankt voor je interesse.<br />Ik neem zo spoedig mogelijk contact op.</p>
+            <p>Thank you for your interest.<br />I will get back to you as soon as possible.</p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="enquire-form">
             <label className="enquire-label">
-              Naam *
+              Name *
               <input
                 type="text"
                 value={name}
@@ -175,7 +175,7 @@ export default function EnquirePanel({ artwork, viewingRoomSlug, onClose }: Enqu
             </label>
 
             <label className="enquire-label">
-              Telefoon
+              Phone
               <input
                 type="tel"
                 value={phone}
@@ -187,7 +187,7 @@ export default function EnquirePanel({ artwork, viewingRoomSlug, onClose }: Enqu
             </label>
 
             <label className="enquire-label">
-              Bericht *
+              Message *
               <textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
@@ -205,7 +205,7 @@ export default function EnquirePanel({ artwork, viewingRoomSlug, onClose }: Enqu
                 onChange={(e) => setNewsletter(e.target.checked)}
                 disabled={status === 'loading'}
               />
-              Houd mij op de hoogte via de nieuwsbrief
+              Keep me updated via the newsletter
             </label>
 
             {status === 'error' && (
@@ -217,7 +217,7 @@ export default function EnquirePanel({ artwork, viewingRoomSlug, onClose }: Enqu
               disabled={status === 'loading' || !name || !email || !message}
               className="enquire-submit"
             >
-              {status === 'loading' ? 'Versturen…' : 'Verstuur bericht'}
+              {status === 'loading' ? 'Sending…' : 'Send message'}
             </button>
           </form>
         )}

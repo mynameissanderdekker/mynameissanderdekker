@@ -2,11 +2,12 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
 export interface CartItem {
-  id: string        // artwork._id
+  id: string        // artwork._id, or `${artwork._id}::${optionKey}` when a variant is selected
   slug: string      // for linking back
   title: string
   priceIncl: number // incl. BTW
   imageUrl?: string
+  variantLabel?: string // e.g. "1 roll" — set when the artwork has purchase options
 }
 
 interface CartStore {

@@ -1,7 +1,8 @@
 /**
  * Seed script: The Zine Project
  *
- * Creates a single project document with all zines embedded inline.
+ * Creates a project document using the pageBuilder block system.
+ * All content is taken from the existing static page.
  *
  * Run from the project root:
  *   node scripts/seed-zine-project.mjs
@@ -22,6 +23,8 @@ const client = createClient({
 })
 
 const BASE = 'https://mynameissanderdekker.com/wp-content/uploads'
+
+// ── Zines (inline in the project document) ────────────────────────────────────
 
 const zines = [
   {
@@ -103,6 +106,81 @@ const zines = [
   },
 ]
 
+// ── pageBuilder blocks ────────────────────────────────────────────────────────
+
+const pageBuilder = [
+  // 1. Top video
+  {
+    _type: 'heroVideo',
+    _key: 'pb-video-top',
+    url: `${BASE}/2026/05/C0190-3.mp4`,
+  },
+
+  // 2. Intro text
+  {
+    _type: 'textSection',
+    _key: 'pb-intro',
+    width: '8col',
+    content: [
+      {
+        _type: 'block', _key: 'b1', style: 'normal',
+        children: [{
+          _type: 'span', _key: 's1',
+          text: 'Like The Social Media Project before it, The Zine Project began on social media — but where that project was driven by the surprise of the encounter, the gap between who people appeared to be online and who they turned out to be in person, the zines went deeper. Each one was a sustained, intimate exploration of a single person, place or theme, built on trust, time and close collaboration.',
+        }],
+      },
+      {
+        _type: 'block', _key: 'b2', style: 'normal',
+        children: [{
+          _type: 'span', _key: 's2',
+          text: 'Between 2021 and 2025, Dekker developed ten completely handmade zines, each published in a very limited edition. The subjects range widely — from intimate portraits and personal tributes to projects rooted in social urgency. From a vacation in Mexico to LGBTQ+ lives under pressure in Warsaw. From cats and dogs to racism in the Netherlands. Each project found its own form, its own tone, its own reason to exist.',
+        }],
+      },
+      {
+        _type: 'block', _key: 'b3', style: 'normal',
+        children: [{
+          _type: 'span', _key: 's3',
+          text: 'Each zine had sold out within minutes of release. The series concluded in 2025 with an exhibition at TORCH Gallery Amsterdam that brought the entire project together for the first time.',
+        }],
+      },
+    ],
+  },
+
+  // 3. Zine grid (featured + all)
+  {
+    _type: 'zineGrid',
+    _key: 'pb-zinegrid',
+    showFeatured: true,
+    showAll: true,
+  },
+
+  // 4. Exhibition gallery (WordPress CDN images via externalUrls)
+  {
+    _type: 'galleryBlock',
+    _key: 'pb-gallery',
+    columns: 3,
+    externalUrls: [
+      `${BASE}/2025/04/DSC06719.jpg`,
+      `${BASE}/2025/04/DSC01221.jpg`,
+      `${BASE}/2025/04/Birds-of-Paradise-%C2%A9Sander-dekker-09.jpg`,
+      `${BASE}/2025/04/Birds-of-Paradise-%C2%A9Sander-dekker-07.jpg`,
+      `${BASE}/2025/04/Birds-of-Paradise-%C2%A9Sander-dekker-10.jpg`,
+      `${BASE}/2025/04/Birds-of-Paradise-%C2%A9Sander-dekker-11.jpg`,
+      `${BASE}/2025/04/Birds-of-Paradise-%C2%A9Sander-dekker-03.jpg`,
+      `${BASE}/2025/04/Birds-of-Paradise-%C2%A9Sander-dekker-13.jpg`,
+    ],
+  },
+
+  // 5. Closing video
+  {
+    _type: 'heroVideo',
+    _key: 'pb-video-closing',
+    url: `${BASE}/2026/06/Final-2K.mp4`,
+  },
+]
+
+// ── Document ──────────────────────────────────────────────────────────────────
+
 const zineProject = {
   _id: 'project-the-zine-project',
   _type: 'project',
@@ -111,39 +189,23 @@ const zineProject = {
   dateRange: '2021 – 2025',
   isPage: true,
   order: 1,
-  topVideoUrl: `${BASE}/2026/05/C0190-3.mp4`,
-  closingVideoUrl: `${BASE}/2026/06/Final-2K.mp4`,
   zines,
-  description: [
-    {
-      _type: 'block', _key: 'b1', style: 'normal',
-      children: [{ _type: 'span', _key: 's1', text: 'Like The Social Media Project before it, The Zine Project began on social media — but where that project was driven by the surprise of the encounter, the gap between who people appeared to be online and who they turned out to be in person, the zines went deeper. Each one was a sustained, intimate exploration of a single person, place or theme, built on trust, time and close collaboration.' }],
-    },
-    {
-      _type: 'block', _key: 'b2', style: 'normal',
-      children: [{ _type: 'span', _key: 's2', text: 'Between 2021 and 2025, Dekker developed ten completely handmade zines, each published in a very limited edition. The subjects range widely — from intimate portraits and personal tributes to projects rooted in social urgency. From a vacation in Mexico to LGBTQ+ lives under pressure in Warsaw. From cats and dogs to racism in the Netherlands. Each project found its own form, its own tone, its own reason to exist.' }],
-    },
-    {
-      _type: 'block', _key: 'b3', style: 'normal',
-      children: [{ _type: 'span', _key: 's3', text: 'Each zine had sold out within minutes of release. The series concluded in 2025 with an exhibition at TORCH Gallery Amsterdam that brought the entire project together for the first time.' }],
-    },
-  ],
+  pageBuilder,
 }
 
+// ── Run ───────────────────────────────────────────────────────────────────────
+
 async function seed() {
-  console.log('🌱 Seeding The Zine Project...\n')
+  console.log('🌱 Seeding The Zine Project (pageBuilder format)...\n')
   try {
     await client.createOrReplace(zineProject)
-    console.log('✅ The Zine Project created with all content')
-    console.log('\n📋 In Studio > PAGES > The Zine Project you will now see:')
-    console.log('   • Title, Date range')
-    console.log('   • Top video URL')
-    console.log('   • Intro text')
-    console.log('   • Zines (11 items)')
-    console.log('   • Exhibition / gallery images')
-    console.log('   • Closing video URL')
-    console.log('\n✨ Done! Run the dev server and visit /projects/the-zine-project')
-    console.log('   Once it looks right, delete:')
+    console.log('✅ The Zine Project seeded with pageBuilder blocks:')
+    console.log('   • heroVideo       — top video')
+    console.log('   • textSection     — intro (3 paragraphs)')
+    console.log('   • zineGrid        — featured + all zines')
+    console.log('   • galleryBlock    — 8 exhibition photos (WordPress CDN)')
+    console.log('   • heroVideo       — closing video')
+    console.log('\n🗑  Once confirmed in browser, delete the static route:')
     console.log('   src/app/(site)/projects/the-zine-project/page.tsx')
   } catch (err) {
     console.error('❌ Error:', err.message)

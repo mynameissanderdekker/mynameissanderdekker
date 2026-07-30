@@ -7,7 +7,7 @@ export const worksCategory = defineType({
   fields: [
     defineField({
       name: 'title',
-      title: 'Naam',
+      title: 'Name',
       type: 'string',
       validation: (r) => r.required(),
     }),

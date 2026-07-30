@@ -6,6 +6,7 @@ interface Props {
   imageUrl: string
   title: string
   widthCm?: number
+  heightCm?: number
   onClose: () => void
 }
 

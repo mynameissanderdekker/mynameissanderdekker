@@ -5,18 +5,18 @@ export const viewingRoom = defineType({
   title: 'Viewing Room',
   type: 'document',
   groups: [
-    { name: 'info',      title: 'Informatie', default: true },
-    { name: 'works',     title: 'Werken' },
-    { name: 'access',    title: 'Toegang & Zichtbaarheid' },
+    { name: 'info',      title: 'Info',       default: true },
+    { name: 'works',     title: 'Works' },
+    { name: 'access',    title: 'Access & Visibility' },
   ],
   fields: [
-    // ── Basisinfo ─────────────────────────────────────────────────────────────
+    // ── Basic info ────────────────────────────────────────────────────────────
     defineField({
       name: 'title',
-      title: 'Titel',
+      title: 'Title',
       type: 'string',
       group: 'info',
-      description: 'Interne naam, bijv. "Art Rotterdam 2026 — Selectie voor Jan"',
+      description: 'Internal name, e.g. "Art Rotterdam 2026 — Selection for Jan"',
       validation: (r) => r.required(),
     }),
     defineField({
@@ -26,50 +26,50 @@ export const viewingRoom = defineType({
       group: 'info',
       options: { source: 'title' },
       validation: (r) => r.required(),
-      description: 'Bepaalt de deelbare URL: /room/[slug]',
+      description: 'Sets the shareable URL: /room/[slug]',
     }),
     defineField({
       name: 'description',
-      title: 'Introductietekst (optioneel)',
+      title: 'Intro text (optional)',
       type: 'text',
       rows: 3,
       group: 'info',
-      description: 'Wordt getoond boven de werken op de room-pagina',
+      description: 'Shown above the works on the room page',
     }),
 
-    // ── Collector (privé) ─────────────────────────────────────────────────────
+    // ── Collector (private) ───────────────────────────────────────────────────
     defineField({
       name: 'collectorName',
-      title: 'Collector naam (privé)',
+      title: 'Collector name (private)',
       type: 'string',
       group: 'info',
-      description: 'Nooit zichtbaar op de website',
+      description: 'Never visible on the website',
     }),
     defineField({
       name: 'collectorEmail',
-      title: 'Collector e-mail (privé)',
+      title: 'Collector email (private)',
       type: 'string',
       group: 'info',
     }),
     defineField({
       name: 'occasion',
-      title: 'Aanleiding (privé)',
+      title: 'Occasion (private)',
       type: 'string',
       group: 'info',
-      description: 'Bijv. "Art Rotterdam 2026", "Aanvraag via gallery", "Privébezichtiging"',
+      description: 'E.g. "Art Rotterdam 2026", "Request via gallery", "Private viewing"',
     }),
     defineField({
       name: 'notes',
-      title: 'Notities (privé)',
+      title: 'Notes (private)',
       type: 'text',
       rows: 3,
       group: 'info',
     }),
 
-    // ── Werken ────────────────────────────────────────────────────────────────
+    // ── Works ─────────────────────────────────────────────────────────────────
     defineField({
       name: 'artworks',
-      title: 'Geselecteerde werken',
+      title: 'Selected works',
       type: 'array',
       group: 'works',
       of: [
@@ -78,16 +78,16 @@ export const viewingRoom = defineType({
           fields: [
             defineField({
               name: 'artwork',
-              title: 'Werk',
+              title: 'Work',
               type: 'reference',
               to: [{ type: 'artwork' }],
               validation: (r) => r.required(),
             }),
             defineField({
               name: 'contextNote',
-              title: 'Toelichting voor deze ontvanger (privé)',
+              title: 'Note for this recipient (private)',
               type: 'string',
-              description: 'Bijv. "Past bij het interieur dat je beschreef"',
+              description: 'E.g. "Fits the interior you described"',
             }),
           ],
           preview: {
@@ -102,39 +102,39 @@ export const viewingRoom = defineType({
           },
         },
       ],
-      description: 'Sleep werken in de gewenste volgorde',
+      description: 'Drag works into the desired order',
     }),
 
-    // ── Toegang & Zichtbaarheid ───────────────────────────────────────────────
+    // ── Access & Visibility ───────────────────────────────────────────────────
     defineField({
       name: 'isPublished',
-      title: 'Actief (deelbare link werkt)',
+      title: 'Active (shareable link works)',
       type: 'boolean',
       group: 'access',
       initialValue: false,
-      description: 'Zet aan om de link te activeren',
+      description: 'Turn on to activate the link',
     }),
     defineField({
       name: 'password',
-      title: 'Toegangscode (optioneel)',
+      title: 'Access code (optional)',
       type: 'string',
       group: 'access',
-      description: 'Laat leeg voor een open (maar obscure) URL',
+      description: 'Leave empty for an open (but obscure) URL',
     }),
     defineField({
       name: 'expiresAt',
-      title: 'Verloopt op',
+      title: 'Expires on',
       type: 'datetime',
       group: 'access',
-      description: 'Optioneel: link verloopt automatisch na deze datum',
+      description: 'Optional: link expires automatically after this date',
     }),
     defineField({
       name: 'showPrices',
-      title: 'Prijzen tonen',
+      title: 'Show prices',
       type: 'boolean',
       group: 'access',
       initialValue: false,
-      description: 'Aan = prijs excl. BTW zichtbaar op de room-pagina',
+      description: 'On = price excl. VAT visible on the room page',
     }),
   ],
 
@@ -149,7 +149,7 @@ export const viewingRoom = defineType({
       const count = Array.isArray(works) ? works.length : 0
       return {
         title: title ?? '—',
-        subtitle: `${published ? 'Actief' : 'Concept'} — ${count} werk${count !== 1 ? 'en' : ''}${collector ? ` — ${collector}` : ''}`,
+        subtitle: `${published ? 'Active' : 'Draft'} — ${count} work${count !== 1 ? 's' : ''}${collector ? ` — ${collector}` : ''}`,
       }
     },
   },

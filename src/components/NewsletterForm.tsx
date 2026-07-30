@@ -3,7 +3,7 @@
 import { useState } from 'react'
 
 interface Props {
-  source?: string          // bijv. 'footer', 'innate-curiosity'
+  source?: string          // e.g. 'footer', 'innate-curiosity'
   placeholder?: string
   buttonText?: string
   className?: string
@@ -11,8 +11,8 @@ interface Props {
 
 export default function NewsletterForm({
   source = 'website',
-  placeholder = 'Je e-mailadres',
-  buttonText = 'Aanmelden',
+  placeholder = 'Your email address',
+  buttonText = 'Subscribe',
   className = '',
 }: Props) {
   const [email, setEmail] = useState('')
@@ -34,15 +34,15 @@ export default function NewsletterForm({
 
       if (res.ok) {
         setStatus('success')
-        setMessage(data.message ?? 'Je bent ingeschreven.')
+        setMessage(data.message ?? 'You\'re on the list.')
         setEmail('')
       } else {
         setStatus('error')
-        setMessage(data.error ?? 'Er ging iets mis.')
+        setMessage(data.error ?? 'Something went wrong.')
       }
     } catch {
       setStatus('error')
-      setMessage('Er ging iets mis. Probeer het later opnieuw.')
+      setMessage('Something went wrong. Please try again.')
     }
   }
 

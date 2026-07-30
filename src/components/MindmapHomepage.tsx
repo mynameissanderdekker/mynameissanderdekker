@@ -140,10 +140,14 @@ const RELATIONS: Record<string, Array<{ name: string; delay: number }>> = {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
+// Exact production CSS (mynameissanderdekker.com):
+// .node:nth-child(1) circle            { fill: #FF1F1F; opacity: .55; }
+// .node:nth-child(2), :nth-child(6)    { fill: #C63F3F; opacity: .50; }
+// .node:nth-child(3-5,7-9)             { fill: #D99A9A; opacity: .45; }
 function getCircleStyle(index: number): { fill: string; opacity: number } {
-  if (index === 0) return { fill: '#FF1F1F', opacity: 0.55 }
-  if (index === 1 || index === 5) return { fill: '#C63F3F', opacity: 0.50 }
-  return { fill: '#D99A9A', opacity: 0.45 }
+  if (index === 0)                    return { fill: '#FF1F1F', opacity: 0.55 }
+  if (index === 1 || index === 5)     return { fill: '#C63F3F', opacity: 0.50 }
+  return                                     { fill: '#D99A9A', opacity: 0.45 }
 }
 
 const BREATHE_DURATIONS = ['5s', '7s', '8s', '9s', '6.5s', '7.5s', '8.5s', '10s', '6s']
@@ -472,10 +476,12 @@ export default function MindmapHomepage() {
                       cy={y}
                       r={r}
                       fill={fill}
+                      fillOpacity={0.60}
                       opacity={opacity}
                       style={{
-                        animation: `${BREATHE_NAMES[index]} ${BREATHE_DURATIONS[index]} infinite cubic-bezier(0.37, 0, 0.63, 1)`,
-                      }}
+                        '--breathe-anim': BREATHE_NAMES[index],
+                        '--breathe-dur': BREATHE_DURATIONS[index],
+                      } as React.CSSProperties}
                     />
                     <SvgTitle item={item} isMobile={isMobile} />
                   </g>

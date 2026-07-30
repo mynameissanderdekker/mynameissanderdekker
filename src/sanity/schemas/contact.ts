@@ -8,15 +8,15 @@ export const contact = defineType({
   title: 'Contact',
   type: 'document',
   groups: [
-    { name: 'info',      title: 'Persoon',    default: true },
-    { name: 'history',   title: 'Geschiedenis' },
-    { name: 'email',     title: 'E-mail' },
+    { name: 'info',      title: 'Person',    default: true },
+    { name: 'history',   title: 'History' },
+    { name: 'email',     title: 'Email' },
   ],
   fields: [
-    // ── Persoon ───────────────────────────────────────────────────────────────
+    // ── Person ────────────────────────────────────────────────────────────────
     defineField({
       name: 'photo',
-      title: 'Foto',
+      title: 'Photo',
       type: 'image',
       group: 'info',
       options: { hotspot: true },
@@ -24,80 +24,80 @@ export const contact = defineType({
     }),
     defineField({
       name: 'firstName',
-      title: 'Voornaam',
+      title: 'First name',
       type: 'string',
       group: 'info',
       validation: (r) => r.required(),
     }),
     defineField({
       name: 'lastName',
-      title: 'Achternaam',
+      title: 'Last name',
       type: 'string',
       group: 'info',
     }),
     defineField({
       name: 'company',
-      title: 'Bedrijf / Galerie',
+      title: 'Company / Gallery',
       type: 'string',
       group: 'info',
     }),
     defineField({
       name: 'email',
-      title: 'E-mailadres',
+      title: 'Email address',
       type: 'string',
       group: 'info',
       validation: (r) => r.required().email(),
     }),
     defineField({
       name: 'phone',
-      title: 'Telefoon',
+      title: 'Phone',
       type: 'string',
       group: 'info',
     }),
     defineField({
       name: 'street',
-      title: 'Straat & huisnummer',
+      title: 'Street & number',
       type: 'string',
       group: 'info',
     }),
     defineField({
       name: 'postalCode',
-      title: 'Postcode',
+      title: 'Postal code',
       type: 'string',
       group: 'info',
     }),
     defineField({
       name: 'city',
-      title: 'Stad',
+      title: 'City',
       type: 'string',
       group: 'info',
     }),
     defineField({
       name: 'country',
-      title: 'Land',
+      title: 'Country',
       type: 'string',
       group: 'info',
-      description: 'ISO-landcode: NL, DE, FR, GB, US, BE, DK …',
+      description: 'ISO country code: NL, DE, FR, GB, US, BE, DK …',
       options: {
         list: [
-          { title: 'Nederland (NL)',              value: 'NL' },
-          { title: 'België (BE)',                  value: 'BE' },
-          { title: 'Duitsland (DE)',               value: 'DE' },
-          { title: 'Frankrijk (FR)',               value: 'FR' },
-          { title: 'Verenigd Koninkrijk (GB)',     value: 'GB' },
-          { title: 'Verenigde Staten (US)',        value: 'US' },
-          { title: 'Denemarken (DK)',              value: 'DK' },
-          { title: 'Oostenrijk (AT)',              value: 'AT' },
-          { title: 'Finland (FI)',                 value: 'FI' },
-          { title: 'Italië (IT)',                  value: 'IT' },
-          { title: 'Spanje (ES)',                  value: 'ES' },
-          { title: 'Zwitserland (CH)',             value: 'CH' },
-          { title: 'Australië (AU)',               value: 'AU' },
-          { title: 'Canada (CA)',                  value: 'CA' },
-          { title: 'Zweden (SE)',                  value: 'SE' },
-          { title: 'Noorwegen (NO)',               value: 'NO' },
-          { title: 'Portugal (PT)',                value: 'PT' },
-          { title: 'Japan (JP)',                   value: 'JP' },
+          { title: 'Netherlands (NL)',         value: 'NL' },
+          { title: 'Belgium (BE)',              value: 'BE' },
+          { title: 'Germany (DE)',              value: 'DE' },
+          { title: 'France (FR)',               value: 'FR' },
+          { title: 'United Kingdom (GB)',       value: 'GB' },
+          { title: 'United States (US)',        value: 'US' },
+          { title: 'Denmark (DK)',              value: 'DK' },
+          { title: 'Austria (AT)',              value: 'AT' },
+          { title: 'Finland (FI)',              value: 'FI' },
+          { title: 'Italy (IT)',                value: 'IT' },
+          { title: 'Spain (ES)',                value: 'ES' },
+          { title: 'Switzerland (CH)',          value: 'CH' },
+          { title: 'Australia (AU)',            value: 'AU' },
+          { title: 'Canada (CA)',               value: 'CA' },
+          { title: 'Sweden (SE)',               value: 'SE' },
+          { title: 'Norway (NO)',               value: 'NO' },
+          { title: 'Portugal (PT)',             value: 'PT' },
+          { title: 'Japan (JP)',                value: 'JP' },
         ],
       },
     }),
@@ -106,7 +106,7 @@ export const contact = defineType({
       title: 'Instagram',
       type: 'string',
       group: 'info',
-      description: 'Gebruikersnaam zonder @, bijv. "sanderdekker"',
+      description: 'Username without @, e.g. "sanderdekker"',
       components: { input: InstagramLink },
     }),
     defineField({
@@ -114,7 +114,7 @@ export const contact = defineType({
       title: 'Facebook',
       type: 'string',
       group: 'info',
-      description: 'Gebruikersnaam of volledige URL',
+      description: 'Username or full URL',
     }),
     defineField({
       name: 'website',
@@ -124,18 +124,18 @@ export const contact = defineType({
     }),
     defineField({
       name: 'type',
-      title: 'Type contact',
+      title: 'Contact type',
       type: 'string',
       group: 'info',
       options: {
         list: [
-          { title: 'Collector',       value: 'collector' },
-          { title: 'Webshop klant',   value: 'webshop_customer' },
-          { title: 'Gallery',         value: 'gallery' },
-          { title: 'Journalist',      value: 'journalist' },
-          { title: 'Kunstenaar',      value: 'artist' },
-          { title: 'Nieuwsbrief',     value: 'newsletter' },
-          { title: 'Anders',          value: 'other' },
+          { title: 'Collector',         value: 'collector' },
+          { title: 'Webshop customer',  value: 'webshop_customer' },
+          { title: 'Gallery',           value: 'gallery' },
+          { title: 'Journalist',        value: 'journalist' },
+          { title: 'Artist',            value: 'artist' },
+          { title: 'Newsletter',        value: 'newsletter' },
+          { title: 'Other',             value: 'other' },
         ],
         layout: 'radio',
       },
@@ -143,51 +143,51 @@ export const contact = defineType({
     }),
     defineField({
       name: 'notes',
-      title: 'Notities (privé)',
+      title: 'Notes (private)',
       type: 'text',
       rows: 3,
       group: 'info',
     }),
 
-    // ── E-mail voorkeuren ─────────────────────────────────────────────────────
+    // ── Email preferences ─────────────────────────────────────────────────────
     defineField({
       name: 'subscribed',
-      title: 'Ingeschreven voor nieuwsbrief',
+      title: 'Subscribed to newsletter',
       type: 'boolean',
       group: 'email',
       initialValue: true,
     }),
     defineField({
       name: 'subscribedAt',
-      title: 'Inschrijfdatum',
+      title: 'Subscription date',
       type: 'datetime',
       group: 'email',
     }),
     defineField({
       name: 'unsubscribedAt',
-      title: 'Uitschrijfdatum',
+      title: 'Unsubscription date',
       type: 'datetime',
       group: 'email',
     }),
     defineField({
       name: 'source',
-      title: 'Herkomst',
+      title: 'Source',
       type: 'string',
       group: 'email',
-      description: 'Bijv. "website signup", "Art Rotterdam 2026", "Handmatig toegevoegd"',
+      description: 'E.g. "website signup", "Art Rotterdam 2026", "Added manually"',
     }),
     defineField({
       name: 'interests',
-      title: 'Interesses',
+      title: 'Interests',
       type: 'array',
       group: 'email',
       of: [{ type: 'string' }],
       options: {
         list: [
-          { title: 'Fotografie',      value: 'photography' },
-          { title: 'Installaties',    value: 'installation' },
-          { title: 'Publicaties',     value: 'publications' },
-          { title: 'Exposities',      value: 'exhibitions' },
+          { title: 'Photography',     value: 'photography' },
+          { title: 'Installations',   value: 'installation' },
+          { title: 'Publications',    value: 'publications' },
+          { title: 'Exhibitions',     value: 'exhibitions' },
           { title: 'Art Fairs',       value: 'artfairs' },
           { title: 'Studio updates',  value: 'studio' },
         ],
@@ -195,33 +195,33 @@ export const contact = defineType({
       },
     }),
 
-    // ── Aankoopgeschiedenis ───────────────────────────────────────────────────
+    // ── Purchase history ──────────────────────────────────────────────────────
     defineField({
       name: 'purchases',
-      title: 'Gekochte werken',
+      title: 'Purchased works',
       type: 'array',
       group: 'history',
       components: { field: PurchasesTotalField },
-      description: 'Koppeling naar edition records — overzicht van wat deze collector heeft gekocht',
+      description: 'Links to edition records — overview of what this collector has purchased',
       of: [
         {
           type: 'object',
           fields: [
             defineField({
               name: 'artwork',
-              title: 'Werk',
+              title: 'Work',
               type: 'reference',
               to: [{ type: 'artwork' }],
             }),
             defineField({
               name: 'copyNumber',
-              title: 'Exemplaarnummer',
+              title: 'Copy number',
               type: 'string',
-              description: 'Het fysieke exemplaar, bijv. "3/7" of "AP 1/2"',
+              description: 'The physical copy, e.g. "3/7" or "AP 1/2"',
             }),
             defineField({
               name: 'soldVia',
-              title: 'Verkocht via',
+              title: 'Sold via',
               type: 'string',
               options: {
                 list: [
@@ -229,25 +229,25 @@ export const contact = defineType({
                   { title: 'Direct (studio)',   value: 'direct' },
                   { title: 'Gallery',           value: 'gallery' },
                   { title: 'Art Fair',          value: 'artfair' },
-                  { title: 'Anders',            value: 'other' },
+                  { title: 'Other',             value: 'other' },
                 ],
                 layout: 'radio',
               },
             }),
             defineField({
               name: 'editionNumber',
-              title: 'Bestellingsnummer',
+              title: 'Order number',
               type: 'string',
-              description: 'WooCommerce/Stripe referentie, bijv. "Order #9139"',
+              description: 'WooCommerce/Stripe reference, e.g. "Order #9139"',
             }),
             defineField({
               name: 'date',
-              title: 'Datum',
+              title: 'Date',
               type: 'date',
             }),
             defineField({
               name: 'price',
-              title: 'Verkoopprijs (excl. BTW)',
+              title: 'Sale price (excl. VAT)',
               type: 'number',
             }),
           ],
@@ -262,7 +262,7 @@ export const contact = defineType({
             prepare({ title, year, copy, via, date }) {
               const channel: Record<string, string> = {
                 webshop: 'Webshop', direct: 'Direct', gallery: 'Gallery',
-                artfair: 'Art Fair', other: 'Anders',
+                artfair: 'Art Fair', other: 'Other',
               }
               return {
                 title: `${title ?? '—'} (${year ?? '?'})`,
@@ -275,11 +275,11 @@ export const contact = defineType({
     }),
     defineField({
       name: 'viewingRooms',
-      title: 'Viewing Rooms ontvangen',
+      title: 'Viewing Rooms received',
       type: 'array',
       group: 'history',
       of: [{ type: 'reference', to: [{ type: 'viewingRoom' }] }],
-      description: 'Welke private selecties zijn naar deze persoon gestuurd',
+      description: 'Which private selections have been sent to this person',
     }),
   ],
 
@@ -296,11 +296,11 @@ export const contact = defineType({
     },
     prepare({ first, last, email, type, sub, city, country, media }) {
       const typeLabel: Record<string, string> = {
-        collector: 'Collector', webshop_customer: 'Webshop klant', gallery: 'Gallery',
-        journalist: 'Journalist', artist: 'Kunstenaar', newsletter: 'Nieuwsbrief', other: 'Anders',
+        collector: 'Collector', webshop_customer: 'Webshop customer', gallery: 'Gallery',
+        journalist: 'Journalist', artist: 'Artist', newsletter: 'Newsletter', other: 'Other',
       }
       const location = [city, country].filter(Boolean).join(', ')
-      const status = sub === false ? ' · Uitgeschreven' : ''
+      const status = sub === false ? ' · Unsubscribed' : ''
       return {
         title: [first, last].filter(Boolean).join(' ') || email || '—',
         subtitle: `${typeLabel[type] ?? type ?? ''}${location ? ` · ${location}` : ''}${status}`,

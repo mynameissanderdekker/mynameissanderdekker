@@ -7,6 +7,10 @@ const nextConfig = {
         hostname: 'mynameissanderdekker.com',
         pathname: '/wp-content/uploads/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'cdn.sanity.io',
+      },
     ],
   },
 }

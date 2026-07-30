@@ -53,10 +53,8 @@ export class ArtworkBuyers extends React.Component<FieldProps, State> {
           useCdn: false,
         })
       }
-      const result = await this.sanityClient.fetch<{
-        artwork: { editionTotal?: number; editionAP?: number } | null
-        buyers: Buyer[]
-      }>(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = await (this.sanityClient.fetch as any)(
         `{
           "artwork": *[_type == "artwork" && _id == $id][0]{ editionTotal, editionAP },
           "buyers": *[_type == "contact" && $id in purchases[].artwork._ref]{
@@ -126,7 +124,7 @@ export class ArtworkBuyers extends React.Component<FieldProps, State> {
                 <th style={{ padding: '4px 8px 6px 0', fontWeight: 600, color: '#555' }}>Naam</th>
                 <th style={{ padding: '4px 8px 6px', fontWeight: 600, color: '#555' }}>Exemplaar</th>
                 <th style={{ padding: '4px 8px 6px', fontWeight: 600, color: '#555' }}>Via</th>
-                <th style={{ padding: '4px 0 6px 8px', fontWeight: 600, color: '#555', textAlign: 'right' }}>Prijs</th>
+                <th style={{ padding: '4px 0 6px 8px', fontWeight: 600, color: '#555', textAlign: 'right' }}>Price</th>
               </tr>
             </thead>
             <tbody>

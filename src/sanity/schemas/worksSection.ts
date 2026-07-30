@@ -2,27 +2,27 @@ import { defineField, defineType } from 'sanity'
 
 export const worksSection = defineType({
   name: 'worksSection',
-  title: 'Webshop sectie',
+  title: 'Shop section',
   type: 'document',
   fields: [
     defineField({
       name: 'title',
-      title: 'Naam',
+      title: 'Name',
       type: 'string',
       validation: (r) => r.required(),
     }),
     defineField({
       name: 'order',
-      title: 'Volgorde',
+      title: 'Order',
       type: 'number',
-      description: 'Lager getal = eerder in de shop. Bijv. 1, 2, 3 ...',
+      description: 'Lower number = earlier in the shop. E.g. 1, 2, 3 ...',
       validation: (r) => r.required().integer().min(1),
     }),
   ],
   orderings: [
     {
       name: 'byOrder',
-      title: 'Volgorde',
+      title: 'Order',
       by: [{ field: 'order', direction: 'asc' }],
     },
   ],
@@ -31,7 +31,7 @@ export const worksSection = defineType({
     prepare({ title, order }) {
       return {
         title: title ?? '—',
-        subtitle: order != null ? `Positie ${order}` : 'Geen volgorde',
+        subtitle: order != null ? `Position ${order}` : 'No order set',
       }
     },
   },

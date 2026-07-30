@@ -10,16 +10,16 @@ export const artwork = defineType({
   title: 'Artwork',
   type: 'document',
   groups: [
-    { name: 'info',       title: 'Informatie',      default: true },
-    { name: 'edition',    title: 'Editie & Verkoop' },
+    { name: 'info',       title: 'Info',            default: true },
+    { name: 'edition',    title: 'Edition & Sales' },
     { name: 'context',    title: 'Context' },
     { name: 'visibility', title: 'Webshop' },
   ],
   fields: [
-    // ── Informatie ────────────────────────────────────────────────────────────
+    // ── Info ──────────────────────────────────────────────────────────────────
     defineField({
       name: 'title',
-      title: 'Titel',
+      title: 'Title',
       type: 'string',
       group: 'info',
       validation: (r) => r.required(),
@@ -34,14 +34,14 @@ export const artwork = defineType({
     }),
     defineField({
       name: 'category',
-      title: 'Categorie',
+      title: 'Category',
       type: 'string',
       group: 'info',
       components: { input: CategoryInput },
     }),
     defineField({
       name: 'year',
-      title: 'Jaar',
+      title: 'Year',
       type: 'number',
       group: 'info',
       validation: (r) => r.required().min(1900).max(2100),
@@ -51,19 +51,27 @@ export const artwork = defineType({
       title: 'Medium',
       type: 'string',
       group: 'info',
-      description: 'Bijv. "Lambda print op dibond, ingelijst"',
+      description: 'E.g. "Lambda print on dibond, framed"',
     }),
     defineField({
       name: 'dimensions',
-      title: 'Afmetingen (cm)',
+      title: 'Dimensions (cm)',
       type: 'object',
       group: 'info',
       components: { input: CompactDimensions },
       fields: [
-        defineField({ name: 'widthCm',  title: 'Breedte', type: 'number' }),
-        defineField({ name: 'heightCm', title: 'Hoogte',  type: 'number' }),
-        defineField({ name: 'depthCm',  title: 'Diepte',  type: 'number' }),
+        defineField({ name: 'widthCm',  title: 'Width',  type: 'number' }),
+        defineField({ name: 'heightCm', title: 'Height', type: 'number' }),
+        defineField({ name: 'depthCm',  title: 'Depth',  type: 'number' }),
       ],
+    }),
+    defineField({
+      name: 'dimensionsExclFrame',
+      title: 'Excl. frame',
+      type: 'boolean',
+      group: 'info',
+      description: 'Show "excl. frame" after the dimensions on the product page.',
+      initialValue: false,
     }),
     defineField({
       name: 'qrCode',
@@ -78,7 +86,7 @@ export const artwork = defineType({
       title: 'ISBN',
       type: 'string',
       group: 'info',
-      description: 'Alleen voor boeken/publicaties — bijv. 978-90-123456-7-8',
+      description: 'For books/publications only — e.g. 978-90-123456-7-8',
       hidden: ({ document }) => {
         const cat = ((document?.category as string) ?? '').toLowerCase()
         return !cat.includes('book') && !cat.includes('publicat')
@@ -86,55 +94,62 @@ export const artwork = defineType({
     }),
     defineField({
       name: 'weightKg',
-      title: 'Gewicht (kg)',
+      title: 'Weight (kg)',
       type: 'number',
       group: 'info',
-      description: 'Voor verzendkostenberekening',
+      description: 'Used for shipping cost calculation',
     }),
     defineField({
       name: 'description',
-      title: 'Beschrijving',
+      title: 'Description',
       type: 'array',
       group: 'info',
       of: [{ type: 'block' }],
     }),
     defineField({
       name: 'images',
-      title: 'Afbeeldingen',
+      title: 'Images',
       type: 'array',
       group: 'info',
       of: [{ type: 'image', options: { hotspot: true } }],
-      description: 'Eerste afbeelding = hoofdfoto',
+      description: 'First image = main photo',
+    }),
+    defineField({
+      name: 'coverImageUrl',
+      title: 'Cover image URL (fallback)',
+      type: 'url',
+      group: 'info',
+      description: 'External URL — used as cover when no Sanity image is uploaded yet',
     }),
 
-    // ── Editie & Verkoop ──────────────────────────────────────────────────────
+    // ── Edition & Sales ───────────────────────────────────────────────────────
     defineField({
       name: 'editionTotal',
-      title: 'Editie totaal',
+      title: 'Edition total',
       type: 'number',
       group: 'edition',
-      description: 'Bijv. 7 (voor een editie van 7 + 2 AP)',
+      description: 'E.g. 7 (for an edition of 7 + 2 AP)',
     }),
     defineField({
       name: 'editionAP',
       title: 'Artist Proofs (AP)',
       type: 'number',
       group: 'edition',
-      description: 'Bijv. 2',
+      description: 'E.g. 2',
       initialValue: 0,
     }),
     defineField({
       name: 'priceExclVAT',
-      title: 'Prijs (excl. BTW)',
+      title: 'Price (excl. VAT)',
       type: 'number',
       group: 'edition',
     }),
     defineField({
       name: 'vatRate',
-      title: 'BTW percentage',
+      title: 'VAT rate',
       type: 'number',
       group: 'edition',
-      description: 'Bijv. 9 of 21',
+      description: 'E.g. 9 or 21',
       options: {
         list: [
           { title: '9%', value: 9 },
@@ -143,6 +158,56 @@ export const artwork = defineType({
         ],
       },
       initialValue: 9,
+    }),
+    defineField({
+      name: 'options',
+      title: 'Purchase options (variants)',
+      type: 'array',
+      group: 'edition',
+      description: 'Optional — use when this artwork is sold in multiple variants (e.g. "1 roll" vs "2 rolls"), each with its own price. When set, these replace the single price above on the site and the buyer picks one before buying.',
+      of: [
+        defineField({
+          name: 'artworkOption',
+          title: 'Option',
+          type: 'object',
+          fields: [
+            defineField({
+              name: 'label',
+              title: 'Label',
+              type: 'string',
+              description: 'E.g. "1 roll" or "2 rolls (different prints)"',
+              validation: (r) => r.required(),
+            }),
+            defineField({
+              name: 'sku',
+              title: 'SKU / code',
+              type: 'string',
+              description: 'E.g. WD-70600-1',
+            }),
+            defineField({
+              name: 'priceExclVAT',
+              title: 'Price (excl. VAT)',
+              type: 'number',
+              validation: (r) => r.required(),
+            }),
+            defineField({
+              name: 'buyUrl',
+              title: 'Buy link (optional override)',
+              type: 'url',
+              description: 'Leave empty to use the artwork\'s main buy link',
+            }),
+          ],
+          preview: {
+            select: { label: 'label', price: 'priceExclVAT', sku: 'sku' },
+            prepare({ label, price, sku }) {
+              return {
+                title: label ?? '—',
+                subtitle: [sku, price != null ? `€${price}` : null].filter(Boolean).join(' — '),
+              }
+            },
+          },
+        }),
+      ],
     }),
     defineField({
       name: 'status',
@@ -163,23 +228,24 @@ export const artwork = defineType({
     }),
     defineField({
       name: 'additionalStatusInfo',
-      title: 'Extra statusinformatie (privé)',
+      title: 'Additional status info (private)',
       type: 'string',
       group: 'edition',
-      description: 'Bijv. "Verkocht aan museum X" — nooit zichtbaar op de site',
+      description: 'E.g. "Sold to museum X" — never visible on the site',
     }),
     defineField({
       name: 'buyers',
-      title: 'Kopers',
+      title: 'Buyers',
       type: 'string',
       group: 'edition',
-      components: { input: ArtworkBuyers },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      components: { input: ArtworkBuyers as any },
     }),
 
     // ── Context ───────────────────────────────────────────────────────────────
     defineField({
       name: 'exhibitions',
-      title: 'Exposities',
+      title: 'Exhibitions',
       type: 'array',
       group: 'context',
       of: [{ type: 'reference', to: [{ type: 'exhibition' }] }],
@@ -193,13 +259,12 @@ export const artwork = defineType({
     }),
 
     // ── Webshop ───────────────────────────────────────────────────────────────
-    // Volgorde: Sell in webshop → View on wall → Uitgelicht → PNG → Afmetingen → Koop-link
     defineField({
       name: 'showInWebshop',
       title: 'Sell in webshop',
       type: 'boolean',
       group: 'visibility',
-      description: 'Aan = "Buy" knop (winkelmandje). Uit = "Enquire" knop (contactformulier).',
+      description: 'On = "Buy" button (shopping cart). Off = "Enquire" button (contact form).',
       initialValue: false,
     }),
     defineField({
@@ -207,41 +272,48 @@ export const artwork = defineType({
       title: 'View on wall',
       type: 'boolean',
       group: 'visibility',
-      description: 'Toon de "View on wall" knop op de artwork pagina.',
+      description: 'Show the "View on wall" button on the artwork page.',
       initialValue: false,
     }),
     defineField({
       name: 'featured',
-      title: 'Uitgelicht (op webshop)',
+      title: 'Featured (in webshop)',
       type: 'boolean',
       group: 'visibility',
       initialValue: false,
     }),
     defineField({
+      name: 'order',
+      title: 'Sort order (in webshop)',
+      type: 'number',
+      group: 'visibility',
+      description: 'Lower number = higher in the section. Leave empty to fall back to year.',
+    }),
+    defineField({
       name: 'roomImage',
-      title: 'View on wall — PNG uitsnede',
+      title: 'View on wall — cutout',
       type: 'image',
       group: 'visibility',
-      description: 'Upload een PNG van het werk (incl. lijst/passe-partout) zónder achtergrond. Snij de afbeelding strak rondom het werk — geen vrije ruimte of witruimte buiten de rand.',
-      options: { accept: 'image/png' },
+      description: 'Upload a PNG (transparent background) or JPG (tightly cropped, no empty space outside the edges) of the work incl. frame and passe-partout.',
+      options: { accept: 'image/png,image/jpeg' },
     }),
     defineField({
       name: 'framedDimensions',
-      title: 'Afmetingen incl. lijst/passe-partout (cm)',
+      title: 'Framed dimensions (cm)',
       type: 'object',
       group: 'visibility',
-      description: 'Voor "View on wall" — buitenmaat incl. lijst en passe-partout.',
+      description: 'For "View on wall" — outer size incl. frame and passe-partout.',
       components: { input: CompactDimensions },
       fields: [
-        defineField({ name: 'widthCm', title: 'Breedte', type: 'number' }),
+        defineField({ name: 'widthCm', title: 'Width', type: 'number' }),
       ],
     }),
     defineField({
       name: 'buyUrl',
-      title: 'Koop-link',
+      title: 'Buy link',
       type: 'url',
       group: 'visibility',
-      description: 'Directe betaallink (Mollie, Stripe, etc.) — verschijnt als "Buy" knop wanneer status "Available" is',
+      description: 'Direct payment link (Mollie, Stripe, etc.) — shown as "Buy" button when status is "Available"',
     }),
   ],
 

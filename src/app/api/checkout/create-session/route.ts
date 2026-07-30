@@ -35,6 +35,11 @@ export async function POST(req: NextRequest) {
       cancel_url: `${BASE_URL}/cart`,
       metadata: {
         items: JSON.stringify(items.map((i: { title: string }) => i.title)),
+        itemsJson: JSON.stringify(items.map((i: { title: string; priceIncl: number }) => ({
+          title: i.title,
+          price: i.priceIncl,
+          quantity: 1,
+        }))),
       },
     })
 

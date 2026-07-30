@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { Resend } from 'resend'
 import { createClient } from '@sanity/client'
+import { syncToMailchimp } from '@/lib/mailchimp'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 const resend  = new Resend(process.env.RESEND_API_KEY)
@@ -90,6 +91,53 @@ export async function POST(req: NextRequest) {
       // Ga door met emails, ook als Sanity faalt
     }
 
+    // ── Sync koper naar Sanity contacten + Mailchimp ─────────────────────
+    if (email) {
+      try {
+        const nameParts = name.trim().split(' ')
+        const firstName = nameParts[0] ?? ''
+        const lastName  = nameParts.slice(1).join(' ') || undefined
+        const country   = shipping?.country ?? undefined
+
+        // Check of contact al bestaat
+        const existing = await sanity.fetch<{ _id: string } | null>(
+          `*[_type == "contact" && email == $email][0]{ _id }`,
+          { email }
+        )
+
+        if (existing) {
+          // Voeg type "webshop_customer" toe als het nog niet zo is
+          await sanity.patch(existing._id).setIfMissing({ type: 'webshop_customer' }).commit()
+        } else {
+          // Nieuw contact aanmaken
+          await sanity.create({
+            _type:     'contact',
+            firstName,
+            lastName,
+            email,
+            phone:     phone || undefined,
+            country,
+            type:      'webshop_customer',
+            subscribed: true,
+            subscribedAt: new Date().toISOString(),
+            source:    `webshop — ${orderNumber}`,
+          })
+        }
+
+        // Sync naar Mailchimp
+        await syncToMailchimp({
+          email,
+          firstName,
+          lastName,
+          type:      'webshop_customer',
+          country,
+          subscribed: true,
+        })
+      } catch (err) {
+        console.error('[webhook] contact/mailchimp sync mislukt:', err)
+      }
+    }
+
     // ── Bevestigingsmail naar koper ───────────────────────────────────────
     if (email) {
       const itemRows = parsedItems
@@ -99,18 +147,18 @@ export async function POST(req: NextRequest) {
       await resend.emails.send({
         from: FROM,
         to:   email,
-        subject: 'Bedankt voor je bestelling — Sander Dekker',
+        subject: 'Thank you for your order — Sander Dekker',
         html: `
           <div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#111">
-            <p>Dag ${name},</p>
-            <p>Bedankt voor je bestelling!</p>
+            <p>Dear ${name},</p>
+            <p>Thank you for your order!</p>
             <table style="width:100%;border-collapse:collapse;margin:20px 0">
               ${itemRows}
-              <tr><td style="padding:10px 0;font-weight:bold">Totaal</td><td style="padding:10px 0;text-align:right;font-weight:bold">€${total.toFixed(2)}</td></tr>
+              <tr><td style="padding:10px 0;font-weight:bold">Total</td><td style="padding:10px 0;text-align:right;font-weight:bold">€${total.toFixed(2)}</td></tr>
             </table>
-            ${shipping ? `<p style="color:#666;font-size:13px">Bezorgadres: ${shipping.line1}, ${shipping.postal_code} ${shipping.city}, ${shipping.country}</p>` : ''}
-            <p style="margin-top:28px">Ik neem zo snel mogelijk contact op over de verzending.</p>
-            <p>Met vriendelijke groet,<br>Sander Dekker</p>
+            ${shipping ? `<p style="color:#666;font-size:13px">Shipping address: ${shipping.line1}, ${shipping.postal_code} ${shipping.city}, ${shipping.country}</p>` : ''}
+            <p style="margin-top:28px">I will be in touch as soon as possible regarding shipment.</p>
+            <p>Kind regards,<br>Sander Dekker</p>
           </div>
         `,
       }).catch(console.error)

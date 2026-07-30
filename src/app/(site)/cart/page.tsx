@@ -53,6 +53,9 @@ export default function CartPage() {
               >
                 {item.title}
               </Link>
+              {item.variantLabel && (
+                <p className="text-xs text-gray-400 mt-0.5">{item.variantLabel}</p>
+              )}
               <p className="text-sm text-gray-500 mt-1">{formatPrice(item.priceIncl)} incl. BTW</p>
             </div>
 

@@ -65,6 +65,13 @@ export const order = defineType({
     }),
     defineField({ name: 'shippedAt',          title: 'Shipped at',                type: 'datetime' }),
     defineField({ name: 'shippingEmailSentAt', title: 'Shipping email sent at',   type: 'datetime', readOnly: true, hidden: true }),
+    // ── Invoice ───────────────────────────────────────────────────────────────
+    defineField({ name: 'invoiceNumber', title: 'Invoice number', type: 'string', readOnly: true }),
+    defineField({
+      name: 'invoicePdf', title: 'Invoice PDF', type: 'file',
+      options: { accept: 'application/pdf' },
+      readOnly: true,
+    }),
     // ── Status history ─────────────────────────────────────────────────────
     defineField({
       name: 'statusHistory', title: 'Status history', type: 'array', readOnly: true,
