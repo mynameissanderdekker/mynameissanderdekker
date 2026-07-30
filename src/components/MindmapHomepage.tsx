@@ -38,7 +38,7 @@ interface PanelContent {
 const MAP_ITEMS: MapItem[] = [
   {
     title: 'The Social Media Project',
-    image: 'https://mynameissanderdekker.com/wp-content/uploads/2021/09/image-2.jpeg',
+    image: 'https://cdn.sanity.io/images/u11u127q/production/1f4655b7aebacc40ff292fbae0781428bc1899d7-1250x1000.jpg',
     text: 'A stranger online. A saved profile. A message, a plane ticket, a knock on the door. What happened next was never planned — and that was exactly the point.',
     cta: 'Discover the project',
     url: '/projects/the-social-media-project/',
@@ -48,7 +48,7 @@ const MAP_ITEMS: MapItem[] = [
   {
     title: 'TenFifteen — The Social Landscape',
     displayTitle: 'The Social Landscape (TenFifteen)',
-    image: 'https://mynameissanderdekker.com/wp-content/uploads/2021/09/image-8.jpeg',
+    image: 'https://cdn.sanity.io/images/u11u127q/production/1f4655b7aebacc40ff292fbae0781428bc1899d7-1250x1000.jpg',
     text: 'A wall of photographs, each ten by fifteen centimetres — hence the name. Intimate and personal up close. Overwhelming together — like the endless stream of images we scroll through every day.',
     cta: 'Discover the project',
     url: '/projects/tenfifteen/',
@@ -57,7 +57,7 @@ const MAP_ITEMS: MapItem[] = [
   },
   {
     title: '#fun',
-    image: 'https://mynameissanderdekker.com/wp-content/uploads/2026/07/sander-dekker-fun-001.jpg',
+    image: 'https://cdn.sanity.io/images/u11u127q/production/1f4655b7aebacc40ff292fbae0781428bc1899d7-1250x1000.jpg',
     text: "The moment a camera appears, something switches. Smiles widen, poses form, joy becomes demonstrable. It happens almost automatically — a Pavlovian reflex so ingrained that most people don't notice they're doing it. Dekker notices. And stays put.",
     cta: 'Discover the project',
     url: '/projects/fun/',
@@ -66,7 +66,7 @@ const MAP_ITEMS: MapItem[] = [
   },
   {
     title: 'Innate Curiosity',
-    image: 'https://mynameissanderdekker.com/wp-content/uploads/2026/07/DSC02796.jpg',
+    image: 'https://cdn.sanity.io/images/u11u127q/production/54e72a792f88d41a82b0e630b5aed42500b43c07-1000x1250.jpg',
     text: 'Innate Curiosity sits at the heart of what came before — the impulse to seek, to wonder, to find things out for yourself. Before the algorithm decided what you were curious about, curiosity was something you had to act on.',
     cta: 'Discover the project',
     url: '/projects/innate-curiosity/',
@@ -75,7 +75,7 @@ const MAP_ITEMS: MapItem[] = [
   },
   {
     title: 'It Is Us',
-    image: 'https://mynameissanderdekker.com/wp-content/uploads/2026/01/Use.jpg',
+    image: 'https://cdn.sanity.io/images/u11u127q/production/1f4655b7aebacc40ff292fbae0781428bc1899d7-1250x1000.jpg',
     text: 'A scar. A birthmark. A body part usually kept hidden. Strangers photograph themselves anonymously, and together their images form something unexpected — collective, human and quietly funny.',
     cta: 'Discover the project',
     url: '/projects/it-is-us/',
@@ -84,7 +84,7 @@ const MAP_ITEMS: MapItem[] = [
   },
   {
     title: 'The Zine Project',
-    image: 'https://mynameissanderdekker.com/wp-content/uploads/2026/04/02.jpg',
+    image: 'https://cdn.sanity.io/images/u11u127q/production/eeb6a3a91cbb48efaa280d0fd519682717f37cd8-1400x788.jpg',
     text: 'Ten handmade zines. Four years. Each one a deep dive into a single person, place or theme — from intimate portraits to projects rooted in social urgency. All sold out within minutes of release.',
     cta: 'Discover the project',
     url: '/projects/the-zine-project/',
@@ -94,7 +94,7 @@ const MAP_ITEMS: MapItem[] = [
   {
     title: 'Zine No2 Girls in Paris',
     panelTitle: 'Zine Nº.2 - Girls in Paris',
-    image: 'https://mynameissanderdekker.com/wp-content/uploads/2026/05/Zine-N02-Girls-in-Paris-1.jpg',
+    image: 'https://cdn.sanity.io/images/u11u127q/production/027d70e5bee02b252c7b57736d3067dedbec2cc4-640x640.jpg',
     text: "Eight women living in Paris, each navigating freedom, self-expression and sexuality on her own terms. The gap between France's progressive image and everyday reality turns out to be wider than expected.",
     cta: 'Read the zine',
     url: '/projects/girls-in-paris/',
@@ -104,7 +104,7 @@ const MAP_ITEMS: MapItem[] = [
   {
     title: 'Zine No9 A.S.I.A.',
     panelTitle: 'Zine Nº.9 - A.S.I.A.',
-    image: 'https://mynameissanderdekker.com/wp-content/uploads/2026/05/Zine-N09-ASIA-1-1.jpg',
+    image: 'https://cdn.sanity.io/images/u11u127q/production/1f4655b7aebacc40ff292fbae0781428bc1899d7-1250x1000.jpg',
     text: 'Amsterdam has a reputation for tolerance. But even here, racism against people of Asian descent is a quiet, persistent reality. Seven individuals push back — simply by being fully, visibly themselves.',
     cta: 'Read the zine',
     url: '/projects/asia/',
@@ -114,7 +114,7 @@ const MAP_ITEMS: MapItem[] = [
   {
     title: 'Zine No8 Warsaw SAGA',
     panelTitle: 'Zine Nº.8 - The Warsaw SAGA',
-    image: 'https://mynameissanderdekker.com/wp-content/uploads/2026/05/Zine-N08-The-Warsaw-SAGA-1-1.jpg',
+    image: 'https://cdn.sanity.io/images/u11u127q/production/5d17de3ee13d4bb5eccbeb7f7daad4c049bb7de5-640x640.jpg',
     text: 'Poland has been named the worst country in the EU for LGBTQ+ individuals. Dekker went to Warsaw to meet the people who stay true to themselves anyway — and found joy, resilience and liberation.',
     cta: 'Read the zine',
     url: '/projects/warsaw-saga/',
@@ -397,7 +397,7 @@ export default function MindmapHomepage() {
       </div>
       <div id="mm-mobile-avatar">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="https://mynameissanderdekker.com/wp-content/uploads/2026/03/Studio-visit-1-1.png" alt="Sander Dekker" />
+        <img src="https://cdn.sanity.io/images/u11u127q/production/31daff9981d6c25932a8d070793185a21f25d12b-557x557.png" alt="Sander Dekker" />
       </div>
 
       {/* Layout */}
@@ -410,7 +410,7 @@ export default function MindmapHomepage() {
             <p style={{ marginTop: 12, fontStyle: 'italic' }}><strong>Hover to explore.</strong></p>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="https://mynameissanderdekker.com/wp-content/uploads/2026/03/Studio-visit-1-1.png"
+              src="https://cdn.sanity.io/images/u11u127q/production/31daff9981d6c25932a8d070793185a21f25d12b-557x557.png"
               alt="Sander Dekker"
               style={{ width: '100%', marginTop: 20 }}
             />
