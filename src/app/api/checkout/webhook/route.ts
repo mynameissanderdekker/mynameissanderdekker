@@ -103,6 +103,14 @@ export async function POST(req: NextRequest) {
           { email }
         )
 
+        // Full address for the contact
+        const contactAddress = shipping ? {
+          street:     [shipping.line1, shipping.line2].filter(Boolean).join(' ') || undefined,
+          postalCode: shipping.postal_code || undefined,
+          city:       shipping.city || undefined,
+          country:    shipping.country || undefined,
+        } : {}
+
         let contactId: string
         if (existing) {
           await sanity.patch(existing._id)
@@ -111,6 +119,7 @@ export async function POST(req: NextRequest) {
               ...(companyName ? { companyName } : {}),
               ...(vatNumber   ? { vatNumber }   : {}),
               ...(newsletterOptIn ? { subscribed: true } : {}),
+              ...contactAddress,
             })
             .commit()
           contactId = existing._id
@@ -121,36 +130,46 @@ export async function POST(req: NextRequest) {
             lastName,
             email,
             phone:       phone || undefined,
-            country,
             companyName: companyName,
             vatNumber:   vatNumber,
             type:        'webshop_customer',
             subscribed:  newsletterOptIn,
             ...(newsletterOptIn ? { subscribedAt: new Date().toISOString() } : {}),
             source:      `webshop — ${orderNumber}`,
+            ...contactAddress,
           })
           contactId = created._id
         }
 
         // Voeg aankopen toe aan het contact + markeer artwork als sold_out
-        const purchaseEntries = parsedItems
+        // Normalize artworkId: strip 'drafts.' prefix if present
+        const artworkItems = parsedItems
+          .map(i => ({ ...i, artworkId: i.artworkId?.replace(/^drafts\./, '') ?? null }))
           .filter(i => i.artworkId)
-          .map(i => ({
-            _key:          crypto.randomUUID(),
-            _type:         'object',
-            artwork:       { _type: 'reference', _ref: i.artworkId! },
-            soldVia:       'webshop',
-            editionNumber: orderNumber,
-            price:         i.price,
-          }))
+
+        console.log('[webhook] artworkItems:', JSON.stringify(artworkItems))
+
+        const purchaseEntries = artworkItems.map(i => ({
+          _key:          crypto.randomUUID(),
+          artwork:       { _type: 'reference', _ref: i.artworkId! },
+          soldVia:       'webshop',
+          editionNumber: orderNumber,
+          price:         i.price,
+        }))
 
         if (purchaseEntries.length > 0) {
-          await sanity.patch(contactId).append('purchases', purchaseEntries).commit()
+          await sanity.patch(contactId).setIfMissing({ purchases: [] }).append('purchases', purchaseEntries).commit()
+            .then(() => console.log('[webhook] purchases bijgeschreven voor contact', contactId))
+            .catch(err => console.error('[webhook] purchases append mislukt:', err))
 
           // Markeer elk artwork als sold_out
-          for (const item of parsedItems.filter(i => i.artworkId)) {
+          for (const item of artworkItems) {
             await sanity.patch(item.artworkId!).set({ status: 'sold_out' }).commit()
+              .then(() => console.log('[webhook] artwork sold_out:', item.artworkId))
+              .catch(err => console.error('[webhook] artwork status update mislukt:', err))
           }
+        } else {
+          console.log('[webhook] geen artworkIds gevonden in parsedItems:', JSON.stringify(parsedItems))
         }
 
         // Sync naar Mailchimp (alleen als opt-in)
