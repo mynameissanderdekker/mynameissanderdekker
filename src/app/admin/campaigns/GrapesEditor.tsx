@@ -1,6 +1,5 @@
 'use client'
 import { useEffect, useRef } from 'react'
-import 'grapesjs/dist/css/grapes.min.css'
 
 const LIGHT_OVERRIDES = `
   /* ── Blocks panel ── */

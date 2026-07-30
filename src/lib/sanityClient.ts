@@ -10,7 +10,7 @@ function getClient(apiVersion: string, useCdn: boolean, withToken: boolean): San
       projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!,
       dataset: process.env.NEXT_PUBLIC_SANITY_DATASET!,
       apiVersion,
-      token: withToken ? process.env.SANITY_WRITE_TOKEN : undefined,
+      token: withToken ? (process.env.SANITY_API_WRITE_TOKEN ?? process.env.SANITY_WRITE_TOKEN) : undefined,
       useCdn,
     })
     clients.set(key, client)
