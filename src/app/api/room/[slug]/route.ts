@@ -1,13 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@sanity/client'
-
-const sanity = createClient({
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!,
-  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET!,
-  apiVersion: '2026-07-24',
-  token: process.env.SANITY_WRITE_TOKEN,
-  useCdn: false,
-})
+import { getSanityWriteClient } from '@/lib/sanityClient'
 
 const QUERY = `
   *[_type == "viewingRoom" && slug.current == $slug][0] {
@@ -47,6 +39,7 @@ export async function GET(
   const passwordAttempt = req.nextUrl.searchParams.get('password')
 
   try {
+    const sanity = getSanityWriteClient('2026-07-24')
     const room = await sanity.fetch(QUERY, { slug })
 
     if (!room) {

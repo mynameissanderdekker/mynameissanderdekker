@@ -2,17 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import type Stripe from 'stripe'
 import { getStripeClient } from '@/lib/stripe'
 import { getResendClient } from '@/lib/resend'
-import { createClient } from '@sanity/client'
+import { getSanityWriteClient } from '@/lib/sanityClient'
 import { syncToMailchimp } from '@/lib/mailchimp'
 const FROM    = 'Sander Dekker <hello@mynameissanderdekker.com>'
-
-const sanity = createClient({
-  projectId:  process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!,
-  dataset:    process.env.NEXT_PUBLIC_SANITY_DATASET!,
-  apiVersion: '2024-01-01',
-  token:      process.env.SANITY_WRITE_TOKEN,
-  useCdn:     false,
-})
 
 function buildStatusEntry(status: string, note?: string) {
   return {
@@ -27,6 +19,7 @@ function buildStatusEntry(status: string, note?: string) {
 
 export async function POST(req: NextRequest) {
   const resend = getResendClient()
+  const sanity = getSanityWriteClient()
   const body = await req.text()
   const sig  = req.headers.get('stripe-signature')!
 

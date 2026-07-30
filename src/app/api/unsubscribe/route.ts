@@ -7,17 +7,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@sanity/client'
-
-const sanity = createClient({
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!,
-  dataset:   process.env.NEXT_PUBLIC_SANITY_DATASET!,
-  apiVersion: '2024-01-01',
-  token:     process.env.SANITY_WRITE_TOKEN,
-  useCdn:    false,
-})
+import { getSanityWriteClient } from '@/lib/sanityClient'
 
 export async function GET(req: NextRequest) {
+  const sanity = getSanityWriteClient()
   const token = req.nextUrl.searchParams.get('token')
 
   if (!token) {

@@ -1,13 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@sanity/client'
-
-const sanity = createClient({
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!,
-  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET!,
-  apiVersion: '2024-01-01',
-  token: process.env.SANITY_WRITE_TOKEN,
-  useCdn: false,
-})
+import { getSanityWriteClient } from '@/lib/sanityClient'
 
 export async function GET(req: NextRequest) {
   const email = req.nextUrl.searchParams.get('email')
@@ -16,6 +8,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
+    const sanity = getSanityWriteClient()
     const contact = await sanity.fetch(
       `*[_type == "contact" && email == $email][0]{ _id }`,
       { email }

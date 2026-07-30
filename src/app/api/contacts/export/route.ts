@@ -6,16 +6,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@sanity/client'
+import { getSanityWriteClient } from '@/lib/sanityClient'
 import { SEGMENTS } from '@/sanity/schemas/campaign'
-
-const sanity = createClient({
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!,
-  dataset:   process.env.NEXT_PUBLIC_SANITY_DATASET!,
-  apiVersion: '2024-01-01',
-  token:     process.env.SANITY_WRITE_TOKEN,
-  useCdn:    false,
-})
 
 interface Contact {
   _id: string
@@ -50,6 +42,7 @@ function toCsv(contacts: Contact[]): string {
 }
 
 export async function GET(req: NextRequest) {
+  const sanity = getSanityWriteClient()
   // ── Auth ──────────────────────────────────────────────────────────────────
   const auth = req.headers.get('authorization')
   if (auth !== `Bearer ${process.env.SANITY_WRITE_TOKEN}`) {

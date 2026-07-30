@@ -9,18 +9,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@sanity/client'
+import { getSanityWriteClient } from '@/lib/sanityClient'
 import { syncToMailchimp } from '@/lib/mailchimp'
 
-const sanity = createClient({
-  projectId:  process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!,
-  dataset:    process.env.NEXT_PUBLIC_SANITY_DATASET!,
-  apiVersion: '2024-01-01',
-  token:      process.env.SANITY_WRITE_TOKEN,
-  useCdn:     false,
-})
-
 export async function POST(req: NextRequest) {
+  const sanity = getSanityWriteClient()
   let body: { email?: string; firstName?: string; lastName?: string; turnstileToken?: string }
   try {
     body = await req.json()

@@ -9,16 +9,8 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getResendClient } from '@/lib/resend'
-import { createClient } from '@sanity/client'
+import { getSanityWriteClient } from '@/lib/sanityClient'
 import { buildPressEmail } from '@/lib/pressEmailTemplate'
-
-const sanity = createClient({
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!,
-  dataset:   process.env.NEXT_PUBLIC_SANITY_DATASET!,
-  apiVersion: '2024-01-01',
-  token:     process.env.SANITY_WRITE_TOKEN,
-  useCdn:    false,
-})
 
 const FROM     = 'Sander Dekker Studio <studio@mynameissanderdekker.com>'
 const SITE     = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://mynameissanderdekker.com'
@@ -38,6 +30,7 @@ function formatDate(d?: string) {
 
 export async function POST(req: NextRequest) {
   const resend = getResendClient()
+  const sanity = getSanityWriteClient()
   const auth = req.headers.get('authorization')
   if (auth !== `Bearer ${process.env.SANITY_WRITE_TOKEN}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

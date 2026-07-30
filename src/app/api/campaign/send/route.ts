@@ -12,17 +12,9 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getResendClient } from '@/lib/resend'
-import { createClient } from '@sanity/client'
+import { getSanityWriteClient } from '@/lib/sanityClient'
 import { buildCampaignEmail } from '@/lib/emailTemplate'
 import { SEGMENTS } from '@/sanity/schemas/campaign'
-
-const sanity = createClient({
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!,
-  dataset:   process.env.NEXT_PUBLIC_SANITY_DATASET!,
-  apiVersion: '2024-01-01',
-  token:     process.env.SANITY_WRITE_TOKEN,
-  useCdn:    false,
-})
 
 const FROM = 'Sander Dekker <studio@mynameissanderdekker.com>'
 const SITE  = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://mynameissanderdekker.com'
@@ -71,6 +63,7 @@ function makeToken(contactId: string): string {
 
 export async function POST(req: NextRequest) {
   const resend = getResendClient()
+  const sanity = getSanityWriteClient()
   // ── Auth ──────────────────────────────────────────────────────────────────
   const auth = req.headers.get('authorization')
   if (auth !== `Bearer ${process.env.SANITY_WRITE_TOKEN}`) {

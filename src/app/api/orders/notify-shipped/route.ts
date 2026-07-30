@@ -1,21 +1,14 @@
 import { NextRequest } from 'next/server'
 import { getResendClient } from '@/lib/resend'
-import { createClient } from '@sanity/client'
+import { getSanityWriteClient } from '@/lib/sanityClient'
+import type { SanityClient } from '@sanity/client'
 import { buildShippedEmail } from '@/lib/orderEmails'
 import { generateInvoicePdf } from '@/lib/generateInvoicePdf'
 
 const FROM   = 'Sander Dekker <hello@mynameissanderdekker.com>'
 
-const sanity = createClient({
-  projectId:  process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!,
-  dataset:    process.env.NEXT_PUBLIC_SANITY_DATASET!,
-  apiVersion: '2024-01-01',
-  token:      process.env.SANITY_WRITE_TOKEN,
-  useCdn:     false,
-})
-
 // Generate invoice number: INV-YYYY-NNNN
-async function nextInvoiceNumber(): Promise<string> {
+async function nextInvoiceNumber(sanity: SanityClient): Promise<string> {
   const year  = new Date().getFullYear()
   const count = await sanity.fetch<number>(
     `count(*[_type == "order" && defined(invoiceNumber) && invoiceNumber match $prefix])`,
@@ -27,6 +20,7 @@ async function nextInvoiceNumber(): Promise<string> {
 
 export async function POST(request: NextRequest) {
   const resend = getResendClient()
+  const sanity = getSanityWriteClient()
   const { orderId } = await request.json()
   if (!orderId) return Response.json({ error: 'Missing orderId' }, { status: 400 })
 
@@ -68,7 +62,7 @@ export async function POST(request: NextRequest) {
   if (!order.customerEmail)      return Response.json({ sent: false, reason: 'no_email' })
 
   // ── Generate invoice number (if not already set) ─────────────────────────
-  const invoiceNumber = order.invoiceNumber ?? await nextInvoiceNumber()
+  const invoiceNumber = order.invoiceNumber ?? await nextInvoiceNumber(sanity)
 
   // ── Generate PDF ─────────────────────────────────────────────────────────
   const pdfBytes = await generateInvoicePdf({

@@ -1,20 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getResendClient } from '@/lib/resend'
-import { createClient } from '@sanity/client'
-
-const sanity = createClient({
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!,
-  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET!,
-  apiVersion: '2026-07-24',
-  token: process.env.SANITY_WRITE_TOKEN,
-  useCdn: false,
-})
+import { getSanityWriteClient } from '@/lib/sanityClient'
 
 const TO = 'Sander Dekker <hello@mynameissanderdekker.com>'
 
 export async function POST(req: NextRequest) {
   try {
     const resend = getResendClient()
+    const sanity = getSanityWriteClient('2026-07-24')
     const { name, email, phone, message, newsletter, artworkTitle, artworkSlug, viewingRoomSlug } =
       await req.json()
 

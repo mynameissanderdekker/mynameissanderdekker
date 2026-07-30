@@ -5,18 +5,10 @@
  */
 import { NextRequest, NextResponse } from 'next/server'
 import { getResendClient } from '@/lib/resend'
-import { createClient } from '@sanity/client'
+import { getSanityWriteClient } from '@/lib/sanityClient'
 
 const FROM   = 'Sander Dekker <studio@mynameissanderdekker.com>'
 const SITE   = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://mynameissanderdekker.com'
-
-const sanity = createClient({
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!,
-  dataset:   process.env.NEXT_PUBLIC_SANITY_DATASET!,
-  apiVersion: '2024-01-01',
-  token:     process.env.SANITY_WRITE_TOKEN,
-  useCdn:    false,
-})
 
 const SEGMENT_FILTERS: Record<string, string> = {
   newsletter:  `subscribed == true`,
@@ -39,6 +31,7 @@ function injectUnsubscribe(html: string, unsubUrl: string): string {
 
 export async function POST(req: NextRequest) {
   const resend = getResendClient()
+  const sanity = getSanityWriteClient()
   // Simple auth via cookie (set by /api/admin/login)
   const session = req.cookies.get('admin_session')?.value
   if (session !== process.env.ADMIN_PASSWORD) {

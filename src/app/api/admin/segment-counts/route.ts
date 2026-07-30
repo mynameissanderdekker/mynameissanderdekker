@@ -3,15 +3,7 @@
  * Returns the number of contacts per segment.
  */
 import { NextResponse } from 'next/server'
-import { createClient } from '@sanity/client'
-
-const sanity = createClient({
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!,
-  dataset:   process.env.NEXT_PUBLIC_SANITY_DATASET!,
-  apiVersion: '2024-01-01',
-  useCdn:    false,
-  token:     process.env.SANITY_WRITE_TOKEN,
-})
+import { getSanityWriteClient } from '@/lib/sanityClient'
 
 const SEGMENTS = [
   { value: 'newsletter',  filter: `subscribed == true` },
@@ -23,6 +15,7 @@ const SEGMENTS = [
 
 export async function GET() {
   try {
+    const sanity = getSanityWriteClient()
     const counts = await Promise.all(
       SEGMENTS.map(async ({ value, filter }) => {
         const count = await sanity.fetch<number>(
