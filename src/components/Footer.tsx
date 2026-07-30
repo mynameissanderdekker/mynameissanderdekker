@@ -148,7 +148,16 @@ export default function Footer() {
           </p>
         </div>
 
-        {/* Column 2 — Special projects */}
+        {/* Column 2 — Mother gallery */}
+        <div className="footer-col">
+          <h4>Mother gallery</h4>
+          <p>Torch Art Gallery</p>
+          <p>Amsterdam, NL</p>
+          <p><a href="mailto:mo@torchgallery.com">mo@torchgallery.com</a></p>
+          <p><a href="https://www.torchgallery.com" target="_blank" rel="noopener noreferrer">www.torchgallery.com</a></p>
+        </div>
+
+        {/* Column 3 — Special projects */}
         <div className="footer-col">
           <h4>Special projects</h4>
           <p>Josilda da Conceição</p>

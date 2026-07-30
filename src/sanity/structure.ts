@@ -52,6 +52,16 @@ function artworkListItem(S: StructureBuilder, categories: string[]) {
                 .filter('_type == "artwork" && (!defined(category) || category == "")')
                 .defaultOrdering([{ field: 'year', direction: 'desc' }])
             ),
+          S.divider(),
+          S.listItem()
+            .title('Sold works')
+            .id('artwork-sold')
+            .child(
+              S.documentTypeList('artwork')
+                .title('Sold works')
+                .filter('_type == "artwork" && count(*[_type == "contact" && ^._id in purchases[].artwork._ref]) > 0')
+                .defaultOrdering([{ field: 'year', direction: 'desc' }])
+            ),
         ])
     )
 }
