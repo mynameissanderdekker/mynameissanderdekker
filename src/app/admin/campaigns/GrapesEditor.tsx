@@ -168,6 +168,15 @@ export default function GrapesEditor({ onReady }: Props) {
     let cancelled = false
 
     async function init() {
+      // Load grapesjs CSS dynamically (avoids Next.js App Router global-CSS restrictions)
+      if (!document.getElementById('gjs-base-css')) {
+        const link = document.createElement('link')
+        link.id = 'gjs-base-css'
+        link.rel = 'stylesheet'
+        link.href = 'https://unpkg.com/grapesjs@0.23.3/dist/css/grapes.min.css'
+        document.head.appendChild(link)
+      }
+
       const grapesjs = (await import('grapesjs')).default
       const newsletter = (await import('grapesjs-preset-newsletter')).default
 
