@@ -15,10 +15,10 @@ export async function generateMetadata({ params }: Props) {
   const img = ex.images?.[0]?.asset?.url
   return {
     title: ex.title,
-    description: ex.description?.slice(0, 160),
+    description: typeof ex.description === 'string' ? ex.description.slice(0, 160) : undefined,
     openGraph: {
       title: ex.title,
-      description: ex.description?.slice(0, 160),
+      description: typeof ex.description === 'string' ? ex.description.slice(0, 160) : undefined,
       ...(img ? { images: [{ url: `${img}?w=1200&auto=format` }] } : {}),
     },
   }
@@ -107,7 +107,7 @@ export default async function ExhibitionPage({ params }: Props) {
         </dl>
 
         {/* Right: description */}
-        {ex.description && (
+        {ex.description && typeof ex.description === 'string' && (
           <p style={{ margin: 0, fontSize: '0.9rem', color: '#444', lineHeight: 1.7 }}>{ex.description}</p>
         )}
       </div>

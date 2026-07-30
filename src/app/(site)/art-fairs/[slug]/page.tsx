@@ -15,10 +15,10 @@ export async function generateMetadata({ params }: Props) {
   const img = fair.images?.[0]?.asset?.url
   return {
     title: fair.name,
-    description: fair.notes?.slice(0, 160),
+    description: typeof fair.notes === 'string' ? fair.notes.slice(0, 160) : undefined,
     openGraph: {
       title: fair.name,
-      description: fair.notes?.slice(0, 160),
+      description: typeof fair.notes === 'string' ? fair.notes.slice(0, 160) : undefined,
       ...(img ? { images: [{ url: `${img}?w=1200&auto=format` }] } : {}),
     },
   }
@@ -112,7 +112,7 @@ export default async function ArtFairPage({ params }: Props) {
           )}
         </dl>
 
-        {fair.notes && (
+        {fair.notes && typeof fair.notes === 'string' && (
           <p style={{ margin: 0, fontSize: '0.9rem', color: '#444', lineHeight: 1.7 }}>{fair.notes}</p>
         )}
       </div>
