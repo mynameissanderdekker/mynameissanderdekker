@@ -25,8 +25,27 @@ export async function POST(req: NextRequest) {
         },
         quantity: 1,
       })),
+      phone_number_collection: { enabled: true },
       shipping_address_collection: {
         allowed_countries: ['NL', 'BE', 'DE', 'FR', 'GB', 'US', 'AT', 'DK', 'IT', 'ES', 'PT', 'SE', 'NO', 'CH'],
+      },
+      billing_address_collection: 'auto',
+      custom_fields: [
+        {
+          key: 'company_name',
+          label: { type: 'custom', custom: 'Company name' },
+          type: 'text',
+          optional: true,
+        },
+        {
+          key: 'vat_number',
+          label: { type: 'custom', custom: 'VAT / BTW number' },
+          type: 'text',
+          optional: true,
+        },
+      ],
+      consent_collection: {
+        promotions: 'auto', // opt-in voor marketing / newsletter
       },
       customer_email: undefined, // Stripe vraagt dit zelf
       success_url: `${BASE_URL}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,

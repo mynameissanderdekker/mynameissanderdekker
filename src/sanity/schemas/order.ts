@@ -27,6 +27,8 @@ export const order = defineType({
     defineField({ name: 'customerName',  title: 'Name',  type: 'string' }),
     defineField({ name: 'customerEmail', title: 'Email', type: 'string' }),
     defineField({ name: 'customerPhone', title: 'Phone', type: 'string' }),
+    defineField({ name: 'companyName',   title: 'Company name', type: 'string' }),
+    defineField({ name: 'vatNumber',     title: 'VAT / BTW number', type: 'string' }),
     defineField({
       name: 'shippingAddress', title: 'Shipping address', type: 'object',
       fields: [
