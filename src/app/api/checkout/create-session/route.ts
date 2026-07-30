@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import Stripe from 'stripe'
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
+import { getStripeClient } from '@/lib/stripe'
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000'
 
@@ -13,7 +11,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Geen producten' }, { status: 400 })
     }
 
-    const session = await stripe.checkout.sessions.create({
+    const session = await getStripeClient().checkout.sessions.create({
       mode: 'payment',
       payment_method_types: ['card', 'ideal', 'bancontact'],
       line_items: items.map((item: { title: string; priceIncl: number; imageUrl?: string }) => ({
