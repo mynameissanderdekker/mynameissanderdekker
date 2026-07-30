@@ -31,13 +31,12 @@ export async function POST(req: NextRequest) {
   }
 
   if (event.type === 'checkout.session.completed') {
-    const session  = event.data.object as Stripe.Checkout.Session & {
-      shipping_details?: { address?: { line1?: string | null; line2?: string | null; postal_code?: string | null; city?: string | null; country?: string | null } }
-    }
+    const session  = event.data.object as Stripe.Checkout.Session
     const email    = session.customer_details?.email ?? ''
     const name     = session.customer_details?.name ?? ''
     const phone    = session.customer_details?.phone ?? ''
-    const shipping = session.shipping_details?.address
+    // In Stripe API 2026-06-24.dahlia, shipping moved to collected_information
+    const shipping = session.collected_information?.shipping_details?.address
     const total    = (session.amount_total ?? 0) / 100
 
     // Parse items — ondersteun zowel oud formaat (string[]) als nieuw (json met prijs)
