@@ -198,15 +198,31 @@ export async function generateInvoicePdf(data: InvoiceData): Promise<Uint8Array>
   drawLine(page, COL_PRICE - 60, y, R, y, 0.4)
   y -= 16
 
-  // ── Total ────────────────────────────────────────────────────────────────────
-  const totalW = bold.widthOfTextAtSize(euro(data.totalAmount), 11)
-  drawText(page, 'TOTAL',        COL_PRICE - 60,    y, { font: bold, size: 10 })
-  drawText(page, euro(data.totalAmount), R - totalW, y, { font: bold, size: 11 })
+  // ── Totals breakdown ─────────────────────────────────────────────────────────
+  const vatRate   = 9
+  const subtotal  = data.totalAmount / (1 + vatRate / 100)
+  const vatAmount = data.totalAmount - subtotal
 
-  y -= 12
-  const vatNote = 'VAT included (9%)'
-  const vatNoteW = regular.widthOfTextAtSize(vatNote, 7.5)
-  drawText(page, vatNote, R - vatNoteW, y, { font: regular, size: 7.5, color: GREY })
+  const subtotalLabel = `Subtotal excl. BTW`
+  const vatLabel      = `BTW ${vatRate}%`
+
+  const subtotalW  = regular.widthOfTextAtSize(euro(subtotal),  9.5)
+  const vatAmountW = regular.widthOfTextAtSize(euro(vatAmount), 9.5)
+
+  drawText(page, subtotalLabel, COL_PRICE - 60, y, { font: regular, size: 9.5, color: GREY })
+  drawText(page, euro(subtotal), R - subtotalW,  y, { font: regular, size: 9.5, color: GREY })
+  y -= 14
+
+  drawText(page, vatLabel,      COL_PRICE - 60, y, { font: regular, size: 9.5, color: GREY })
+  drawText(page, euro(vatAmount), R - vatAmountW, y, { font: regular, size: 9.5, color: GREY })
+  y -= 8
+
+  drawLine(page, COL_PRICE - 60, y, R, y, 0.4)
+  y -= 14
+
+  const totalW = bold.widthOfTextAtSize(euro(data.totalAmount), 11)
+  drawText(page, 'TOTAL',               COL_PRICE - 60,    y, { font: bold, size: 10 })
+  drawText(page, euro(data.totalAmount), R - totalW,        y, { font: bold, size: 11 })
 
   // ── Footer ───────────────────────────────────────────────────────────────────
   const footerY = 52
