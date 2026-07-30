@@ -30,6 +30,7 @@ export async function POST(req: NextRequest) {
         allowed_countries: ['NL', 'BE', 'DE', 'FR', 'GB', 'US', 'AT', 'DK', 'IT', 'ES', 'PT', 'SE', 'NO', 'CH'],
       },
       billing_address_collection: 'auto',
+      allow_promotion_codes: true,
       custom_fields: [
         {
           key: 'company_name',

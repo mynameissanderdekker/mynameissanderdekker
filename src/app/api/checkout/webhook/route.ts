@@ -116,8 +116,8 @@ export async function POST(req: NextRequest) {
           await sanity.patch(existing._id)
             .setIfMissing({ type: 'webshop_customer' })
             .set({
-              ...(companyName ? { companyName } : {}),
-              ...(vatNumber   ? { vatNumber }   : {}),
+              ...(companyName ? { company: companyName } : {}),
+              ...(vatNumber   ? { vatNumber }            : {}),
               ...(newsletterOptIn ? { subscribed: true } : {}),
               ...contactAddress,
             })
@@ -130,7 +130,7 @@ export async function POST(req: NextRequest) {
             lastName,
             email,
             phone:       phone || undefined,
-            companyName: companyName,
+            company:     companyName,
             vatNumber:   vatNumber,
             type:        'webshop_customer',
             subscribed:  newsletterOptIn,

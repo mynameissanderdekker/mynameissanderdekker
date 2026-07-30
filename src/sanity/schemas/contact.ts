@@ -42,6 +42,12 @@ export const contact = defineType({
       group: 'info',
     }),
     defineField({
+      name: 'vatNumber',
+      title: 'VAT / BTW number',
+      type: 'string',
+      group: 'info',
+    }),
+    defineField({
       name: 'email',
       title: 'Email address',
       type: 'string',
