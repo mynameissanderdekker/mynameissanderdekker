@@ -141,13 +141,6 @@ export default function Nav() {
         </div>
 
         <Link
-          href="/cv"
-          className={`nav-link${pathname === '/cv' ? ' active' : ''}`}
-        >
-          CV
-        </Link>
-
-        <Link
           href="/works"
           className={`nav-link${pathname === '/works' || pathname.startsWith('/works/') ? ' active' : ''}`}
         >

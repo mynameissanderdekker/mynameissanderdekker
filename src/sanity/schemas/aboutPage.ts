@@ -12,7 +12,7 @@ export const aboutPage = defineType({
       title: 'Portrait photo',
       type: 'image',
       options: { hotspot: true },
-      description: 'Photo shown next to the bio text on the About page.',
+      description: 'Large horizontal photo shown at the top of the About page. Crop to a landscape orientation.',
     }),
     defineField({
       name: 'bio',

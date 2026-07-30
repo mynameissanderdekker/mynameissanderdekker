@@ -18,7 +18,6 @@ function buildStatusEntry(status: string, note?: string) {
 }
 
 export async function POST(req: NextRequest) {
-  const resend = getResendClient()
   const sanity = getSanityWriteClient()
   const body = await req.text()
   const sig  = req.headers.get('stripe-signature')!
@@ -131,7 +130,8 @@ export async function POST(req: NextRequest) {
     }
 
     // ── Bevestigingsmail naar koper ───────────────────────────────────────
-    if (email) {
+    if (email && process.env.RESEND_API_KEY) {
+      const resend = getResendClient()
       const itemRows = parsedItems
         .map(i => `<tr><td style="padding:6px 0;border-bottom:1px solid #eee">${i.quantity}× ${i.title}</td><td style="padding:6px 0;border-bottom:1px solid #eee;text-align:right">€${Number(i.price).toFixed(2)}</td></tr>`)
         .join('')
@@ -157,6 +157,8 @@ export async function POST(req: NextRequest) {
     }
 
     // ── Notificatie naar Sander ───────────────────────────────────────────
+    if (!process.env.RESEND_API_KEY) { return NextResponse.json({ received: true }) }
+    const resend = getResendClient()
     await resend.emails.send({
       from: FROM,
       to:   'hello@mynameissanderdekker.com',

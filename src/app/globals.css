@@ -146,46 +146,24 @@ strong { font-weight: var(--weight-bold); }
    ABOUT PAGE
 ═══════════════════════════════════════════════════════ */
 
-/* Portrait block — photo left 50%, first paragraph right 50% */
-.about-portrait {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 56px;
-  align-items: start;
-  margin-bottom: 40px;
+/* Large horizontal portrait photo, centered — same width as the text block below it */
+.about-hero-photo {
+  width: 66.666%;
+  margin: 0 auto 48px;
 }
-
-/* Remaining bio paragraphs — full width below the portrait row */
-.about-bio-rest {
-  max-width: 720px;
-  margin-bottom: 40px;
-}
-.about-bio-rest p {
-  line-height: 1.75;
-  margin: 0 0 20px 0;
-}
-.about-portrait-img-wrap {
-  aspect-ratio: 5 / 4;
-  overflow: hidden;
-  background: #f0f0f0;
-}
-.about-portrait-img-wrap img {
+.about-hero-photo img {
   width: 100%;
-  height: 100%;
+  height: auto;
+  aspect-ratio: 5 / 4;
   object-fit: cover;
   display: block;
-}
-.about-portrait-placeholder {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background: #f0f0f0;
 }
 
-.about-bio p {
-  line-height: 1.75;
-  margin: 0 0 20px 0;
+@media (max-width: 700px) {
+  .about-hero-photo {
+    width: 100%;
+  }
 }
 
 .about-quotes {

@@ -110,7 +110,7 @@ function HeroVideo({ block }: { block: HeroVideoBlock }) {
   return <VideoPlayer mp4Url={block.url} posterUrl={posterUrl} />
 }
 
-const ptComponents = {
+export const ptComponents = {
   block: {
     h1: ({ children }: { children?: React.ReactNode }) => <h1 style={{ fontSize: '2em', fontWeight: 700, margin: '0.5em 0' }}>{children}</h1>,
     h2: ({ children }: { children?: React.ReactNode }) => <h2 style={{ fontSize: '1.5em', fontWeight: 700, margin: '0.5em 0' }}>{children}</h2>,

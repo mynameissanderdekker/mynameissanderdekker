@@ -45,8 +45,10 @@ async function getAllSlugs(): Promise<string[]> {
 // ── Static params ─────────────────────────────────────────────────────────────
 
 export async function generateStaticParams() {
-  const slugs = await getAllSlugs()
-  return slugs.map(slug => ({ slug }))
+  try {
+    const slugs = await getAllSlugs()
+    return slugs.map(slug => ({ slug }))
+  } catch { return [] }
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────

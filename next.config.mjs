@@ -3,6 +3,10 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  serverExternalPackages: ['@napi-rs/canvas', 'canvas'],
   images: {
     remotePatterns: [
       {

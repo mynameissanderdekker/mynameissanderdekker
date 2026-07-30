@@ -19,7 +19,32 @@
       "Bash(curl -sI -A \"Mozilla/5.0 \\(Macintosh; Intel Mac OS X 10_15_7\\) AppleWebKit/537.36 \\(KHTML, like Gecko\\) Chrome/120.0.0.0 Safari/537.36\" \"https://mynameissanderdekker.com/wp-content/uploads/2023/12/Mock-up-Cover.jpg\")",
       "Bash(curl -sI \"https://mynameissanderdekker.com/wp-content/uploads/2023/12/Mock-up-Cover.jpg\")",
       "Bash(curl *)",
-      "Bash(git stash *)"
+      "Bash(git stash *)",
+      "Bash(git rev-list *)",
+      "Bash(git cat-file *)",
+      "Bash(awk '$3 > 5000000 {print $3, $4}')",
+      "Bash(xargs -I{} du -h {})",
+      "Bash(echo \"exit=$?\")",
+      "Bash(git count-objects *)",
+      "Bash(git ls-remote *)",
+      "Bash(git push *)",
+      "Bash(npm view *)",
+      "Bash(tar xzf *)",
+      "Bash(python3 -c ' *)",
+      "Bash(npm pack *)",
+      "Bash(npm run *)",
+      "Bash(git add *)",
+      "Bash(stripe --version)",
+      "Bash(brew list *)",
+      "Bash(brew install *)",
+      "Bash(stripe config *)",
+      "Bash(stripe listen *)",
+      "Bash(stripe webhook_endpoints update --help)",
+      "Bash(stripe help *)",
+      "Bash(jobs -l)",
+      "Bash(kill %1)",
+      "Bash(pkill -f \"stripe listen\")",
+      "Bash(kill 20218 20501)"
     ]
   }
 }

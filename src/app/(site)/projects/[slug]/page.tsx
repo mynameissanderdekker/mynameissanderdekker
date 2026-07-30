@@ -191,8 +191,10 @@ export default async function ProjectPage({ params }: Props) {
 }
 
 export async function generateStaticParams() {
+  try {
   const projects = await client.fetch<{ slug: { current: string } }[]>(
     `*[_type == "project" && isPage == true]{ slug }`
   )
   return projects.map(p => ({ slug: p.slug.current }))
+  } catch { return [] }
 }

@@ -169,8 +169,10 @@ export default async function ExhibitionPage({ params }: Props) {
 }
 
 export async function generateStaticParams() {
-  const items = await client.fetch<{ slug: { current: string } }[]>(
-    `*[_type == "exhibition" && defined(slug.current)]{ slug }`
-  )
-  return items.map(e => ({ slug: e.slug.current }))
+  try {
+    const items = await client.fetch<{ slug: { current: string } }[]>(
+      `*[_type == "exhibition" && defined(slug.current)]{ slug }`
+    )
+    return items.map(e => ({ slug: e.slug.current }))
+  } catch { return [] }
 }

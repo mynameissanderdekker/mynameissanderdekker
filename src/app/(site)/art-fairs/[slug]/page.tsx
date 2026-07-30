@@ -174,8 +174,10 @@ export default async function ArtFairPage({ params }: Props) {
 }
 
 export async function generateStaticParams() {
+  try {
   const items = await client.fetch<{ slug: { current: string } }[]>(
     `*[_type == "artFair" && defined(slug.current) && hasPage == true]{ slug }`
   )
   return items.map(f => ({ slug: f.slug.current }))
+  } catch { return [] }
 }

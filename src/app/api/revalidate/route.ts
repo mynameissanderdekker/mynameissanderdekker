@@ -29,21 +29,19 @@ export async function POST(req: NextRequest) {
         break
       case 'exhibition':
         revalidatePath('/works', 'page')
-        revalidatePath('/cv', 'page')
+        revalidatePath('/about', 'page')
         if (slug) revalidatePath(`/exhibitions/${slug}`, 'page')
         break
       case 'artFair':
         revalidatePath('/works', 'page')
-        revalidatePath('/cv', 'page')
+        revalidatePath('/about', 'page')
         if (slug) revalidatePath(`/art-fairs/${slug}`, 'page')
         break
       case 'press':
       case 'pressRelease':
-        revalidatePath('/cv', 'page')
+        revalidatePath('/about', 'page')
         break
       case 'cvPage':
-        revalidatePath('/cv', 'page')
-        break
       case 'aboutPage':
         revalidatePath('/about', 'page')
         break
