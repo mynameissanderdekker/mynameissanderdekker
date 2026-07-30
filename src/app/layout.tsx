@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     default: 'My name is Sander Dekker',
     template: '%s — Sander Dekker',
   },
-  description: 'Amsterdam-based photographer. The Zine Project, The Social Media Project, and more.',
+  description: 'Amsterdam-based photographer. Documentary projects on identity, self-expression and social acceptance — through zines, exhibitions and editions.',
   openGraph: {
     siteName: 'Sander Dekker',
     locale: 'en_US',

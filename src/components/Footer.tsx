@@ -26,13 +26,6 @@ function IconLinkedIn() {
   )
 }
 
-function IconFacebook() {
-  return (
-    <svg width="27" height="27" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
-    </svg>
-  )
-}
 
 export default function Footer() {
   const pathname = usePathname()
@@ -126,11 +119,8 @@ export default function Footer() {
           <a href="https://www.instagram.com/iamsanderdekker" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
             <IconInstagram />
           </a>
-          <a href="https://www.linkedin.com/in/sanderdekker" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+          <a href="https://nl.linkedin.com/in/iamsanderdekker" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
             <IconLinkedIn />
-          </a>
-          <a href="https://www.facebook.com/mynameissanderdekker" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
-            <IconFacebook />
           </a>
         </div>
       </div>
