@@ -1,10 +1,9 @@
 import { NextRequest } from 'next/server'
-import { Resend } from 'resend'
+import { getResendClient } from '@/lib/resend'
 import { createClient } from '@sanity/client'
 import { buildShippedEmail } from '@/lib/orderEmails'
 import { generateInvoicePdf } from '@/lib/generateInvoicePdf'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
 const FROM   = 'Sander Dekker <hello@mynameissanderdekker.com>'
 
 const sanity = createClient({
@@ -27,6 +26,7 @@ async function nextInvoiceNumber(): Promise<string> {
 }
 
 export async function POST(request: NextRequest) {
+  const resend = getResendClient()
   const { orderId } = await request.json()
   if (!orderId) return Response.json({ error: 'Missing orderId' }, { status: 400 })
 

@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { Resend } from 'resend'
+import { getResendClient } from '@/lib/resend'
 import { createClient } from '@sanity/client'
-
-const resend = new Resend(process.env.RESEND_API_KEY)
 
 const sanity = createClient({
   projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!,
@@ -16,6 +14,7 @@ const TO = 'Sander Dekker <hello@mynameissanderdekker.com>'
 
 export async function POST(req: NextRequest) {
   try {
+    const resend = getResendClient()
     const { name, email, phone, message, newsletter, artworkTitle, artworkSlug, viewingRoomSlug } =
       await req.json()
 

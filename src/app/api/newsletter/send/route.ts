@@ -11,10 +11,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { Resend } from 'resend'
+import { getResendClient } from '@/lib/resend'
 import { createClient } from '@sanity/client'
-
-const resend = new Resend(process.env.RESEND_API_KEY)
 
 const sanity = createClient({
   projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!,
@@ -56,6 +54,7 @@ function buildHtml(subject: string, bodyHtml: string, email: string) {
 }
 
 export async function POST(req: NextRequest) {
+  const resend = getResendClient()
   // Simple auth check — add a stronger mechanism when deploying
   const authHeader = req.headers.get('authorization')
   if (authHeader !== `Bearer ${process.env.SANITY_WRITE_TOKEN}`) {

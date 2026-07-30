@@ -4,10 +4,9 @@
  * Fetches contacts for a segment, sends emails via Resend, returns sent count.
  */
 import { NextRequest, NextResponse } from 'next/server'
-import { Resend } from 'resend'
+import { getResendClient } from '@/lib/resend'
 import { createClient } from '@sanity/client'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
 const FROM   = 'Sander Dekker <studio@mynameissanderdekker.com>'
 const SITE   = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://mynameissanderdekker.com'
 
@@ -39,6 +38,7 @@ function injectUnsubscribe(html: string, unsubUrl: string): string {
 }
 
 export async function POST(req: NextRequest) {
+  const resend = getResendClient()
   // Simple auth via cookie (set by /api/admin/login)
   const session = req.cookies.get('admin_session')?.value
   if (session !== process.env.ADMIN_PASSWORD) {

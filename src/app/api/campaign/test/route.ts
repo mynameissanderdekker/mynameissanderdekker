@@ -3,12 +3,12 @@
  * Sends a test email to a single address with the campaign HTML.
  */
 import { NextRequest, NextResponse } from 'next/server'
-import { Resend } from 'resend'
+import { getResendClient } from '@/lib/resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
 const FROM   = 'Sander Dekker <studio@mynameissanderdekker.com>'
 
 export async function POST(req: NextRequest) {
+  const resend = getResendClient()
   const { subject, html, to } = await req.json()
 
   if (!subject || !html || !to) {

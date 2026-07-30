@@ -8,11 +8,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { Resend } from 'resend'
+import { getResendClient } from '@/lib/resend'
 import { createClient } from '@sanity/client'
 import { buildPressEmail } from '@/lib/pressEmailTemplate'
-
-const resend = new Resend(process.env.RESEND_API_KEY)
 
 const sanity = createClient({
   projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!,
@@ -39,6 +37,7 @@ function formatDate(d?: string) {
 }
 
 export async function POST(req: NextRequest) {
+  const resend = getResendClient()
   const auth = req.headers.get('authorization')
   if (auth !== `Bearer ${process.env.SANITY_WRITE_TOKEN}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
