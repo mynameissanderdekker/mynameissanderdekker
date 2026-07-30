@@ -100,7 +100,7 @@ export default function Nav() {
         <Link href="/" className="nav-logo" aria-label="Homepage">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="https://mynameissanderdekker.com/wp-content/uploads/2026/04/Mindmap-button.png"
+            src="https://cdn.sanity.io/images/u11u127q/production/a15874e153cea4aabc6360391278363fc6527822-1000x890.png"
             alt="Mindmap"
             className="nav-logo-img"
           />
