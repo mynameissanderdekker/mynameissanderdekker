@@ -42,8 +42,8 @@ export async function POST(req: NextRequest) {
     const customFields = session.custom_fields ?? []
     const companyName  = customFields.find(f => f.key === 'company_name')?.text?.value ?? undefined
     const vatNumber    = customFields.find(f => f.key === 'vat_number')?.text?.value ?? undefined
-    // Newsletter opt-in (consent_collection.promotions not available for NL merchants)
-    const newsletterOptIn = false
+    // Webshop klanten worden automatisch ingeschreven op de nieuwsbrief
+    const newsletterOptIn = true
 
     // Parse items — ondersteun zowel oud formaat (string[]) als nieuw (json met prijs + artworkId)
     let parsedItems: { title: string; price: number; quantity: number; artworkId?: string | null }[] = []
@@ -165,17 +165,15 @@ export async function POST(req: NextRequest) {
           console.log('[webhook] geen artworkIds gevonden in parsedItems:', JSON.stringify(parsedItems))
         }
 
-        // Sync naar Mailchimp (alleen als opt-in)
-        if (newsletterOptIn) {
-          await syncToMailchimp({
-            email,
-            firstName,
-            lastName,
-            type:      'webshop_customer',
-            country,
-            subscribed: true,
-          })
-        }
+        // Sync naar Mailchimp — webshop klanten worden automatisch ingeschreven
+        await syncToMailchimp({
+          email,
+          firstName,
+          lastName,
+          type:      'webshop_customer',
+          country,
+          subscribed: true,
+        })
       } catch (err) {
         console.error('[webhook] contact/mailchimp sync mislukt:', err)
       }
