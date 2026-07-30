@@ -16,6 +16,7 @@ interface Quote {
 }
 
 interface AboutData {
+  portrait?: { asset?: { _ref?: string } }
   bio?: Array<{ _type: string; children?: Array<{ text: string }> }>
   quotes?: Quote[]
 }
@@ -85,7 +86,7 @@ export default function AboutPage() {
 
   useEffect(() => {
     client.fetch<AboutData>(
-      `*[_type == "aboutPage"][0]{ bio, quotes[]{ ..., articleNl } }`,
+      `*[_type == "aboutPage"][0]{ portrait, bio, quotes[]{ ..., articleNl } }`,
       {},
       { cache: 'no-store' }
     ).then(setData)
@@ -93,20 +94,25 @@ export default function AboutPage() {
 
   const bioLines = blockText(data?.bio)
   const quotes = data?.quotes ?? []
+  const portraitUrl = data?.portrait?.asset ? urlFor(data.portrait).width(800).fit('max').url() : null
 
   return (
     <>
       {/* Portrait + bio side by side */}
       <div className="about-portrait">
         <div className="about-portrait-img-wrap">
-          {/* Upload a portrait via the aboutPage document in Sanity */}
-          <div className="about-portrait-placeholder" aria-hidden="true">
-            <svg viewBox="0 0 500 400" fill="none" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
-              <rect width="500" height="400" fill="#f0f0f0"/>
-              <circle cx="250" cy="160" r="80" fill="#ccc"/>
-              <ellipse cx="250" cy="360" rx="130" ry="90" fill="#ccc"/>
-            </svg>
-          </div>
+          {portraitUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={portraitUrl} alt="Sander Dekker" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+          ) : (
+            <div className="about-portrait-placeholder" aria-hidden="true">
+              <svg viewBox="0 0 500 400" fill="none" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+                <rect width="500" height="400" fill="#f0f0f0"/>
+                <circle cx="250" cy="160" r="80" fill="#ccc"/>
+                <ellipse cx="250" cy="360" rx="130" ry="90" fill="#ccc"/>
+              </svg>
+            </div>
+          )}
         </div>
         <div className="about-bio">
           {bioLines.map((para, i) => <p key={i}>{para}</p>)}

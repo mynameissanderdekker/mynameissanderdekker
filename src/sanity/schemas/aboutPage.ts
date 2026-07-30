@@ -8,6 +8,13 @@ export const aboutPage = defineType({
   preview: { prepare() { return { title: 'About' } } },
   fields: [
     defineField({
+      name: 'portrait',
+      title: 'Portrait photo',
+      type: 'image',
+      options: { hotspot: true },
+      description: 'Photo shown next to the bio text on the About page.',
+    }),
+    defineField({
       name: 'bio',
       title: 'Bio text',
       type: 'array',
