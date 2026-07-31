@@ -2158,7 +2158,7 @@ strong { font-weight: var(--weight-bold); }
 
   /* ── Footer ── */
   .site-footer {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
     padding: 32px 16px;
   }
 }
