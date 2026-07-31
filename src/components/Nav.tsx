@@ -210,30 +210,41 @@ export default function Nav() {
         </div>
       </nav>
 
-      {/* Mobile menu overlay */}
+      {/* Mobile drawer + backdrop */}
       {menuOpen && (
-        <div className="nav-mobile-menu">
-          <Link href="/about" className="nav-mobile-link" onClick={() => setMenuOpen(false)}>
-            ABOUT
-          </Link>
-          <div className="nav-mobile-section">PROJECTS</div>
-          {projects.map(p => (
-            <Link
-              key={p._id}
-              href={`/projects/${p.slug.current}`}
-              className="nav-mobile-link nav-mobile-link--sub"
+        <>
+          <div className="nav-mobile-backdrop" onClick={() => setMenuOpen(false)} />
+          <div className="nav-mobile-menu">
+            {/* Close button inside drawer */}
+            <button
+              className="nav-mobile-close"
               onClick={() => setMenuOpen(false)}
+              aria-label="Menu sluiten"
             >
-              {p.title}
+              <CloseIcon />
+            </button>
+            <Link href="/about" className="nav-mobile-link" onClick={() => setMenuOpen(false)}>
+              ABOUT
             </Link>
-          ))}
-          <Link href="/works" className="nav-mobile-link" onClick={() => setMenuOpen(false)}>
-            WORKS
-          </Link>
-          <Link href="/contact" className="nav-mobile-link" onClick={() => setMenuOpen(false)}>
-            CONTACT
-          </Link>
-        </div>
+            <div className="nav-mobile-section">PROJECTS</div>
+            {projects.map(p => (
+              <Link
+                key={p._id}
+                href={`/projects/${p.slug.current}`}
+                className="nav-mobile-link nav-mobile-link--sub"
+                onClick={() => setMenuOpen(false)}
+              >
+                {p.title}
+              </Link>
+            ))}
+            <Link href="/works" className="nav-mobile-link" onClick={() => setMenuOpen(false)}>
+              WORKS
+            </Link>
+            <Link href="/contact" className="nav-mobile-link" onClick={() => setMenuOpen(false)}>
+              CONTACT
+            </Link>
+          </div>
+        </>
       )}
     </>
   )
