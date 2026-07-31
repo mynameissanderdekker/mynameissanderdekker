@@ -933,9 +933,9 @@ strong { font-weight: var(--weight-bold); }
   margin: 0 0 4px;
 }
 
-@media (max-width: 700px) {
+@media (max-width: 768px) {
   .works-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, 1fr) !important;
     gap: 12px;
   }
 }
@@ -2091,7 +2091,9 @@ strong { font-weight: var(--weight-bold); }
 @media (max-width: 768px) {
   /* ── Nav: burger layout ── */
   .site-nav {
-    grid-template-columns: auto 1fr auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     padding: 8px 16px;
     position: relative;
   }
@@ -2101,23 +2103,23 @@ strong { font-weight: var(--weight-bold); }
     right: 8px;
     top: 50%;
     transform: translateY(-50%);
-    grid-column: unset;
     z-index: 10;
   }
   .nav-links {
     display: none;
   }
   .nav-logo {
-    grid-column: 1;
     display: flex;
-    justify-content: flex-start;
+    justify-content: center;
   }
   .nav-logo-img {
     width: 100px;
   }
   .nav-actions {
-    grid-column: 2;
-    padding-right: 52px; /* space for burger */
+    position: absolute;
+    right: 60px;
+    top: 50%;
+    transform: translateY(-50%);
   }
 
   /* ── Page layout ── */
@@ -2169,7 +2171,8 @@ strong { font-weight: var(--weight-bold); }
 #mm-layout {
   position: relative;
   width: 102%;
-  height: calc(100vh - 65px); /* viewport minus sticky nav */
+  height: calc(100vh - 65px); /* fallback */
+  height: calc(100svh - 65px); /* iOS Safari: excludes browser chrome */
   overflow: hidden;
   max-width: 1600px;
   margin: 0 auto;
@@ -2403,7 +2406,8 @@ strong { font-weight: var(--weight-bold); }
   }
   #mm-layout {
     width: 100%;
-    height: calc(100vh - 57px);
+    height: calc(100vh - 145px); /* fallback: nav + mobile header */
+    height: calc(100svh - 145px); /* iOS Safari fix */
     margin: 0;
   }
   #mm-panel {
@@ -2452,7 +2456,8 @@ strong { font-weight: var(--weight-bold); }
     cursor: pointer;
   }
   #mm-map {
-    height: calc(100vh - 57px);
+    height: calc(100vh - 145px);
+    height: calc(100svh - 145px);
   }
   .node-text { font-size: 18px; }
 }
