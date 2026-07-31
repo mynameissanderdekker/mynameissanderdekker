@@ -157,7 +157,7 @@ function SvgTitle({ item, isMobile }: { item: MapItem; isMobile: boolean }) {
   const x = isMobile ? (item.xMobile ?? item.x) : item.x
   const y = isMobile ? (item.yMobile ?? item.y) : item.y
   const displayTitle = item.displayTitle || item.title
-  const fs = isMobile ? 18 : (item.fontSize || 26)
+  const fs = isMobile ? 30 : (item.fontSize || 26)
 
   if (displayTitle === 'The Social Landscape (TenFifteen)') {
     return (
