@@ -6,6 +6,8 @@ import { useEffect, useState, useRef } from 'react'
 import { useCartStore } from '@/store/cart'
 import { client } from '@/sanity/lib/client'
 
+const MINDMAP_LOGO = 'https://cdn.sanity.io/images/u11u127q/production/a15874e153cea4aabc6360391278363fc6527822-1000x890.png'
+
 interface ProjectNav {
   _id: string
   title: string
@@ -68,12 +70,32 @@ function ProjectsDropdown({ projects, onClose }: { projects: ProjectNav[]; onClo
   )
 }
 
+function BurgerIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+      <line x1="3" y1="6" x2="21" y2="6"/>
+      <line x1="3" y1="12" x2="21" y2="12"/>
+      <line x1="3" y1="18" x2="21" y2="18"/>
+    </svg>
+  )
+}
+
+function CloseIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+      <line x1="18" y1="6" x2="6" y2="18"/>
+      <line x1="6" y1="6" x2="18" y2="18"/>
+    </svg>
+  )
+}
+
 export default function Nav() {
   const pathname = usePathname()
   const isShop = pathname === '/works' || pathname.startsWith('/works/')
   const isHome = pathname === '/'
   const [projects, setProjects] = useState<ProjectNav[]>([])
   const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
@@ -83,6 +105,11 @@ export default function Nav() {
       { cache: 'no-store' }
     ).then(setProjects).catch(() => {})
   }, [])
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMenuOpen(false)
+  }, [pathname])
 
   function openDropdown() {
     if (closeTimer.current) clearTimeout(closeTimer.current)
@@ -94,82 +121,120 @@ export default function Nav() {
   }
 
   return (
-    <nav className="site-nav">
-      {/* Logo — hidden on homepage */}
-      {!isHome && (
-        <Link href="/" className="nav-logo" aria-label="Homepage">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="https://mynameissanderdekker.com/wp-content/uploads/2026/04/Mindmap-button.png"
-            alt="Mindmap"
-            className="nav-logo-img"
-          />
-        </Link>
-      )}
-
-      {/* Nav links */}
-      <div className="nav-links">
-        <Link
-          href="/about"
-          className={`nav-link${pathname === '/about' ? ' active' : ''}`}
+    <>
+      <nav className="site-nav">
+        {/* Burger button — mobile only */}
+        <button
+          className="nav-burger"
+          aria-label={menuOpen ? 'Menu sluiten' : 'Menu openen'}
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen(o => !o)}
         >
-          ABOUT
-        </Link>
+          {menuOpen ? <CloseIcon /> : <BurgerIcon />}
+        </button>
 
-        {/* PROJECTS with dropdown — not a link itself, only opens dropdown */}
-        <div
-          className="nav-link-wrap"
-          onMouseEnter={openDropdown}
-          onMouseLeave={scheduleClose}
-        >
-          <span
-            className={`nav-link nav-link--no-href${pathname === '/projects' || pathname.startsWith('/projects/') ? ' active' : ''}`}
-            role="button"
-            tabIndex={0}
-            onKeyDown={e => e.key === 'Enter' && setDropdownOpen(o => !o)}
-            aria-haspopup="true"
-            aria-expanded={dropdownOpen}
-          >
-            PROJECTS
-          </span>
-          {dropdownOpen && projects.length > 0 && (
-            <ProjectsDropdown
-              projects={projects}
-              onClose={() => setDropdownOpen(false)}
+        {/* Logo — hidden on homepage */}
+        {!isHome && (
+          <Link href="/" className="nav-logo" aria-label="Homepage">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={MINDMAP_LOGO}
+              alt="Mindmap"
+              className="nav-logo-img"
             />
-          )}
+          </Link>
+        )}
+
+        {/* Nav links — desktop only */}
+        <div className="nav-links">
+          <Link
+            href="/about"
+            className={`nav-link${pathname === '/about' ? ' active' : ''}`}
+          >
+            ABOUT
+          </Link>
+
+          {/* PROJECTS with dropdown */}
+          <div
+            className="nav-link-wrap"
+            onMouseEnter={openDropdown}
+            onMouseLeave={scheduleClose}
+          >
+            <span
+              className={`nav-link nav-link--no-href${pathname === '/projects' || pathname.startsWith('/projects/') ? ' active' : ''}`}
+              role="button"
+              tabIndex={0}
+              onKeyDown={e => e.key === 'Enter' && setDropdownOpen(o => !o)}
+              aria-haspopup="true"
+              aria-expanded={dropdownOpen}
+            >
+              PROJECTS
+            </span>
+            {dropdownOpen && projects.length > 0 && (
+              <ProjectsDropdown
+                projects={projects}
+                onClose={() => setDropdownOpen(false)}
+              />
+            )}
+          </div>
+
+          <Link
+            href="/works"
+            className={`nav-link${pathname === '/works' || pathname.startsWith('/works/') ? ' active' : ''}`}
+          >
+            WORKS
+          </Link>
+
+          <Link
+            href="/contact"
+            className={`nav-link${pathname === '/contact' ? ' active' : ''}`}
+          >
+            CONTACT
+          </Link>
         </div>
 
-        <Link
-          href="/works"
-          className={`nav-link${pathname === '/works' || pathname.startsWith('/works/') ? ' active' : ''}`}
-        >
-          WORKS
-        </Link>
+        {/* Right side — shop icons only on /works pages */}
+        <div className="nav-actions">
+          {isShop && (
+            <>
+              <button className="nav-shop-icon" aria-label="Zoeken">
+                <SearchIcon />
+              </button>
+              <Link href="/account" className="nav-shop-icon" aria-label="Account">
+                <AccountIcon />
+              </Link>
+              <span className="nav-divider" aria-hidden="true" />
+              <CartIconShop />
+            </>
+          )}
+        </div>
+      </nav>
 
-        <Link
-          href="/contact"
-          className={`nav-link${pathname === '/contact' ? ' active' : ''}`}
-        >
-          CONTACT
-        </Link>
-      </div>
-
-      {/* Right side — shop icons only on /works pages */}
-      <div className="nav-actions">
-        {isShop && (
-          <>
-            <button className="nav-shop-icon" aria-label="Zoeken">
-              <SearchIcon />
-            </button>
-            <Link href="/account" className="nav-shop-icon" aria-label="Account">
-              <AccountIcon />
+      {/* Mobile menu overlay */}
+      {menuOpen && (
+        <div className="nav-mobile-menu">
+          <Link href="/about" className="nav-mobile-link" onClick={() => setMenuOpen(false)}>
+            ABOUT
+          </Link>
+          <div className="nav-mobile-section">PROJECTS</div>
+          {projects.map(p => (
+            <Link
+              key={p._id}
+              href={`/projects/${p.slug.current}`}
+              className="nav-mobile-link nav-mobile-link--sub"
+              onClick={() => setMenuOpen(false)}
+            >
+              {p.title}
             </Link>
-            <span className="nav-divider" aria-hidden="true" />
-            <CartIconShop />
-          </>
-        )}
-      </div>
-    </nav>
+          ))}
+          <Link href="/works" className="nav-mobile-link" onClick={() => setMenuOpen(false)}>
+            WORKS
+          </Link>
+          <Link href="/contact" className="nav-mobile-link" onClick={() => setMenuOpen(false)}>
+            CONTACT
+          </Link>
+        </div>
+      )}
+    </>
   )
 }

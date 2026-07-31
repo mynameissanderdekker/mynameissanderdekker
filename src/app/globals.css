@@ -1586,6 +1586,19 @@ strong { font-weight: var(--weight-bold); }
   display: block;
 }
 
+.nav-burger {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: #000;
+  line-height: 0;
+  grid-column: 1;
+  align-items: center;
+  justify-content: center;
+}
+
 .nav-logo-img {
   width: 80px;
   height: auto;
@@ -1597,6 +1610,52 @@ strong { font-weight: var(--weight-bold); }
 .nav-logo-img:hover {
   animation-play-state: paused;
   transform: scale(1.08);
+}
+
+/* ── Mobile menu overlay ───────────────────────────────── */
+.nav-mobile-menu {
+  position: sticky;
+  top: 57px;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border-bottom: 1px solid #e8e8e8;
+  z-index: 99;
+  padding: 8px 0 16px;
+  max-width: var(--site-max);
+  margin: 0 auto;
+}
+
+.nav-mobile-link {
+  display: block;
+  padding: 11px 24px;
+  font-family: var(--font-heading);
+  font-size: 16px;
+  font-weight: var(--weight-normal);
+  letter-spacing: var(--tracking-none);
+  color: #fff;
+  background: #000;
+  text-decoration: none;
+  margin: 2px 16px;
+  transition: background 0.15s;
+}
+
+.nav-mobile-link:hover {
+  background: #333;
+}
+
+.nav-mobile-link--sub {
+  font-size: 13px;
+  margin: 1px 16px 1px 32px;
+}
+
+.nav-mobile-section {
+  padding: 14px 24px 4px;
+  font-family: var(--font-heading);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: #888;
+  font-weight: var(--weight-normal);
 }
 
 @keyframes logoPulse {
@@ -1915,6 +1974,41 @@ strong { font-weight: var(--weight-bold); }
   .nav-link {
     padding: 8px 12px;
     font-size: 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Switch nav to burger layout */
+  .site-nav {
+    grid-template-columns: auto 1fr auto;
+    padding: 12px 16px;
+  }
+
+  /* Show burger button */
+  .nav-burger {
+    display: flex;
+  }
+
+  /* Hide desktop nav links */
+  .nav-links {
+    display: none;
+  }
+
+  /* Center logo in middle column */
+  .nav-logo {
+    grid-column: 2;
+    display: flex;
+    justify-content: center;
+  }
+
+  /* Bigger logo on mobile */
+  .nav-logo-img {
+    width: 110px;
+  }
+
+  /* Actions stay right */
+  .nav-actions {
+    grid-column: 3;
   }
 }
 
