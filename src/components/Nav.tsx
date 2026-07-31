@@ -96,6 +96,7 @@ export default function Nav() {
   const [projects, setProjects] = useState<ProjectNav[]>([])
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [projectsOpen, setProjectsOpen] = useState(false)
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
@@ -215,7 +216,6 @@ export default function Nav() {
         <>
           <div className="nav-mobile-backdrop" onClick={() => setMenuOpen(false)} />
           <div className="nav-mobile-menu">
-            {/* Close button inside drawer */}
             <button
               className="nav-mobile-close"
               onClick={() => setMenuOpen(false)}
@@ -223,26 +223,49 @@ export default function Nav() {
             >
               <CloseIcon />
             </button>
-            <Link href="/about" className="nav-mobile-link" onClick={() => setMenuOpen(false)}>
-              ABOUT
-            </Link>
-            <div className="nav-mobile-section">PROJECTS</div>
-            {projects.map(p => (
-              <Link
-                key={p._id}
-                href={`/projects/${p.slug.current}`}
-                className="nav-mobile-link nav-mobile-link--sub"
-                onClick={() => setMenuOpen(false)}
-              >
-                {p.title}
+
+            <nav className="nav-mobile-nav">
+              <Link href="/about" className="nav-mobile-link" onClick={() => setMenuOpen(false)}>
+                About
               </Link>
-            ))}
-            <Link href="/works" className="nav-mobile-link" onClick={() => setMenuOpen(false)}>
-              WORKS
-            </Link>
-            <Link href="/contact" className="nav-mobile-link" onClick={() => setMenuOpen(false)}>
-              CONTACT
-            </Link>
+
+              {/* PROJECTS accordion */}
+              <button
+                className="nav-mobile-link nav-mobile-link--toggle"
+                onClick={() => setProjectsOpen(o => !o)}
+                aria-expanded={projectsOpen}
+              >
+                Projects
+                <svg
+                  className={`nav-mobile-chevron${projectsOpen ? ' is-open' : ''}`}
+                  width="16" height="16" viewBox="0 0 24 24"
+                  fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
+                >
+                  <polyline points="6 9 12 15 18 9"/>
+                </svg>
+              </button>
+              {projectsOpen && (
+                <div className="nav-mobile-sub">
+                  {projects.map(p => (
+                    <Link
+                      key={p._id}
+                      href={`/projects/${p.slug.current}`}
+                      className="nav-mobile-sublink"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      {p.title}
+                    </Link>
+                  ))}
+                </div>
+              )}
+
+              <Link href="/works" className="nav-mobile-link" onClick={() => setMenuOpen(false)}>
+                Works
+              </Link>
+              <Link href="/contact" className="nav-mobile-link" onClick={() => setMenuOpen(false)}>
+                Contact
+              </Link>
+            </nav>
           </div>
         </>
       )}
