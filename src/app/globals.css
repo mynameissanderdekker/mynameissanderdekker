@@ -2096,10 +2096,11 @@ strong { font-weight: var(--weight-bold); }
     width: calc(50% - 6px);
   }
 
-  /* ── Cards: 1 column on mobile ── */
+  /* ── Cards: 1 column on mobile with side padding ── */
   .pb-cards--2col,
   .pb-cards--3col {
     grid-template-columns: 1fr;
+    padding: 0 16px;
   }
 
   /* ── Works grid: already 2 cols at 700px, keep ── */
