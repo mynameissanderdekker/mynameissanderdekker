@@ -1704,6 +1704,7 @@ strong { font-weight: var(--weight-bold); }
   font-size: 22px;
   font-weight: var(--weight-normal);
   letter-spacing: var(--tracking-none);
+  text-transform: uppercase;
   color: #fff;
   text-decoration: none;
   background: none;
@@ -1750,6 +1751,7 @@ strong { font-weight: var(--weight-bold); }
   padding: 10px 32px 10px 44px;
   font-family: var(--font-heading);
   font-size: 15px;
+  text-transform: uppercase;
   color: rgba(255, 255, 255, 0.7);
   text-decoration: none;
   transition: color 0.15s;
