@@ -2089,6 +2089,9 @@ strong { font-weight: var(--weight-bold); }
    MOBILE (≤ 768px) — nav, layout, PageBuilder
 ═══════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
+  /* Hide mindmap avatar on mobile */
+  #mm-mobile-avatar { display: none !important; }
+
   /* ── Nav: burger layout ── */
   .site-nav {
     display: flex;

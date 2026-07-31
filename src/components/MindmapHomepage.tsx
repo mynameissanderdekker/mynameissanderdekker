@@ -397,7 +397,7 @@ export default function MindmapHomepage() {
       </div>
       <div id="mm-mobile-avatar">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="https://cdn.sanity.io/images/u11u127q/production/31daff9981d6c25932a8d070793185a21f25d12b-557x557.png" alt="Sander Dekker" />
+        <img src="/hoofd-roze.png" alt="Sander Dekker" />
       </div>
 
       {/* Layout */}
@@ -410,7 +410,7 @@ export default function MindmapHomepage() {
             <p style={{ marginTop: 12, fontStyle: 'italic' }}><strong>Hover to explore.</strong></p>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="https://cdn.sanity.io/images/u11u127q/production/31daff9981d6c25932a8d070793185a21f25d12b-557x557.png"
+              src="/hoofd-roze.png"
               alt="Sander Dekker"
               style={{ width: '100%', marginTop: 20 }}
             />
