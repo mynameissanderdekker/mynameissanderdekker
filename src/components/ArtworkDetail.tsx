@@ -70,10 +70,10 @@ export default function ArtworkDetail({ artwork }: { artwork: ArtworkData }) {
   const activeImg = images[activeIdx]
   const mainUrl   = activeImg?.asset?.url
     ? `${activeImg.asset.url}?w=1400&auto=format&q=85`
-    : activeImg ? imgUrl(activeImg as SanityImageSource, 1400) : null
+    : activeImg?.asset ? imgUrl(activeImg as SanityImageSource, 1400) : null
   const thumbMain = activeImg?.asset?.url
     ? `${activeImg.asset.url}?w=400&auto=format&q=85`
-    : activeImg ? imgUrl(activeImg as SanityImageSource, 400) : null
+    : activeImg?.asset ? imgUrl(activeImg as SanityImageSource, 400) : null
 
   const dims    = formatDimensions(artwork.dimensions)
   const edition = [
@@ -134,7 +134,7 @@ export default function ArtworkDetail({ artwork }: { artwork: ArtworkData }) {
               {images.map((img, i) => {
                 const thumbUrl = img?.asset?.url
                   ? `${img.asset.url}?w=300&auto=format&q=80`
-                  : imgUrl(img as SanityImageSource, 300)
+                  : img?.asset ? imgUrl(img as SanityImageSource, 300) : null
                 return (
                   <button
                     key={i}
