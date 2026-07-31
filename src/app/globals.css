@@ -1305,9 +1305,11 @@ strong { font-weight: var(--weight-bold); }
   }
 }
 @media (max-width: 560px) {
-  .zine-grid,
-  .zine-grid-all {
+  .zine-grid {
     grid-template-columns: 1fr;
+  }
+  .zine-grid-all {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
