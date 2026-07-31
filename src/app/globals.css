@@ -2154,11 +2154,7 @@ strong { font-weight: var(--weight-bold); }
     width: calc(50% - 6px);
   }
 
-  /* ── Cards: 1 column on mobile with side padding ── */
-  .pb-cards--2col {
-    grid-template-columns: 1fr;
-    padding: 0 30px;
-  }
+  /* ── Cards on mobile ── */
   .pb-cards--3col {
     grid-template-columns: repeat(2, 1fr);
     padding: 0 16px;
