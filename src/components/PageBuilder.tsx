@@ -129,10 +129,10 @@ export const ptComponents = {
 }
 
 function TextSection({ block }: { block: TextSectionBlock }) {
-  const maxWidth = WIDTH_MAP[block.width ?? '8col']
+  const widthClass = `project-intro--${block.width ?? '8col'}`
   const textAlign = block.textAlign ?? 'left'
   return (
-    <div className="project-intro" style={{ maxWidth, margin: '0 auto', textAlign, marginBottom: '0' }}>
+    <div className={`project-intro ${widthClass}`} style={{ margin: '0 auto', textAlign, marginBottom: '0' }}>
       <PortableText value={block.content as Parameters<typeof PortableText>[0]['value']} components={ptComponents} />
     </div>
   )
@@ -193,13 +193,15 @@ function Gallery({ block }: { block: GalleryBlock }) {
     .map(img => img?.asset ? urlFor(img).width(1200).fit('max').url() : null)
     .filter(Boolean) as string[]
   const allUrls = [...sanityUrls, ...(block.externalUrls ?? [])]
-  // Default: auto-detect columns from image count (1 image → full width, 2 → 50/50, 3+ → 3 cols)
   const cols = block.columns ?? Math.min(allUrls.length || 1, 3)
   const justifyMap = { left: 'flex-start', center: 'center', right: 'flex-end' }
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: justifyMap[alignment], marginTop: '3rem' }}>
+    <div
+      className={`pb-gallery pb-gallery--${cols}col`}
+      style={{ justifyContent: justifyMap[alignment], marginTop: '3rem' }}
+    >
       {allUrls.map((url, i) => (
-        <div key={i} style={{ width: `calc(${100 / cols}% - ${12 * (cols - 1) / cols}px)` }}>
+        <div key={i} className="pb-gallery-item">
           <Image src={url} alt="" width={1200} height={800} style={{ width: '100%', height: 'auto', display: 'block' }} sizes={cols === 1 ? '100vw' : cols === 2 ? '50vw' : '33vw'} />
         </div>
       ))}
@@ -241,7 +243,7 @@ function PersonProfile({ block }: { block: PersonBlock }) {
         </div>
       )}
       {(block.name || block.location) && (
-        <div style={{ maxWidth: '66.666%', margin: '0 auto' }}>
+        <div className="project-intro project-intro--8col" style={{ margin: '0 auto' }}>
           <h4 style={{ fontSize: '1.1rem', fontWeight: 700, letterSpacing: 0, margin: '0 0 0.6rem' }}>
             {block.name && <strong>{block.name}</strong>}
             {block.name && block.location && <span style={{ fontWeight: 400 }}> — </span>}
@@ -250,7 +252,7 @@ function PersonProfile({ block }: { block: PersonBlock }) {
         </div>
       )}
       {block.body && block.body.length > 0 && (
-        <div className="project-intro" style={{ maxWidth: '66.666%', margin: '0 auto', marginBottom: 0 }}>
+        <div className="project-intro project-intro--8col" style={{ margin: '0 auto', marginBottom: 0 }}>
           <PortableText value={block.body as Parameters<typeof PortableText>[0]['value']} components={ptComponents} />
         </div>
       )}
@@ -318,12 +320,7 @@ function Cards({ block }: { block: CardsBlock }) {
   const cols = block.columns ?? 3
   const cards = block.cards ?? []
   return (
-    <div style={{
-      display: 'grid',
-      gridTemplateColumns: `repeat(${cols}, 1fr)`,
-      gap: '40px',
-      alignItems: 'start',
-    }}>
+    <div className={`pb-cards pb-cards--${cols}col`}>
       {cards.map((card, i) => {
         const imgUrl = card.image?.asset
           ? urlFor(card.image).width(800).fit('max').url()

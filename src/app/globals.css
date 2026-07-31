@@ -280,6 +280,34 @@ strong { font-weight: var(--weight-bold); }
   margin-bottom: 48px;
 }
 
+/* Width variants (from Sanity block width setting) */
+.project-intro--full { max-width: 100%; }
+.project-intro--8col { max-width: 66.666%; }
+.project-intro--6col { max-width: 50%; }
+
+/* ── PageBuilder: Gallery ──────────────────────────────── */
+.pb-gallery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 3rem;
+}
+
+.pb-gallery--1col .pb-gallery-item { width: 100%; }
+.pb-gallery--2col .pb-gallery-item { width: calc(50% - 6px); }
+.pb-gallery--3col .pb-gallery-item { width: calc(33.333% - 8px); }
+
+/* ── PageBuilder: Cards ────────────────────────────────── */
+.pb-cards {
+  display: grid;
+  gap: 40px;
+  align-items: start;
+}
+
+.pb-cards--1col { grid-template-columns: 1fr; }
+.pb-cards--2col { grid-template-columns: repeat(2, 1fr); }
+.pb-cards--3col { grid-template-columns: repeat(3, 1fr); }
+
 .project-intro p {
   line-height: 1.75;
   margin: 0 0 18px 0;
@@ -1977,38 +2005,77 @@ strong { font-weight: var(--weight-bold); }
   }
 }
 
+/* ═══════════════════════════════════════════════════════
+   TABLET (≤ 1024px) — iPad landscape mindmap fix
+═══════════════════════════════════════════════════════ */
+@media (max-width: 1100px) and (min-width: 901px) {
+  #mm-layout {
+    height: calc(100vh - 65px);
+    margin: 0 auto;
+  }
+  #mm-map {
+    height: calc(100vh - 65px);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   MOBILE (≤ 768px) — nav, layout, PageBuilder
+═══════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
-  /* Switch nav to burger layout */
+  /* ── Nav: burger layout ── */
   .site-nav {
     grid-template-columns: auto 1fr auto;
     padding: 12px 16px;
   }
-
-  /* Show burger button */
   .nav-burger {
     display: flex;
   }
-
-  /* Hide desktop nav links */
   .nav-links {
     display: none;
   }
-
-  /* Center logo in middle column */
   .nav-logo {
     grid-column: 2;
     display: flex;
     justify-content: center;
   }
-
-  /* Bigger logo on mobile */
   .nav-logo-img {
     width: 110px;
   }
-
-  /* Actions stay right */
   .nav-actions {
     grid-column: 3;
+  }
+
+  /* ── Page layout ── */
+  .site-main {
+    padding: 24px 16px 60px;
+  }
+
+  /* ── Text blocks: fill full width ── */
+  .project-intro--8col,
+  .project-intro--6col {
+    max-width: 100%;
+  }
+
+  /* ── Gallery: 2 cols on mobile, 1 on very small ── */
+  .pb-gallery--3col .pb-gallery-item {
+    width: calc(50% - 6px);
+  }
+  .pb-gallery--2col .pb-gallery-item {
+    width: calc(50% - 6px);
+  }
+
+  /* ── Cards: 1 column on mobile ── */
+  .pb-cards--2col,
+  .pb-cards--3col {
+    grid-template-columns: 1fr;
+  }
+
+  /* ── Works grid: already 2 cols at 700px, keep ── */
+
+  /* ── Footer ── */
+  .site-footer {
+    grid-template-columns: repeat(2, 1fr);
+    padding: 32px 16px;
   }
 }
 
