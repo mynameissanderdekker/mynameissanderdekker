@@ -2092,24 +2092,32 @@ strong { font-weight: var(--weight-bold); }
   /* ── Nav: burger layout ── */
   .site-nav {
     grid-template-columns: auto 1fr auto;
-    padding: 12px 16px;
+    padding: 8px 16px;
+    position: relative;
   }
   .nav-burger {
     display: flex;
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    grid-column: unset;
+    z-index: 10;
   }
   .nav-links {
     display: none;
   }
   .nav-logo {
-    grid-column: 2;
+    grid-column: 1;
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
   }
   .nav-logo-img {
-    width: 110px;
+    width: 100px;
   }
   .nav-actions {
-    grid-column: 3;
+    grid-column: 2;
+    padding-right: 52px; /* space for burger */
   }
 
   /* ── Page layout ── */
