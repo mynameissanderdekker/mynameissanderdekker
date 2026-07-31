@@ -2092,6 +2092,9 @@ strong { font-weight: var(--weight-bold); }
   /* Hide mindmap avatar on mobile */
   #mm-mobile-avatar { display: none !important; }
 
+  /* Remove nav border on mobile */
+  .site-nav { border-bottom: none; }
+
   /* ── Nav: burger layout ── */
   .site-nav {
     display: grid;
@@ -2148,10 +2151,13 @@ strong { font-weight: var(--weight-bold); }
   }
 
   /* ── Cards: 1 column on mobile with side padding ── */
-  .pb-cards--2col,
-  .pb-cards--3col {
+  .pb-cards--2col {
     grid-template-columns: 1fr;
     padding: 0 30px;
+  }
+  .pb-cards--3col {
+    grid-template-columns: repeat(2, 1fr);
+    padding: 0 16px;
   }
 
   /* ── Works grid: already 2 cols at 700px, keep ── */
