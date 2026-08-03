@@ -9,6 +9,7 @@ import { apiVersion, dataset, projectId } from './src/sanity/env'
 import { schema } from './src/sanity/schemaTypes'
 import { structure } from './src/sanity/structure'
 import { StudioLayout } from './src/sanity/components/StudioLayout'
+import { AnalyticsTool } from './src/sanity/components/AnalyticsTool'
 import { withShippedNotification, withStatusHistory } from './src/sanity/actions/orderActions'
 import { PressReleasePreviewAction, SendPressReleaseAction } from './src/sanity/actions/pressReleaseActions'
 
@@ -39,5 +40,16 @@ export default defineConfig({
     structureTool({ structure }),
     media(),
     visionTool({ defaultApiVersion: apiVersion }),
+    {
+      name: 'analytics',
+      tools: [
+        {
+          name: 'analytics',
+          title: 'Analytics',
+          icon: () => '📊',
+          component: AnalyticsTool,
+        },
+      ],
+    },
   ],
 })
