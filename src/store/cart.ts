@@ -10,18 +10,30 @@ export interface CartItem {
   variantLabel?: string // e.g. "1 roll" — set when the artwork has purchase options
 }
 
+export interface AppliedCoupon {
+  code: string
+  type: 'percentage' | 'fixed'
+  value: number
+  discountAmount: number
+  sanityId: string
+}
+
 interface CartStore {
   items: CartItem[]
+  coupon: AppliedCoupon | null
   addItem: (item: CartItem) => void
   removeItem: (id: string) => void
   clearCart: () => void
   total: () => number
+  totalAfterDiscount: () => number
+  setCoupon: (coupon: AppliedCoupon | null) => void
 }
 
 export const useCartStore = create<CartStore>()(
   persist(
     (set, get) => ({
       items: [],
+      coupon: null,
 
       addItem: (item) =>
         set((state) => {
@@ -33,10 +45,19 @@ export const useCartStore = create<CartStore>()(
       removeItem: (id) =>
         set((state) => ({ items: state.items.filter((i) => i.id !== id) })),
 
-      clearCart: () => set({ items: [] }),
+      clearCart: () => set({ items: [], coupon: null }),
 
       total: () =>
         get().items.reduce((sum, item) => sum + item.priceIncl, 0),
+
+      totalAfterDiscount: () => {
+        const { items, coupon } = get()
+        const subtotal = items.reduce((sum, item) => sum + item.priceIncl, 0)
+        if (!coupon) return subtotal
+        return Math.max(0, subtotal - coupon.discountAmount)
+      },
+
+      setCoupon: (coupon) => set({ coupon }),
     }),
     { name: 'sander-cart' }
   )

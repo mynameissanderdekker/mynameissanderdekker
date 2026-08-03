@@ -9,7 +9,7 @@ function formatPrice(amount: number) {
 }
 
 export default function CheckoutPage() {
-  const { items, total } = useCartStore()
+  const { items, total, coupon, totalAfterDiscount } = useCartStore()
   const [mounted, setMounted] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -23,6 +23,10 @@ export default function CheckoutPage() {
     return null
   }
 
+  const subtotal = total()
+  const discount = coupon?.discountAmount ?? 0
+  const finalTotal = totalAfterDiscount()
+
   async function handleCheckout() {
     setLoading(true)
     setError(null)
@@ -31,7 +35,10 @@ export default function CheckoutPage() {
       const res = await fetch('/api/checkout/create-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items }),
+        body: JSON.stringify({
+          items,
+          coupon: coupon ?? null,
+        }),
       })
       const json = await res.json()
 
@@ -55,9 +62,23 @@ export default function CheckoutPage() {
             <span>{formatPrice(item.priceIncl)}</span>
           </div>
         ))}
+
+        {coupon && (
+          <>
+            <div className="flex justify-between text-sm text-gray-500 mt-3 pt-3 border-t border-gray-200">
+              <span>Subtotaal</span>
+              <span>{formatPrice(subtotal)}</span>
+            </div>
+            <div className="flex justify-between text-sm text-green-700 mt-1">
+              <span>Korting ({coupon.code})</span>
+              <span>−{formatPrice(discount)}</span>
+            </div>
+          </>
+        )}
+
         <div className="border-t border-gray-200 mt-4 pt-4 flex justify-between font-medium">
           <span>Totaal incl. BTW</span>
-          <span>{formatPrice(total())}</span>
+          <span>{formatPrice(finalTotal)}</span>
         </div>
       </div>
 

@@ -56,6 +56,16 @@ export async function POST(req: NextRequest) {
 
     const orderNumber = `SD-${Date.now()}`
 
+    // ── Verhoog coupon usageCount indien gebruikt ─────────────────────────
+    const couponSanityId = session.metadata?.couponSanityId
+    if (couponSanityId) {
+      try {
+        await sanity.patch(couponSanityId).inc({ usageCount: 1 }).commit()
+      } catch (err) {
+        console.error('[webhook] coupon usageCount verhogen mislukt:', err)
+      }
+    }
+
     // ── Sla order op in Sanity ────────────────────────────────────────────
     try {
       await sanity.create({
