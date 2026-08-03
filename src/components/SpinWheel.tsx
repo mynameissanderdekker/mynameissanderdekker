@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 
 interface SpinWheelProps {
   images: string[]
@@ -15,6 +15,14 @@ export default function SpinWheel({ images, coverImage }: SpinWheelProps) {
   const [displayImg, setDisplayImg] = useState<string | null>(null)
   const [spinning, setSpinning] = useState(false)
   const spinningRef = useRef(false)
+
+  // Preload all images so they're in the browser cache before spinning starts
+  useEffect(() => {
+    images.forEach(src => {
+      const img = new Image()
+      img.src = src
+    })
+  }, [images])
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const btnRef = useRef<HTMLButtonElement>(null)
   const angleRef = useRef(0)
@@ -44,7 +52,7 @@ export default function SpinWheel({ images, coverImage }: SpinWheelProps) {
       // Same easing as before: fast → decelerate
       let delay: number
       if (t < 0.6) {
-        delay = 38 + Math.random() * 20
+        delay = 42
       } else {
         const s = (t - 0.6) / 0.4
         delay = 58 + s * s * 420
