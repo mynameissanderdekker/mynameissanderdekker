@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { CookieBanner } from "@/components/CookieBanner";
 import "./globals.css";
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.mynameissanderdekker.com'
@@ -29,6 +30,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         {children}
+        <CookieBanner />
       </body>
     </html>
   );

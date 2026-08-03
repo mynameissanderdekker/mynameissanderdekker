@@ -35,7 +35,7 @@ interface HeroImageBlock   { _type: 'heroImage'; imageUrl?: string; image?: Sani
 interface PdfViewerBlock   { _type: 'pdfViewer'; pdfUrl: string }
 interface VideoEmbedBlock  { _type: 'videoEmbed'; embedUrl: string; posterImage?: SanityImage }
 interface SpinWheelBlock   { _type: 'spinWheel'; coverImage?: string; images?: string[] }
-interface PersonBlock      { _type: 'personBlock'; name?: string; location?: string; images?: SanityImage[]; externalUrls?: string[]; imageSize?: '1/4' | '2/4' | '3/4' | 'full'; imageAlign?: 'left' | 'center' | 'right'; body?: unknown[] }
+interface PersonBlock      { _type: 'personBlock'; name?: string; location?: string; images?: SanityImage[]; externalUrls?: string[]; imageSize?: '1/4' | '2/4' | '3/4' | 'full'; imageAlign?: 'left' | 'center' | 'right'; columns?: number; body?: unknown[] }
 
 export type PageBlock =
   | HeroVideoBlock
@@ -220,13 +220,16 @@ function PersonProfile({ block }: { block: PersonBlock }) {
     .filter(Boolean) as string[]
   const imgs = sanityImgs.length > 0 ? sanityImgs : (block.externalUrls ?? [])
   const isSingle = imgs.length === 1
-  const cols = isSingle ? 1 : Math.min(imgs.length, 3)
+  const cols = isSingle ? 1 : (block.columns ?? Math.min(imgs.length, 3))
+  const forcedCols = !isSingle && block.columns && block.columns > imgs.length
 
   // Single-image: respect explicit size + alignment
   const imgW = isSingle
     ? (IMG_SIZE_MAP[block.imageSize ?? 'full'])
     : `calc(${100 / cols}% - ${12 * (cols - 1) / cols}px)`
-  const justifyContent = isSingle ? (IMG_ALIGN_MAP[block.imageAlign ?? 'left']) : 'flex-start'
+  const justifyContent = isSingle
+    ? (IMG_ALIGN_MAP[block.imageAlign ?? 'left'])
+    : (forcedCols ? 'center' : 'flex-start')
   const sizes = isSingle
     ? (IMG_SIZES_MAP[block.imageSize ?? 'full'])
     : (cols === 2 ? '50vw' : '33vw')

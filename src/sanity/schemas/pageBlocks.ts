@@ -596,6 +596,20 @@ export const personBlock = {
       of: [{ type: 'url' }],
     }),
     defineField({
+      name: 'columns',
+      title: 'Grid columns',
+      description: 'Force a column count (e.g. 3 columns with 2 photos = smaller, centered images). Leave empty to auto-detect.',
+      type: 'number',
+      options: {
+        list: [
+          { title: '2', value: 2 },
+          { title: '3', value: 3 },
+          { title: '4', value: 4 },
+        ],
+        layout: 'radio',
+      },
+    }),
+    defineField({
       name: 'imageSize',
       title: 'Photo size',
       description: 'Only used when there is a single photo.',
