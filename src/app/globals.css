@@ -289,17 +289,20 @@ strong { font-weight: var(--weight-bold); }
 .project-intro--8col { max-width: 66.666%; }
 .project-intro--6col { max-width: 50%; }
 
-/* ── PageBuilder: Gallery ──────────────────────────────── */
+/* ── PageBuilder: Gallery — masonry via CSS columns ──────── */
 .pb-gallery {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
+  column-gap: 12px;
   margin-top: 3rem;
 }
+.pb-gallery-item {
+  break-inside: avoid;
+  margin-bottom: 12px;
+}
 
-.pb-gallery--1col .pb-gallery-item { width: 100%; }
-.pb-gallery--2col .pb-gallery-item { width: calc(50% - 6px); }
-.pb-gallery--3col .pb-gallery-item { width: calc(33.333% - 8px); }
+.pb-gallery--1col { columns: 1; }
+.pb-gallery--2col { columns: 2; }
+.pb-gallery--3col { columns: 3; }
+.pb-gallery--4col { columns: 4; }
 
 /* ── PageBuilder: Cards ────────────────────────────────── */
 .pb-cards {
@@ -2148,12 +2151,10 @@ strong { font-weight: var(--weight-bold); }
     max-width: 100%;
   }
 
-  /* ── Gallery: 2 cols on mobile, 1 on very small ── */
-  .pb-gallery--3col .pb-gallery-item {
-    width: calc(50% - 6px);
-  }
-  .pb-gallery--2col .pb-gallery-item {
-    width: calc(50% - 6px);
+  /* ── Gallery: 2 cols on mobile ── */
+  .pb-gallery--3col,
+  .pb-gallery--4col {
+    columns: 2;
   }
 
   /* ── Cards on mobile ── */

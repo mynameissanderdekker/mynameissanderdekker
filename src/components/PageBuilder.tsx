@@ -202,7 +202,7 @@ function Gallery({ block }: { block: GalleryBlock }) {
     >
       {allUrls.map((url, i) => (
         <div key={i} className="pb-gallery-item">
-          <Image src={url} alt="" width={1200} height={800} style={{ width: '100%', height: 'auto', display: 'block' }} sizes={cols === 1 ? '100vw' : cols === 2 ? '50vw' : '33vw'} />
+          <Image src={url} alt="" width={1200} height={800} style={{ width: '100%', height: 'auto', display: 'block' }} sizes={cols === 1 ? '100vw' : cols === 2 ? '50vw' : cols === 3 ? '33vw' : '25vw'} />
         </div>
       ))}
     </div>
