@@ -69,7 +69,7 @@ export const project = defineType({
     defineField({
       name: 'artworks',
       title: 'Individual artworks',
-      description: 'Select specific artworks — aanmaken via Studio → Artworks',
+      description: 'Add specific artworks not covered by a series above — aanmaken via Studio → Artworks',
       type: 'array',
       of: [{ type: 'reference', to: [{ type: 'artwork' }], options: { disableNew: true } }],
     }),
