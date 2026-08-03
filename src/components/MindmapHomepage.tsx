@@ -94,7 +94,7 @@ const MAP_ITEMS: MapItem[] = [
   {
     title: 'Zine No2 Girls in Paris',
     panelTitle: 'Zine Nº.2 - Girls in Paris',
-    image: 'https://cdn.sanity.io/images/u11u127q/production/027d70e5bee02b252c7b57736d3067dedbec2cc4-640x640.jpg',
+    image: 'https://cdn.sanity.io/images/u11u127q/production/bcb2521ced49d1cd924e00616a4792225d651a7e-1200x800.jpg',
     text: "Eight women living in Paris, each navigating freedom, self-expression and sexuality on her own terms. The gap between France's progressive image and everyday reality turns out to be wider than expected.",
     cta: 'Read the zine',
     url: '/projects/girls-in-paris/',
@@ -104,7 +104,7 @@ const MAP_ITEMS: MapItem[] = [
   {
     title: 'Zine No9 A.S.I.A.',
     panelTitle: 'Zine Nº.9 - A.S.I.A.',
-    image: 'https://cdn.sanity.io/images/u11u127q/production/1f4655b7aebacc40ff292fbae0781428bc1899d7-1250x1000.jpg',
+    image: 'https://cdn.sanity.io/images/u11u127q/production/7c89cf6a0248eac5fee1c05fd8d9ef6fdf7a07e5-1200x800.jpg',
     text: 'Amsterdam has a reputation for tolerance. But even here, racism against people of Asian descent is a quiet, persistent reality. Seven individuals push back — simply by being fully, visibly themselves.',
     cta: 'Read the zine',
     url: '/projects/asia/',
@@ -114,7 +114,7 @@ const MAP_ITEMS: MapItem[] = [
   {
     title: 'Zine No8 Warsaw SAGA',
     panelTitle: 'Zine Nº.8 - The Warsaw SAGA',
-    image: 'https://cdn.sanity.io/images/u11u127q/production/5d17de3ee13d4bb5eccbeb7f7daad4c049bb7de5-640x640.jpg',
+    image: 'https://cdn.sanity.io/images/u11u127q/production/75619c191a810f73640b9ccfd21ee54b384d68a1-1200x800.jpg',
     text: 'Poland has been named the worst country in the EU for LGBTQ+ individuals. Dekker went to Warsaw to meet the people who stay true to themselves anyway — and found joy, resilience and liberation.',
     cta: 'Read the zine',
     url: '/projects/warsaw-saga/',
