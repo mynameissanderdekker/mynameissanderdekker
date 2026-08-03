@@ -1,3 +1,4 @@
+import { createElement } from 'react'
 import { defineField, defineType } from 'sanity'
 import { CompactDimensions } from '../components/CompactDimensions'
 import { CategoryInput } from '../components/CategoryInput'
@@ -322,10 +323,18 @@ export const artwork = defineType({
       title: 'title',
       year: 'year',
       media: 'images.0',
+      coverImageUrl: 'coverImageUrl',
       status: 'status',
       editionTotal: 'editionTotal',
     },
-    prepare({ title, year, media, status, editionTotal }) {
+    prepare({ title, year, media, coverImageUrl, status, editionTotal }: {
+      title?: string
+      year?: number
+      media?: unknown
+      coverImageUrl?: string
+      status?: string
+      editionTotal?: number
+    }) {
       const statusLabel: Record<string, string> = {
         available: 'Available',
         sold_out: 'Sold Out',
@@ -334,10 +343,20 @@ export const artwork = defineType({
         enquire: 'Enquire',
       }
       const edition = editionTotal ? ` — Ed. ${editionTotal}` : ''
+
+      // Use Sanity image if available, otherwise fall back to external coverImageUrl
+      let resolvedMedia: unknown = media
+      if (!resolvedMedia && coverImageUrl) {
+        resolvedMedia = createElement('img', {
+          src: coverImageUrl,
+          style: { width: '100%', height: '100%', objectFit: 'cover' as const },
+        })
+      }
+
       return {
         title: title ?? '—',
-        subtitle: `${statusLabel[status] ?? status ?? ''}${edition}`,
-        media,
+        subtitle: `${statusLabel[status ?? ''] ?? status ?? ''}${edition}`,
+        media: resolvedMedia,
       }
     },
   },
