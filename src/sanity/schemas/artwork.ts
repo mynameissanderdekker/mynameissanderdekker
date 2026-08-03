@@ -345,7 +345,8 @@ export const artwork = defineType({
       const edition = editionTotal ? ` — Ed. ${editionTotal}` : ''
 
       // Use Sanity image if available, otherwise fall back to external coverImageUrl
-      let resolvedMedia: unknown = media
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let resolvedMedia: any = media
       if (!resolvedMedia && coverImageUrl) {
         resolvedMedia = createElement('img', {
           src: coverImageUrl,

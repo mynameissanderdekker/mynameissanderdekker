@@ -5,7 +5,7 @@ import { OrderReports } from './components/OrderReports'
 import { MailingListExport } from './components/MailingListExport'
 
 // Artwork list with category browsing (excludes 'book' category → see Publications)
-const PUBLICATION_CATEGORIES = ['book']
+const PUBLICATION_CATEGORIES = ['book', 'Zine']
 
 function artworkListItem(S: StructureBuilder, categories: string[]) {
   const artworkCategories = categories.filter(c => !PUBLICATION_CATEGORIES.includes(c))
@@ -87,6 +87,15 @@ function publicationsListItem(S: StructureBuilder) {
               S.documentTypeList('artwork')
                 .title('Books')
                 .filter('_type == "artwork" && category == "book"')
+                .defaultOrdering([{ field: 'year', direction: 'desc' }])
+            ),
+          S.listItem()
+            .title('Zines (artworks)')
+            .id('publications-zines-artworks')
+            .child(
+              S.documentTypeList('artwork')
+                .title('Zines')
+                .filter('_type == "artwork" && category == "Zine"')
                 .defaultOrdering([{ field: 'year', direction: 'desc' }])
             ),
         ])
