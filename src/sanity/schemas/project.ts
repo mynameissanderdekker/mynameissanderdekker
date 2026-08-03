@@ -71,21 +71,21 @@ export const project = defineType({
       title: 'Individual artworks',
       description: 'Add specific artworks not covered by a series above',
       type: 'array',
-      of: [{ type: 'reference', to: [{ type: 'artwork' }] }],
+      of: [{ type: 'reference', to: [{ type: 'artwork' }], options: { disableNew: true } }],
     }),
     defineField({
       name: 'exhibitions',
       title: 'Exhibitions / Art fairs',
       description: 'Select exhibitions and art fairs linked to this project',
       type: 'array',
-      of: [{ type: 'reference', to: [{ type: 'exhibition' }, { type: 'artFair' }] }],
+      of: [{ type: 'reference', to: [{ type: 'exhibition' }, { type: 'artFair' }], options: { disableNew: true } }],
     }),
     defineField({
       name: 'press',
       title: 'Press',
       description: 'Articles and reviews related to this project',
       type: 'array',
-      of: [{ type: 'reference', to: [{ type: 'press' }] }],
+      of: [{ type: 'reference', to: [{ type: 'press' }], options: { disableNew: true } }],
     }),
 
     // ── Settings ──────────────────────────────────────────────────────────────

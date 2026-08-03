@@ -29,7 +29,7 @@ async function getExhibition(slug: string) {
     `*[_type == "exhibition" && slug.current == $slug && hasPage == true][0]{
       _id, title, slug, gallery, location, startDate, endDate, isSolo, description,
       images[]{ asset->{ _id, url }, hotspot, crop },
-      pressItems[]{ _key, title, publication, url, image{ asset->{ _id, url }, hotspot, crop } },
+      press[]->{ _id, title, publication, date, url, image{ asset->{ _id, url }, hotspot, crop } },
       "artworks": [
         ...coalesce(artworkSeries[]->artworks[]->{ _id, title, slug, "mainImage": images[0]{ asset, hotspot, crop }, priceExclVAT, vatRate, status }, []),
         ...coalesce(artworks[]->{ _id, title, slug, "mainImage": images[0]{ asset, hotspot, crop }, priceExclVAT, vatRate, status }, [])
@@ -56,7 +56,7 @@ export default async function ExhibitionPage({ params }: Props) {
 
   const images = ex.images ?? []
   const artworks = ex.artworks ?? []
-  const pressItems = ex.pressItems ?? []
+  const pressItems = ex.press ?? []
 
   const dateLabel = [ex.startDate, ex.endDate]
     .filter(Boolean)
@@ -171,10 +171,10 @@ export default async function ExhibitionPage({ params }: Props) {
         <div style={{ marginTop: '4rem' }}>
           <h2 className="section-title">Press</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            {pressItems.map((item: { _key: string; title?: string; publication?: string; url?: string; image?: { asset?: { url?: string } } }) => {
+            {pressItems.map((item: { _id: string; title?: string; publication?: string; url?: string; image?: { asset?: { url?: string } } }) => {
               const imgUrl2 = item.image?.asset?.url
               return (
-                <div key={item._key} style={{ display: 'flex', gap: '24px', alignItems: 'flex-start', borderTop: '1px solid #eee', paddingTop: '20px' }}>
+                <div key={item._id} style={{ display: 'flex', gap: '24px', alignItems: 'flex-start', borderTop: '1px solid #eee', paddingTop: '20px' }}>
                   {imgUrl2 && (
                     <img src={`${imgUrl2}?w=200&auto=format`} alt={item.title ?? ''} style={{ width: 120, flexShrink: 0, objectFit: 'cover' }} />
                   )}
