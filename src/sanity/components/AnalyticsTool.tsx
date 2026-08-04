@@ -16,7 +16,7 @@ export function AnalyticsTool() {
       <h2 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: '8px' }}>Analytics</h2>
 
       <a
-        href="https://vercel.com/sanderdekker/mynameissanderdekker/analytics"
+        href="https://analytics.google.com/analytics/web/#/a56115010p391057659/reports/intelligenthome"
         target="_blank"
         rel="noopener noreferrer"
         style={{
@@ -31,31 +31,11 @@ export function AnalyticsTool() {
           textAlign: 'center',
         }}
       >
-        Vercel Analytics →
-      </a>
-
-      <a
-        href="https://analytics.google.com/analytics/web/#/a56115010p391057659/reports/intelligenthome"
-        target="_blank"
-        rel="noopener noreferrer"
-        style={{
-          display: 'block',
-          background: '#fff',
-          color: '#000',
-          border: '1px solid #000',
-          padding: '12px 32px',
-          textDecoration: 'none',
-          fontSize: '14px',
-          letterSpacing: '0.05em',
-          width: '260px',
-          textAlign: 'center',
-        }}
-      >
-        Google Analytics (history) →
+        Google Analytics →
       </a>
 
       <p style={{ color: '#888', fontSize: '12px', marginTop: '8px' }}>
-        Both open in a new tab.
+        Opens in a new tab.
       </p>
     </div>
   )

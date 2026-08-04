@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Analytics } from "@vercel/analytics/next";
 import { CookieBanner } from "@/components/CookieBanner";
 import "./globals.css";
 
@@ -31,9 +30,6 @@ export default function RootLayout({
     <html lang="en">
       <body>
         {children}
-
-        {/* Vercel Analytics — quick overview in Vercel dashboard (no cookies needed) */}
-        <Analytics />
 
         {/* Google Analytics 4 — long-term history & trends: analytics.google.com */}
         <CookieBanner />
