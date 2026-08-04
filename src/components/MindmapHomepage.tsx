@@ -48,7 +48,7 @@ const MAP_ITEMS: MapItem[] = [
   {
     title: 'TenFifteen — The Social Landscape',
     displayTitle: 'The Social Landscape (TenFifteen)',
-    image: 'https://cdn.sanity.io/images/u11u127q/production/1f4655b7aebacc40ff292fbae0781428bc1899d7-1250x1000.jpg',
+    image: 'https://cdn.sanity.io/images/u11u127q/production/7dfd41e27bcf2accf420d14b38ab12944f481967-1400x788.jpg',
     text: 'A wall of photographs, each ten by fifteen centimetres — hence the name. Intimate and personal up close. Overwhelming together — like the endless stream of images we scroll through every day.',
     cta: 'Discover the project',
     url: '/projects/tenfifteen/',
@@ -57,7 +57,7 @@ const MAP_ITEMS: MapItem[] = [
   },
   {
     title: '#fun',
-    image: 'https://cdn.sanity.io/images/u11u127q/production/1f4655b7aebacc40ff292fbae0781428bc1899d7-1250x1000.jpg',
+    image: 'https://cdn.sanity.io/images/u11u127q/production/f777374742cce85552a15b35bfbdf3b83d123149-1500x1001.jpg',
     text: "The moment a camera appears, something switches. Smiles widen, poses form, joy becomes demonstrable. It happens almost automatically — a Pavlovian reflex so ingrained that most people don't notice they're doing it. Dekker notices. And stays put.",
     cta: 'Discover the project',
     url: '/projects/fun/',
@@ -66,7 +66,7 @@ const MAP_ITEMS: MapItem[] = [
   },
   {
     title: 'Innate Curiosity',
-    image: 'https://cdn.sanity.io/images/u11u127q/production/54e72a792f88d41a82b0e630b5aed42500b43c07-1000x1250.jpg',
+    image: 'https://cdn.sanity.io/images/u11u127q/production/746715dfc485a2365ac98b0b24611f9160d73942-1400x933.jpg',
     text: 'Innate Curiosity sits at the heart of what came before — the impulse to seek, to wonder, to find things out for yourself. Before the algorithm decided what you were curious about, curiosity was something you had to act on.',
     cta: 'Discover the project',
     url: '/projects/innate-curiosity/',
@@ -75,7 +75,7 @@ const MAP_ITEMS: MapItem[] = [
   },
   {
     title: 'It Is Us',
-    image: 'https://cdn.sanity.io/images/u11u127q/production/1f4655b7aebacc40ff292fbae0781428bc1899d7-1250x1000.jpg',
+    image: 'https://cdn.sanity.io/images/u11u127q/production/4ebb3c17ee4226a117d56d5c961eb9e04081537d-1200x675.jpg',
     text: 'A scar. A birthmark. A body part usually kept hidden. Strangers photograph themselves anonymously, and together their images form something unexpected — collective, human and quietly funny.',
     cta: 'Discover the project',
     url: '/projects/it-is-us/',
@@ -104,7 +104,7 @@ const MAP_ITEMS: MapItem[] = [
   {
     title: 'Zine No9 A.S.I.A.',
     panelTitle: 'Zine Nº.9 - A.S.I.A.',
-    image: 'https://cdn.sanity.io/images/u11u127q/production/1f4655b7aebacc40ff292fbae0781428bc1899d7-1250x1000.jpg',
+    image: 'https://cdn.sanity.io/images/u11u127q/production/e202d5934809a60a466bddf52f995dca1a639129-800x533.jpg',
     text: 'Amsterdam has a reputation for tolerance. But even here, racism against people of Asian descent is a quiet, persistent reality. Seven individuals push back — simply by being fully, visibly themselves.',
     cta: 'Read the zine',
     url: '/projects/asia/',
