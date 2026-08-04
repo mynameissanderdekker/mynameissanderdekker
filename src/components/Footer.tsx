@@ -136,6 +136,7 @@ export default function Footer() {
               hello@mynameissanderdekker.com
             </a>
           </p>
+          <p>Amsterdam, the Netherlands</p>
           <p>
             <a href="/sander-dekker-press-kit.pdf" download>
               Press kit (PDF)
