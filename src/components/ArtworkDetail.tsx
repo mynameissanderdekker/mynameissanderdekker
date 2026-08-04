@@ -31,6 +31,7 @@ export interface ArtworkData {
   editionAP?: number
   slug?: { current: string }
   description?: Array<{ children?: Array<{ text?: string }> }>
+  metaDescription?: string
 }
 
 function imgUrl(img: SanityImageSource, width: number) {
@@ -103,14 +104,14 @@ export default function ArtworkDetail({ artwork }: { artwork: ArtworkData }) {
         {/* ── Image column: no background, X button absolute top-right, thumbnails below ── */}
         <div className="flex-1 min-w-0 flex flex-col relative" style={{ padding: '40px 48px 32px' }}>
           {/* X close button — absolute so it doesn't push image down */}
-          <Link
-            href="/works"
+          <button
+            onClick={() => router.back()}
             className="text-gray-400 hover:text-black transition-colors text-xl leading-none absolute"
-            style={{ top: '40px', right: '48px' }}
-            aria-label="Back to works"
+            style={{ top: '40px', right: '48px', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+            aria-label="Back"
           >
             ✕
-          </Link>
+          </button>
 
           {/* Main image — fixed height container so thumbnails don't jump on image switch */}
           <div className="flex items-center justify-center" style={{ height: '55vh' }}>
@@ -145,7 +146,7 @@ export default function ArtworkDetail({ artwork }: { artwork: ArtworkData }) {
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={thumbUrl}
+                      src={thumbUrl ?? undefined}
                       alt={`${artwork.title} — ${i + 1}`}
                       className="w-full h-full object-contain"
                     />
