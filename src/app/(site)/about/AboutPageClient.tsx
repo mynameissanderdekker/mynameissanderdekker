@@ -58,7 +58,7 @@ interface CvData {
 }
 
 interface CvLinkedItem {
-  year: number
+  startDate?: string
   label: string
 }
 
@@ -157,14 +157,14 @@ export default function AboutPage() {
       client.fetch<CvLinkedItem[]>(
         `[
           ...*[_type == "exhibition" && showInCV == true]{
-            "year": coalesce(year(startDate), 0),
+            startDate,
             "label": coalesce(cvLabel, title)
           },
           ...*[_type == "artFair" && showInCV == true]{
-            "year": coalesce(year(startDate), 0),
+            startDate,
             "label": coalesce(cvLabel, name)
           }
-        ] | order(year desc)`,
+        ] | order(startDate desc)`,
         {},
         { cache: 'no-store' }
       ),
@@ -245,12 +245,15 @@ export default function AboutPage() {
       {linkedItems.length > 0 && (
         <div style={{ marginTop: '2rem' }}>
           <ul className="cv-list">
-            {linkedItems.map((item, i) => (
-              <li key={i}>
-                {item.year > 0 && <span style={{ color: '#999', marginRight: '0.5rem' }}>{item.year}</span>}
-                {item.label}
-              </li>
-            ))}
+            {linkedItems.map((item, i) => {
+              const year = item.startDate ? new Date(item.startDate).getFullYear() : null
+              return (
+                <li key={i}>
+                  {year && <span style={{ color: '#999', marginRight: '0.5rem' }}>{year}</span>}
+                  {item.label}
+                </li>
+              )
+            })}
           </ul>
         </div>
       )}
