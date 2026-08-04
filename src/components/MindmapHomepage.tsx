@@ -47,11 +47,11 @@ const MAP_ITEMS: MapItem[] = [
   },
   {
     title: 'TenFifteen — The Social Landscape',
-    displayTitle: 'The Social Landscape (TenFifteen)',
+    displayTitle: 'The Social Landscape',
     image: 'https://cdn.sanity.io/images/u11u127q/production/7dfd41e27bcf2accf420d14b38ab12944f481967-1400x788.jpg',
     text: 'A wall of photographs, each ten by fifteen centimetres — hence the name. Intimate and personal up close. Overwhelming together — like the endless stream of images we scroll through every day.',
     cta: 'Discover the project',
-    url: '/projects/tenfifteen/',
+    url: '/projects/the-social-landscape/',
     x: 210, y: 230, r: 180, xMobile: 450, yMobile: 250, rMobile: 180,
     color: '#F7D7C4', opacity: 0.60, fontSize: 30, fontWeight: 700,
   },
@@ -159,12 +159,11 @@ function SvgTitle({ item, isMobile }: { item: MapItem; isMobile: boolean }) {
   const displayTitle = item.displayTitle || item.title
   const fs = isMobile ? 30 : (item.fontSize || 26)
 
-  if (displayTitle === 'The Social Landscape (TenFifteen)') {
+  if (displayTitle === 'The Social Landscape') {
     return (
       <text x={x} y={y} fill="#000" fontWeight={item.fontWeight || 700} className="node-text">
-        <tspan x={x} dy="-1.1em" fontSize={fs}>The Social</tspan>
+        <tspan x={x} dy="-0.55em" fontSize={fs}>The Social</tspan>
         <tspan x={x} dy="1.1em" fontSize={fs}>Landscape</tspan>
-        <tspan x={x} dy="1.1em" fontSize={fs}>(TenFifteen)</tspan>
       </text>
     )
   }
