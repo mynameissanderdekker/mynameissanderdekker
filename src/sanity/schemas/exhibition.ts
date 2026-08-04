@@ -67,41 +67,23 @@ export const exhibition = defineType({
     defineField({
       name: 'artworkSeries',
       title: 'Artworks from series',
-      description: 'Link a Project Series to include all its artworks at once',
+      description: 'Select a Project Series — create new ones via Studio → Project Series',
       type: 'array',
-      of: [{ type: 'reference', to: [{ type: 'projectSeries' }] }],
+      of: [{ type: 'reference', to: [{ type: 'projectSeries' }], options: { disableNew: true } }],
     }),
     defineField({
       name: 'artworks',
       title: 'Individual artworks',
-      description: 'Add specific artworks not covered by a series above',
+      description: 'Add specific artworks not covered by a series above — create new ones via Studio → Artworks',
       type: 'array',
-      of: [{ type: 'reference', to: [{ type: 'artwork' }] }],
+      of: [{ type: 'reference', to: [{ type: 'artwork' }], options: { disableNew: true } }],
     }),
     defineField({
-      name: 'pressItems',
+      name: 'press',
       title: 'Press',
-      description: 'Articles, reviews and mentions',
+      description: 'Select press articles — create new ones via Studio → Press',
       type: 'array',
-      of: [
-        {
-          type: 'object',
-          name: 'pressItem',
-          title: 'Press item',
-          preview: {
-            select: { title: 'title', publication: 'publication' },
-            prepare({ title, publication }: { title?: string; publication?: string }) {
-              return { title: title ?? '—', subtitle: publication ?? '' }
-            },
-          },
-          fields: [
-            defineField({ name: 'title', title: 'Article title', type: 'string' }),
-            defineField({ name: 'publication', title: 'Publication', type: 'string', description: 'E.g. "De Volkskrant", "Artforum"' }),
-            defineField({ name: 'url', title: 'Article URL', type: 'url' }),
-            defineField({ name: 'image', title: 'Article image / scan', type: 'image', options: { hotspot: true } }),
-          ],
-        },
-      ],
+      of: [{ type: 'reference', to: [{ type: 'press' }], options: { disableNew: true } }],
     }),
   ],
   preview: {

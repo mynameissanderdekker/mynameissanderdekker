@@ -1,3 +1,4 @@
+import { createElement } from 'react'
 import { defineField, defineType } from 'sanity'
 import { CompactDimensions } from '../components/CompactDimensions'
 import { CategoryInput } from '../components/CategoryInput'
@@ -320,12 +321,19 @@ export const artwork = defineType({
   preview: {
     select: {
       title: 'title',
-      year: 'year',
-      media: 'images.0',
+      images: 'images',
+      coverImageUrl: 'coverImageUrl',
       status: 'status',
       editionTotal: 'editionTotal',
     },
-    prepare({ title, year, media, status, editionTotal }) {
+    prepare({ title, images, coverImageUrl, status, editionTotal }: {
+      title?: string
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      images?: any[]
+      coverImageUrl?: string
+      status?: string
+      editionTotal?: number
+    }) {
       const statusLabel: Record<string, string> = {
         available: 'Available',
         sold_out: 'Sold Out',
@@ -334,10 +342,33 @@ export const artwork = defineType({
         enquire: 'Enquire',
       }
       const edition = editionTotal ? ` — Ed. ${editionTotal}` : ''
+
+      // Pick first image's asset ref from array (guaranteed to work — no array path resolution)
+      const assetRef: string | undefined = Array.isArray(images) && images.length > 0
+        ? images[0]?.asset?._ref
+        : undefined
+
+      let imageUrl: string | undefined
+      if (assetRef) {
+        // Convert "image-{hash}-{dims}-{ext}" → "{hash}-{dims}.{ext}"
+        const filename = assetRef.replace(/^image-/, '').replace(/-([a-z0-9]+)$/i, '.$1')
+        imageUrl = `https://cdn.sanity.io/images/u11u127q/production/${filename}?w=80&h=80&fit=crop`
+      } else if (coverImageUrl) {
+        imageUrl = coverImageUrl
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const resolvedMedia: any = imageUrl
+        ? createElement('img', {
+            src: imageUrl,
+            style: { width: '100%', height: '100%', objectFit: 'cover' as const },
+          })
+        : undefined
+
       return {
         title: title ?? '—',
-        subtitle: `${statusLabel[status] ?? status ?? ''}${edition}`,
-        media,
+        subtitle: `${statusLabel[status ?? ''] ?? status ?? ''}${edition}`,
+        media: resolvedMedia,
       }
     },
   },

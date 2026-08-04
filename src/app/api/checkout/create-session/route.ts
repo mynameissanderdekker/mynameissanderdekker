@@ -5,13 +5,29 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000'
 
 export async function POST(req: NextRequest) {
   try {
-    const { items } = await req.json()
+    const { items, coupon } = await req.json()
 
     if (!items?.length) {
       return NextResponse.json({ error: 'Geen producten' }, { status: 400 })
     }
 
-    const session = await getStripeClient().checkout.sessions.create({
+    const stripe = getStripeClient()
+
+    // If a validated coupon is provided, create a Stripe coupon on-the-fly
+    let stripeCouponId: string | undefined
+    if (coupon?.code && coupon?.discountAmount > 0) {
+      const stripeCoupon = await stripe.coupons.create({
+        name: `Coupon ${coupon.code}`,
+        ...(coupon.type === 'percentage'
+          ? { percent_off: coupon.value }
+          : { amount_off: Math.round(coupon.discountAmount * 100), currency: 'eur' }),
+        duration: 'once',
+        metadata: { code: coupon.code, sanityId: coupon.sanityId ?? '' },
+      })
+      stripeCouponId = stripeCoupon.id
+    }
+
+    const session = await stripe.checkout.sessions.create({
       mode: 'payment',
       payment_method_types: ['card', 'ideal', 'bancontact'],
       line_items: items.map((item: { id?: string; title: string; priceIncl: number; imageUrl?: string }) => ({
@@ -30,7 +46,10 @@ export async function POST(req: NextRequest) {
         allowed_countries: ['NL', 'BE', 'DE', 'FR', 'GB', 'US', 'AT', 'DK', 'IT', 'ES', 'PT', 'SE', 'NO', 'CH'],
       },
       billing_address_collection: 'auto',
-      allow_promotion_codes: true,
+      // Use our own coupon OR allow Stripe promo codes (not both)
+      ...(stripeCouponId
+        ? { discounts: [{ coupon: stripeCouponId }] }
+        : { allow_promotion_codes: true }),
       custom_fields: [
         {
           key: 'company_name',
@@ -45,7 +64,7 @@ export async function POST(req: NextRequest) {
           optional: true,
         },
       ],
-      customer_email: undefined, // Stripe vraagt dit zelf
+      customer_email: undefined,
       success_url: `${BASE_URL}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${BASE_URL}/cart`,
       metadata: {
@@ -54,9 +73,9 @@ export async function POST(req: NextRequest) {
           title:     i.title,
           price:     i.priceIncl,
           quantity:  1,
-          // id is artwork._id or artwork._id::variantKey — strip the variant suffix
           artworkId: i.id ? i.id.split('::')[0] : null,
         }))),
+        ...(coupon ? { couponCode: coupon.code, couponSanityId: coupon.sanityId ?? '' } : {}),
       },
     })
 

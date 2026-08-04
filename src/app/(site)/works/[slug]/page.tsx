@@ -59,5 +59,28 @@ export default async function WorkPage({ params }: { params: Promise<{ slug: str
 
   if (!artwork) notFound()
 
-  return <ArtworkDetail artwork={artwork} />
+  const artworkSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'VisualArtwork',
+    name: artwork.title,
+    creator: {
+      '@type': ['Person', 'Artist'],
+      name: 'Sander Dekker',
+      url: 'https://www.mynameissanderdekker.com',
+    },
+    dateCreated: artwork.year?.toString(),
+    artMedium: artwork.medium,
+    url: `https://www.mynameissanderdekker.com/works/${slug}`,
+    ...(artwork.images?.[0]?.asset?.url ? { image: artwork.images[0].asset.url } : {}),
+  }
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(artworkSchema) }}
+      />
+      <ArtworkDetail artwork={artwork} />
+    </>
+  )
 }

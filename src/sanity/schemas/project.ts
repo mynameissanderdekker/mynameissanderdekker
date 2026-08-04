@@ -62,30 +62,30 @@ export const project = defineType({
     defineField({
       name: 'artworkSeries',
       title: 'Artworks from series',
-      description: 'Link a Project Series to include all its artworks at once',
+      description: 'Select a Project Series — create new ones via Studio → Project Series',
       type: 'array',
-      of: [{ type: 'reference', to: [{ type: 'projectSeries' }] }],
+      of: [{ type: 'reference', to: [{ type: 'projectSeries' }], options: { disableNew: true } }],
     }),
     defineField({
       name: 'artworks',
       title: 'Individual artworks',
-      description: 'Add specific artworks not covered by a series above',
+      description: 'Add specific artworks not covered by a series above — create new ones via Studio → Artworks',
       type: 'array',
-      of: [{ type: 'reference', to: [{ type: 'artwork' }] }],
+      of: [{ type: 'reference', to: [{ type: 'artwork' }], options: { disableNew: true } }],
     }),
     defineField({
       name: 'exhibitions',
       title: 'Exhibitions / Art fairs',
-      description: 'Select exhibitions and art fairs linked to this project',
+      description: 'Select linked exhibitions — create new ones via Studio → Exhibitions',
       type: 'array',
-      of: [{ type: 'reference', to: [{ type: 'exhibition' }, { type: 'artFair' }] }],
+      of: [{ type: 'reference', to: [{ type: 'exhibition' }, { type: 'artFair' }], options: { disableNew: true } }],
     }),
     defineField({
       name: 'press',
       title: 'Press',
-      description: 'Articles and reviews related to this project',
+      description: 'Select press articles — create new ones via Studio → Press',
       type: 'array',
-      of: [{ type: 'reference', to: [{ type: 'press' }] }],
+      of: [{ type: 'reference', to: [{ type: 'press' }], options: { disableNew: true } }],
     }),
 
     // ── Settings ──────────────────────────────────────────────────────────────
