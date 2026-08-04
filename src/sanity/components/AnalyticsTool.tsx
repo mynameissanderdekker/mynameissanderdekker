@@ -1,3 +1,7 @@
+export function AnalyticsIcon() {
+  return <span style={{ fontSize: '1.1em' }}>📊</span>
+}
+
 export function AnalyticsTool() {
   return (
     <div style={{
