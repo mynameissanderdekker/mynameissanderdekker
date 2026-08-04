@@ -1,6 +1,9 @@
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { client } from '@/sanity/lib/client'
 import ArtworkDetail, { type ArtworkData } from '@/components/ArtworkDetail'
+
+const BASE_URL = 'https://www.mynameissanderdekker.com'
 
 // ── Sanity query ──────────────────────────────────────────────────────────────
 
@@ -26,7 +29,8 @@ async function getArtwork(slug: string): Promise<ArtworkData | null> {
       editionTotal,
       editionAP,
       slug,
-      description
+      description,
+      metaDescription
     }`,
     { slug },
     { next: { revalidate: false } },
@@ -40,6 +44,44 @@ async function getAllSlugs(): Promise<string[]> {
     { next: { revalidate: false } },
   )
   return rows.map(r => r.slug.current)
+}
+
+// ── Metadata ──────────────────────────────────────────────────────────────────
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params
+  const artwork = await getArtwork(slug)
+  if (!artwork) return {}
+
+  const description = artwork.metaDescription
+    ?? (artwork.medium ? `${artwork.title} — ${artwork.medium}. Limited edition by Sander Dekker.` : `${artwork.title} — Limited edition by Sander Dekker.`)
+
+  const ogImage = artwork.images?.[0]?.asset?.url
+    ? [{ url: artwork.images[0].asset.url, alt: artwork.title }]
+    : []
+
+  return {
+    title: artwork.title,
+    description,
+    alternates: {
+      canonical: `${BASE_URL}/works/${slug}`,
+    },
+    openGraph: {
+      title: `${artwork.title} — Sander Dekker`,
+      description,
+      url: `${BASE_URL}/works/${slug}`,
+      siteName: 'Sander Dekker',
+      locale: 'en_GB',
+      type: 'website',
+      ...(ogImage.length > 0 ? { images: ogImage } : {}),
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${artwork.title} — Sander Dekker`,
+      description,
+      ...(ogImage.length > 0 ? { images: [ogImage[0].url] } : {}),
+    },
+  }
 }
 
 // ── Static params ─────────────────────────────────────────────────────────────
@@ -59,19 +101,39 @@ export default async function WorkPage({ params }: { params: Promise<{ slug: str
 
   if (!artwork) notFound()
 
+  const isAvailable = artwork.status === 'available'
+  const isSoldOut   = artwork.status === 'sold_out'
+
+  // Determine the relevant price (first option or base price)
+  const offerPrice = artwork.options?.length
+    ? artwork.options[0].priceExclVAT
+    : artwork.priceExclVAT
+
   const artworkSchema = {
     '@context': 'https://schema.org',
     '@type': 'VisualArtwork',
     name: artwork.title,
     creator: {
-      '@type': ['Person', 'Artist'],
+      '@type': 'Person',
       name: 'Sander Dekker',
-      url: 'https://www.mynameissanderdekker.com',
+      url: BASE_URL,
     },
     dateCreated: artwork.year?.toString(),
     artMedium: artwork.medium,
-    url: `https://www.mynameissanderdekker.com/works/${slug}`,
+    url: `${BASE_URL}/works/${slug}`,
     ...(artwork.images?.[0]?.asset?.url ? { image: artwork.images[0].asset.url } : {}),
+    ...(offerPrice != null ? {
+      offers: {
+        '@type': 'Offer',
+        price: offerPrice,
+        priceCurrency: 'EUR',
+        availability: isSoldOut
+          ? 'https://schema.org/SoldOut'
+          : isAvailable
+          ? 'https://schema.org/InStock'
+          : 'https://schema.org/PreOrder',
+      },
+    } : {}),
   }
 
   return (

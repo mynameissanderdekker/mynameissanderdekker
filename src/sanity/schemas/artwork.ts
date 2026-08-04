@@ -122,6 +122,14 @@ export const artwork = defineType({
       group: 'info',
       description: 'External URL — used as cover when no Sanity image is uploaded yet',
     }),
+    defineField({
+      name: 'metaDescription',
+      title: 'Meta description',
+      type: 'string',
+      group: 'info',
+      description: 'Short description for Google and social sharing (max. 160 characters).',
+      validation: (r) => r.max(160),
+    }),
 
     // ── Edition & Sales ───────────────────────────────────────────────────────
     defineField({

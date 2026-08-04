@@ -139,11 +139,11 @@ function formatPrice(excl: number, vatRate = 9) {
 
 // ── Linked artworks grid ───────────────────────────────────────────────────────
 
-function ArtworksGrid({ artworks }: { artworks: LinkedArtwork[] }) {
+function ArtworksGrid({ artworks, label = 'Artworks' }: { artworks: LinkedArtwork[]; label?: string }) {
   if (!artworks.length) return null
   return (
     <div style={{ marginTop: '3rem' }}>
-      <h2 className="section-title">Artworks</h2>
+      <h2 className="section-title">{label}</h2>
       <div className="works-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
         {artworks.map(a => {
           const imgUrl = a.mainImage?.asset
@@ -263,7 +263,7 @@ export default async function ProjectPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(creativeWorkSchema) }}
       />
       <PageBuilder blocks={pageBlocks} zines={zines} />
-      <ArtworksGrid artworks={artworks} />
+      <ArtworksGrid artworks={artworks} label={['the-zine-project', 'the-social-media-project'].includes(slug) ? 'Artworks (selection)' : 'Artworks'} />
       <ExhibitionsList exhibitions={exhibitions} />
     </>
   )

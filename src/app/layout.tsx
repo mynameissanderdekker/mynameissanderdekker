@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   description: 'Amsterdam-based photographer. Documentary projects on identity, self-expression and social acceptance — through zines, exhibitions and editions.',
   openGraph: {
     siteName: 'Sander Dekker',
-    locale: 'en_US',
+    locale: 'en_GB',
     type: 'website',
   },
   twitter: {
