@@ -1,23 +1,69 @@
 /* eslint-disable @next/next/no-img-element */
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { client } from '@/sanity/lib/client'
 import { urlFor } from '@/sanity/lib/image'
 import { PageBuilder, type PageBlock } from '@/components/PageBuilder'
 
+const BASE_URL = 'https://www.mynameissanderdekker.com'
+
 export const revalidate = 3600
+
+// Hardcoded fallback descriptions per slug (overridden when Sanity metaDescription is set)
+const PROJECT_DESCRIPTIONS: Record<string, string> = {
+  'the-social-media-project': 'A decade-long documentary series: Sander Dekker contacted strangers via social media and photographed them in their own homes. Ten years, a dozen countries, hundreds of messages. 2011–2021.',
+  'innate-curiosity': "What happens to curiosity when algorithms anticipate your interests before you've formed them? Sander Dekker's ongoing project on pre-digital ways of seeing and exploring the world.",
+  'the-zine-project': 'Ten handmade zines published between 2021 and 2025, each an intimate exploration of a single person, place or theme. All editions sold out. Concluded at TORCH Gallery Amsterdam.',
+  'the-social-landscape': 'TenFifteen: thousands of 10×15cm photographs as large-scale installation — a visual echo of the social media scroll. Permanent installations in Amsterdam, Hellerup and Lisse.',
+  'fun': 'A long-term series in which Sander Dekker inserts himself as a neutral, expressionless presence in everyday situations — making the instinct to perform for a camera visible and absurd.',
+  'it-is-us': 'A participatory work: people anonymously photograph a part of their body they feel strongly about. A collective body built from difference, pride and vulnerability.',
+  'girls-in-paris': 'Eight women in Paris navigating questions of freedom, self-expression and autonomy. Intimate portraits paired with everyday language of judgment. Zine Nº.2, edition of 35.',
+  'warsaw-saga': 'Zine Nº.8 — Portraits of LGBTQ+ individuals in Warsaw who stay true to themselves despite social and political pressure. SAGA stands for their right to be seen. Edition of 40, sold out.',
+  'asia': 'Zine Nº.9 — Addressing Structural Inequalities in Amsterdam. Seven individuals with Asian heritage using self-expression to challenge stereotypes. Edition of 40, sold out.',
+}
 
 interface Props {
   params: Promise<{ slug: string }>
 }
 
-export async function generateMetadata({ params }: Props) {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   const project = await getProject(slug)
   if (!project) return {}
+
+  const description = project.metaDescription ?? PROJECT_DESCRIPTIONS[slug] ?? `${project.title} — a project by Sander Dekker.`
+
+  const ogImages = project.coverImageUrl
+    ? [{
+        url: project.coverImageUrl,
+        width: project.coverImageWidth ?? 1200,
+        height: project.coverImageHeight ?? 630,
+        alt: project.title,
+      }]
+    : []
+
   return {
     title: project.title,
-    openGraph: { title: project.title },
+    description,
+    alternates: {
+      canonical: `${BASE_URL}/projects/${slug}`,
+    },
+    openGraph: {
+      title: `${project.title} — Sander Dekker`,
+      description,
+      url: `${BASE_URL}/projects/${slug}`,
+      siteName: 'Sander Dekker',
+      locale: 'en_GB',
+      type: 'website',
+      ...(ogImages.length > 0 ? { images: ogImages } : {}),
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${project.title} — Sander Dekker`,
+      description,
+      ...(ogImages.length > 0 ? { images: [ogImages[0].url] } : {}),
+    },
   }
 }
 
@@ -55,6 +101,12 @@ async function getProject(slug: string) {
   return client.fetch(
     `*[_type == "project" && slug.current == $slug && isPage == true][0]{
       _id, title,
+      metaDescription,
+      startYear,
+      endYear,
+      "coverImageUrl": coverImage.asset->url,
+      "coverImageWidth": coverImage.asset->metadata.dimensions.width,
+      "coverImageHeight": coverImage.asset->metadata.dimensions.height,
       pageBuilder,
       "artworks": [
         ...coalesce(artworkSeries[]->artworks[]->{ _id, title, slug, "mainImage": images[0]{ asset, hotspot, crop }, priceExclVAT, vatRate, status }, []),
@@ -181,8 +233,30 @@ export default async function ProjectPage({ params }: Props) {
   const exhibitions: LinkedExhibition[] = project.exhibitions ?? []
   const pageBlocks: PageBlock[]         = project.pageBuilder ?? []
 
+  const description = project.metaDescription ?? PROJECT_DESCRIPTIONS[slug] ?? `${project.title} — a project by Sander Dekker.`
+
+  const creativeWorkSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'CreativeWork',
+    name: project.title,
+    creator: {
+      '@type': 'Person',
+      name: 'Sander Dekker',
+      url: BASE_URL,
+    },
+    ...(project.startYear ? { dateCreated: String(project.startYear) } : {}),
+    description,
+    url: `${BASE_URL}/projects/${slug}`,
+    artMedium: ['Photography', 'Installation'],
+    inLanguage: 'en',
+  }
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(creativeWorkSchema) }}
+      />
       <PageBuilder blocks={pageBlocks} zines={zines} />
       <ArtworksGrid artworks={artworks} />
       <ExhibitionsList exhibitions={exhibitions} />
