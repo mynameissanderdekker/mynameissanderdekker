@@ -194,14 +194,20 @@ function Gallery({ block }: { block: GalleryBlock }) {
     .filter(Boolean) as string[]
   const allUrls = [...sanityUrls, ...(block.externalUrls ?? [])]
   const cols = block.columns ?? Math.min(allUrls.length || 1, 3)
-  const justifyMap = { left: 'flex-start', center: 'center', right: 'flex-end' }
+  const justifyMap: Record<string, string> = { left: 'flex-start', center: 'center', right: 'flex-end' }
+  // CSS `columns` (masonry) ignores justifyContent — use flex for center/right
+  const useFlex = alignment !== 'left'
+  const itemW = `calc(${100 / cols}% - ${12 * (cols - 1) / cols}px)`
   return (
     <div
-      className={`pb-gallery pb-gallery--${cols}col`}
-      style={{ justifyContent: justifyMap[alignment], marginTop: '3rem' }}
+      className={useFlex ? undefined : `pb-gallery pb-gallery--${cols}col`}
+      style={useFlex
+        ? { display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: justifyMap[alignment], marginTop: '3rem' }
+        : { marginTop: '3rem' }
+      }
     >
       {allUrls.map((url, i) => (
-        <div key={i} className="pb-gallery-item">
+        <div key={i} className={useFlex ? undefined : 'pb-gallery-item'} style={useFlex ? { width: itemW } : undefined}>
           <Image src={url} alt="" width={1200} height={800} style={{ width: '100%', height: 'auto', display: 'block' }} sizes={cols === 1 ? '100vw' : cols === 2 ? '50vw' : cols === 3 ? '33vw' : '25vw'} />
         </div>
       ))}
