@@ -269,7 +269,14 @@ export const structure: StructureResolver = async (S, { getClient }) => {
 
       contactsListItem(S),
       S.documentTypeListItem('privateSale').title('Private Sales Selections'),
-      S.documentTypeListItem('exhibition').title('Exhibitions'),
+      S.listItem()
+        .title('Exhibitions')
+        .id('exhibition')
+        .child(
+          S.documentTypeList('exhibition')
+            .title('Exhibitions')
+            .defaultOrdering([{ field: 'startDate', direction: 'desc' }])
+        ),
       S.documentTypeListItem('artFair').title('Art Fairs'),
       S.documentTypeListItem('press').title('Press'),
 
