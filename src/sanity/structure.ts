@@ -221,14 +221,23 @@ export const structure: StructureResolver = async (S, { getClient }) => {
       S.divider().title('PAGES'),
 
       S.listItem()
-        .title('About')
-        .id('aboutPage')
-        .child(S.document().schemaType('aboutPage').documentId('aboutPage').title('About')),
-
-      S.listItem()
-        .title('CV')
-        .id('cvPage')
-        .child(S.document().schemaType('cvPage').documentId('cvPage').title('CV')),
+        .title('About & CV')
+        .id('aboutAndCv')
+        .child(
+          S.list()
+            .id('about-cv-list')
+            .title('About & CV')
+            .items([
+              S.listItem()
+                .title('About')
+                .id('aboutPage')
+                .child(S.document().schemaType('aboutPage').documentId('aboutPage').title('About')),
+              S.listItem()
+                .title('CV')
+                .id('cvPage')
+                .child(S.document().schemaType('cvPage').documentId('cvPage').title('CV')),
+            ])
+        ),
 
       S.listItem()
         .title('Projects')
