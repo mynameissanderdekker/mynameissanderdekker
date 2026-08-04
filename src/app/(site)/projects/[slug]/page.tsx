@@ -113,7 +113,10 @@ async function getProject(slug: string) {
         ...coalesce(artworkSeries[]->artworks[]->{ _id, title, slug, "mainImage": images[0]{ asset, hotspot, crop }, priceExclVAT, vatRate, status }, []),
         ...coalesce(artworks[]->{ _id, title, slug, "mainImage": images[0]{ asset, hotspot, crop }, priceExclVAT, vatRate, status }, [])
       ],
-      exhibitions[]->{ _id, _type, slug, hasPage, title, name, gallery, fair, booth, location, startDate, exhibitionType, isSolo, websiteUrl }
+      "exhibitions": [
+        ...*[_type == "exhibition" && cvProject._ref == ^._id]{ _id, _type, slug, hasPage, title, gallery, location, startDate, exhibitionType, isSolo, websiteUrl },
+        ...*[_type == "artFair" && cvProject._ref == ^._id]{ _id, "_type": "artFair", slug, hasPage, name, "gallery": fair, "fair": fair, booth, location, startDate, websiteUrl }
+      ] | order(startDate desc)
     }`,
     { slug }
   )
@@ -198,9 +201,10 @@ function ExhibitionsList({ exhibitions }: { exhibitions: LinkedExhibition[] }) {
           const label = isArtFair
             ? (e.name ?? e.fair ?? '—')
             : (e.gallery ?? e.title ?? '—')
+          const typeLabel: Record<string, string> = { solo: 'Solo', duo: 'Duo', group: 'Group', permanent: 'Permanent', special: 'Special' }
           const detail = isArtFair
             ? e.booth
-            : (e.exhibitionType === 'solo' || e.isSolo ? 'Solo' : e.exhibitionType === 'duo' ? 'Duo' : e.exhibitionType === 'group' ? 'Group' : e.exhibitionType === 'permanent' ? 'Permanent' : e.exhibitionType === 'special' ? 'Special' : undefined)
+            : (e.exhibitionType ? typeLabel[e.exhibitionType] : e.isSolo ? 'Solo' : undefined)
           const internalUrl = e.hasPage && e.slug?.current
             ? (isArtFair ? `/art-fairs/${e.slug.current}` : `/exhibitions/${e.slug.current}`)
             : null

@@ -1,5 +1,6 @@
 import { defineField, defineType } from 'sanity'
 import { ALL_PAGE_BLOCKS } from './pageBlocks'
+import { CvLinkedExhibitionsInput } from '../components/CvLinkedExhibitionsInput'
 
 export const project = defineType({
   name: 'project',
@@ -11,6 +12,12 @@ export const project = defineType({
   fields: [
     // ── Identity ──────────────────────────────────────────────────────────────
     defineField({ name: 'title', type: 'string', title: 'Title' }),
+    defineField({
+      name: 'cvTitle',
+      type: 'string',
+      title: 'CV title (optional)',
+      description: 'Alternate name shown on the CV page. If empty, the regular Title is used.',
+    }),
     defineField({
       name: 'slug',
       type: 'slug',
@@ -67,18 +74,13 @@ export const project = defineType({
       of: [{ type: 'reference', to: [{ type: 'projectSeries' }], options: { disableNew: true } }],
     }),
     defineField({
-      name: 'artworks',
-      title: 'Individual artworks',
-      description: 'Add specific artworks not covered by a series above — create new ones via Studio → Artworks',
-      type: 'array',
-      of: [{ type: 'reference', to: [{ type: 'artwork' }], options: { disableNew: true } }],
-    }),
-    defineField({
       name: 'exhibitions',
       title: 'Exhibitions / Art fairs',
-      description: 'Select linked exhibitions — create new ones via Studio → Exhibitions',
+      description: 'Automatically shows all exhibitions and art fairs linked to this project via the "CV — Project" field.',
       type: 'array',
       of: [{ type: 'reference', to: [{ type: 'exhibition' }, { type: 'artFair' }], options: { disableNew: true } }],
+      readOnly: true,
+      components: { input: CvLinkedExhibitionsInput },
     }),
     defineField({
       name: 'press',
@@ -86,6 +88,27 @@ export const project = defineType({
       description: 'Select press articles — create new ones via Studio → Press',
       type: 'array',
       of: [{ type: 'reference', to: [{ type: 'press' }], options: { disableNew: true } }],
+    }),
+
+    // ── SEO ───────────────────────────────────────────────────────────────────
+    defineField({
+      name: 'metaDescription',
+      title: 'Meta description',
+      type: 'string',
+      description: 'Short description for Google and social sharing (max. 160 characters). Leave empty to fall back to a generated description.',
+      validation: (r) => r.max(160),
+    }),
+    defineField({
+      name: 'startYear',
+      title: 'Start year',
+      type: 'number',
+      description: 'Year the project started — used in structured data.',
+    }),
+    defineField({
+      name: 'endYear',
+      title: 'End year',
+      type: 'number',
+      description: 'Year the project ended (leave empty if ongoing).',
     }),
 
     // ── Settings ──────────────────────────────────────────────────────────────

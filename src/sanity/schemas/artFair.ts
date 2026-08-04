@@ -54,17 +54,19 @@ export const artFair = defineType({
       of: [{ type: 'image', options: { hotspot: true } }],
     }),
     defineField({
+      name: 'cvProject',
+      title: 'CV — Project',
+      type: 'reference',
+      to: [{ type: 'project' }],
+      options: { disableNew: true },
+      description: 'Which project does this art fair belong to? Used to group entries on the CV.',
+    }),
+    defineField({
       name: 'showInCV',
       title: 'Show in CV',
       type: 'boolean',
       initialValue: false,
       description: 'Include this art fair in the CV on the About page.',
-    }),
-    defineField({
-      name: 'cvLabel',
-      title: 'CV label (optional)',
-      type: 'string',
-      description: 'Custom label for the CV — e.g. "Art Rotterdam — Torch Gallery". Leave empty to use the name.',
     }),
     defineField({
       name: 'hasPage',

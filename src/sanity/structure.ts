@@ -199,10 +199,19 @@ function shopSettingsListItem(S: StructureBuilder) {
 export const structure: StructureResolver = async (S, { getClient }) => {
   const client = getClient({ apiVersion: '2024-01-01' })
 
-  const [categories] = await Promise.all([
+  const [categories, cvProjects] = await Promise.all([
     client.fetch<string[]>(
       `array::unique(*[_type == "artwork" && defined(category) && category != ""].category) | order(@)`
     ).catch(() => [] as string[]),
+    client.fetch<{ title: string }[]>(`*[_type == "projectSeries"]{ title }`)
+      .then(series => {
+        const titles = series.map(s => s.title.trim())
+        return client.fetch<{ _id: string; title: string }[]>(
+          `*[_type == "project" && isPage == true && title in $titles && !(_id in path("drafts.**"))] | order(order asc) { _id, title }`,
+          { titles }
+        )
+      })
+      .catch(() => [] as { _id: string; title: string }[]),
   ])
 
   return S.list()
@@ -273,11 +282,82 @@ export const structure: StructureResolver = async (S, { getClient }) => {
         .title('Exhibitions')
         .id('exhibition')
         .child(
-          S.documentTypeList('exhibition')
+          S.list()
+            .id('exhibitions-list')
             .title('Exhibitions')
-            .defaultOrdering([{ field: 'startDate', direction: 'desc' }])
+            .items([
+              S.listItem()
+                .title('All exhibitions')
+                .id('exhibition-all')
+                .child(
+                  S.documentTypeList('exhibition')
+                    .title('All exhibitions')
+                    .defaultOrdering([{ field: 'startDate', direction: 'desc' }])
+                ),
+              S.listItem()
+                .title('No project linked')
+                .id('exhibition-no-project')
+                .child(
+                  S.documentTypeList('exhibition')
+                    .title('No project linked')
+                    .filter('_type == "exhibition" && !defined(cvProject)')
+                    .defaultOrdering([{ field: 'startDate', direction: 'desc' }])
+                ),
+              S.divider(),
+              ...cvProjects.map(p =>
+                S.listItem()
+                  .title(p.title)
+                  .id(`exhibition-project-${p._id}`)
+                  .child(
+                    S.documentTypeList('exhibition')
+                      .title(p.title)
+                      .filter('_type == "exhibition" && cvProject._ref == $projectId')
+                      .params({ projectId: p._id })
+                      .defaultOrdering([{ field: 'startDate', direction: 'desc' }])
+                  )
+              ),
+            ])
         ),
-      S.documentTypeListItem('artFair').title('Art Fairs'),
+      S.listItem()
+        .title('Art Fairs')
+        .id('artFair')
+        .child(
+          S.list()
+            .id('artfairs-list')
+            .title('Art Fairs')
+            .items([
+              S.listItem()
+                .title('All art fairs')
+                .id('artfair-all')
+                .child(
+                  S.documentTypeList('artFair')
+                    .title('All art fairs')
+                    .defaultOrdering([{ field: 'startDate', direction: 'desc' }])
+                ),
+              S.listItem()
+                .title('No project linked')
+                .id('artfair-no-project')
+                .child(
+                  S.documentTypeList('artFair')
+                    .title('No project linked')
+                    .filter('_type == "artFair" && !defined(cvProject)')
+                    .defaultOrdering([{ field: 'startDate', direction: 'desc' }])
+                ),
+              S.divider(),
+              ...cvProjects.map(p =>
+                S.listItem()
+                  .title(p.title)
+                  .id(`artfair-project-${p._id}`)
+                  .child(
+                    S.documentTypeList('artFair')
+                      .title(p.title)
+                      .filter('_type == "artFair" && cvProject._ref == $projectId')
+                      .params({ projectId: p._id })
+                      .defaultOrdering([{ field: 'startDate', direction: 'desc' }])
+                  )
+              ),
+            ])
+        ),
       S.documentTypeListItem('press').title('Press'),
 
       // ── WEBSHOP ───────────────────────────────────────────────────────────

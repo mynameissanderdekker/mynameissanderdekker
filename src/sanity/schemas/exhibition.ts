@@ -67,17 +67,19 @@ export const exhibition = defineType({
       },
     }),
     defineField({
+      name: 'cvProject',
+      title: 'CV — Project',
+      type: 'reference',
+      to: [{ type: 'project' }],
+      options: { disableNew: true },
+      description: 'Which project does this exhibition belong to? Used to group exhibitions on the CV.',
+    }),
+    defineField({
       name: 'showInCV',
       title: 'Show in CV',
       type: 'boolean',
       initialValue: false,
       description: 'Include this exhibition in the CV on the About page.',
-    }),
-    defineField({
-      name: 'cvLabel',
-      title: 'CV label (optional)',
-      type: 'string',
-      description: 'Custom label for the CV — use when multiple projects are involved, e.g. "The Social Media Project & The Zine Project — TORCH Gallery". Leave empty to use the title.',
     }),
     defineField({
       name: 'hasPage',
