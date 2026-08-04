@@ -128,12 +128,17 @@ export default function Footer() {
       {/* 4-column info grid */}
       <footer className="site-footer">
 
-        {/* Column 1 — Personal & other */}
+        {/* Column 1 — Press & info */}
         <div className="footer-col">
-          <h4>Personal &amp; other</h4>
+          <h4>Press &amp; info</h4>
           <p>
             <a href="mailto:hello@mynameissanderdekker.com">
               hello@mynameissanderdekker.com
+            </a>
+          </p>
+          <p>
+            <a href="/sander-dekker-press-kit.pdf" download>
+              Press kit (PDF)
             </a>
           </p>
         </div>
