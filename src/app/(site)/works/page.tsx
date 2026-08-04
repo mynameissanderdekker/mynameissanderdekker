@@ -1,7 +1,31 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { PortableText, type PortableTextComponents } from '@portabletext/react'
 import { client } from '@/sanity/lib/client'
 import { WorksAllSection } from '@/components/WorksAllSection'
+
+const BASE_URL = 'https://www.mynameissanderdekker.com'
+
+export const metadata: Metadata = {
+  title: 'Available',
+  description: 'Available works and editions by Sander Dekker — photographs and limited-edition zines. Direct from the studio.',
+  alternates: {
+    canonical: `${BASE_URL}/works`,
+  },
+  openGraph: {
+    title: 'Available — Sander Dekker',
+    description: 'Available works and editions by Sander Dekker — photographs and limited-edition zines. Direct from the studio.',
+    url: `${BASE_URL}/works`,
+    siteName: 'Sander Dekker',
+    locale: 'en_GB',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Available — Sander Dekker',
+    description: 'Available works and editions by Sander Dekker — photographs and limited-edition zines. Direct from the studio.',
+  },
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type PT = any[]

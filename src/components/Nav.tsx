@@ -148,13 +148,6 @@ export default function Nav() {
 
         {/* Nav links — desktop only */}
         <div className="nav-links">
-          <Link
-            href="/about"
-            className={`nav-link${pathname === '/about' ? ' active' : ''}`}
-          >
-            ABOUT
-          </Link>
-
           {/* PROJECTS with dropdown */}
           <div
             className="nav-link-wrap"
@@ -180,10 +173,17 @@ export default function Nav() {
           </div>
 
           <Link
+            href="/about"
+            className={`nav-link${pathname === '/about' ? ' active' : ''}`}
+          >
+            ABOUT
+          </Link>
+
+          <Link
             href="/works"
             className={`nav-link${pathname === '/works' || pathname.startsWith('/works/') ? ' active' : ''}`}
           >
-            WORKS
+            AVAILABLE
           </Link>
 
           <Link
@@ -225,10 +225,6 @@ export default function Nav() {
             </button>
 
             <nav className="nav-mobile-nav">
-              <Link href="/about" className="nav-mobile-link" onClick={() => setMenuOpen(false)}>
-                About
-              </Link>
-
               {/* PROJECTS accordion */}
               <button
                 className="nav-mobile-link nav-mobile-link--toggle"
@@ -259,8 +255,11 @@ export default function Nav() {
                 </div>
               )}
 
+              <Link href="/about" className="nav-mobile-link" onClick={() => setMenuOpen(false)}>
+                About
+              </Link>
               <Link href="/works" className="nav-mobile-link" onClick={() => setMenuOpen(false)}>
-                Works
+                Available
               </Link>
               <Link href="/contact" className="nav-mobile-link" onClick={() => setMenuOpen(false)}>
                 Contact
