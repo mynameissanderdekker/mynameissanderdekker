@@ -46,7 +46,7 @@ const MAP_ITEMS: MapItem[] = [
     color: '#F6B8B8', opacity: 0.60, fontSize: 30, fontWeight: 700,
   },
   {
-    title: 'TenFifteen — The Social Landscape',
+    title: 'The Social Landscape',
     displayTitle: 'The Social Landscape',
     image: 'https://cdn.sanity.io/images/u11u127q/production/7dfd41e27bcf2accf420d14b38ab12944f481967-1400x788.jpg',
     text: 'A wall of photographs, each ten by fifteen centimetres — hence the name. Intimate and personal up close. Overwhelming together — like the endless stream of images we scroll through every day.',
@@ -125,12 +125,12 @@ const MAP_ITEMS: MapItem[] = [
 
 const RELATIONS: Record<string, Array<{ name: string; delay: number }>> = {
   'The Social Media Project': [
-    { name: 'TenFifteen — The Social Landscape', delay: 800 },
+    { name: 'The Social Landscape', delay: 800 },
     { name: 'The Zine Project', delay: 2500 },
     { name: 'It Is Us', delay: 4000 },
     { name: 'Innate Curiosity', delay: 5500 },
   ],
-  'TenFifteen — The Social Landscape': [{ name: '#fun', delay: 3500 }],
+  'The Social Landscape': [{ name: '#fun', delay: 3500 }],
   'The Zine Project': [
     { name: 'Zine No8 Warsaw SAGA', delay: 2200 },
     { name: 'Zine No2 Girls in Paris', delay: 2500 },
