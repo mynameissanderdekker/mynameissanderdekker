@@ -52,10 +52,19 @@ export const exhibition = defineType({
       type: 'date',
     }),
     defineField({
-      name: 'isSolo',
-      title: 'Solo exhibition',
-      type: 'boolean',
-      initialValue: false,
+      name: 'exhibitionType',
+      title: 'Exhibition type',
+      type: 'string',
+      options: {
+        list: [
+          { title: 'Solo exhibition', value: 'solo' },
+          { title: 'Duo exhibition', value: 'duo' },
+          { title: 'Group exhibition', value: 'group' },
+          { title: 'Permanent installation', value: 'permanent' },
+          { title: 'Special project', value: 'special' },
+        ],
+        layout: 'dropdown',
+      },
     }),
     defineField({
       name: 'hasPage',
@@ -103,14 +112,20 @@ export const exhibition = defineType({
       title: 'title',
       gallery: 'gallery',
       startDate: 'startDate',
+      exhibitionType: 'exhibitionType',
       isSolo: 'isSolo',
       media: 'images.0',
     },
-    prepare({ title, gallery, startDate, isSolo, media }) {
+    prepare({ title, gallery, startDate, exhibitionType, isSolo, media }) {
       const year = startDate ? new Date(startDate).getFullYear() : '?'
+      const typeLabels: Record<string, string> = {
+        solo: 'Solo', duo: 'Duo', group: 'Group',
+        permanent: 'Permanent', special: 'Special',
+      }
+      const typeLabel = exhibitionType ? typeLabels[exhibitionType] : (isSolo ? 'Solo' : '')
       return {
         title: title ?? '—',
-        subtitle: `${isSolo ? 'Solo — ' : ''}${gallery ?? ''} (${year})`,
+        subtitle: `${typeLabel ? typeLabel + ' — ' : ''}${gallery ?? ''} (${year})`,
         media,
       }
     },

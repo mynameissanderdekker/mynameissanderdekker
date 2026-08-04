@@ -83,6 +83,7 @@ interface LinkedExhibition {
   // exhibition fields
   title?: string
   gallery?: string
+  exhibitionType?: string
   isSolo?: boolean
   // artFair fields
   name?: string
@@ -112,7 +113,7 @@ async function getProject(slug: string) {
         ...coalesce(artworkSeries[]->artworks[]->{ _id, title, slug, "mainImage": images[0]{ asset, hotspot, crop }, priceExclVAT, vatRate, status }, []),
         ...coalesce(artworks[]->{ _id, title, slug, "mainImage": images[0]{ asset, hotspot, crop }, priceExclVAT, vatRate, status }, [])
       ],
-      exhibitions[]->{ _id, _type, slug, hasPage, title, name, gallery, fair, booth, location, startDate, isSolo, websiteUrl }
+      exhibitions[]->{ _id, _type, slug, hasPage, title, name, gallery, fair, booth, location, startDate, exhibitionType, isSolo, websiteUrl }
     }`,
     { slug }
   )
@@ -199,7 +200,7 @@ function ExhibitionsList({ exhibitions }: { exhibitions: LinkedExhibition[] }) {
             : (e.gallery ?? e.title ?? '—')
           const detail = isArtFair
             ? e.booth
-            : (e.isSolo ? 'Solo' : undefined)
+            : (e.exhibitionType === 'solo' || e.isSolo ? 'Solo' : e.exhibitionType === 'duo' ? 'Duo' : e.exhibitionType === 'group' ? 'Group' : e.exhibitionType === 'permanent' ? 'Permanent' : e.exhibitionType === 'special' ? 'Special' : undefined)
           const internalUrl = e.hasPage && e.slug?.current
             ? (isArtFair ? `/art-fairs/${e.slug.current}` : `/exhibitions/${e.slug.current}`)
             : null

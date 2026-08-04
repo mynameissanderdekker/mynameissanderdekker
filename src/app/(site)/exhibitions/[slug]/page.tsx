@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: Props) {
 async function getExhibition(slug: string) {
   return client.fetch(
     `*[_type == "exhibition" && slug.current == $slug && hasPage == true][0]{
-      _id, title, slug, gallery, location, startDate, endDate, isSolo, description,
+      _id, title, slug, gallery, location, startDate, endDate, exhibitionType, isSolo, description,
       images[]{ asset->{ _id, url }, hotspot, crop },
       press[]->{ _id, title, publication, date, url, image{ asset->{ _id, url }, hotspot, crop } },
       "artworks": [
@@ -100,10 +100,17 @@ export default async function ExhibitionPage({ params }: Props) {
               <dd style={{ margin: 0 }}>{dateLabel}</dd>
             </div>
           )}
-          {ex.isSolo && (
+          {(ex.exhibitionType || ex.isSolo) && (
             <div>
               <dt style={{ color: '#999' }}>Type</dt>
-              <dd style={{ margin: 0 }}>Solo exhibition</dd>
+              <dd style={{ margin: 0 }}>
+                {ex.exhibitionType === 'solo' || ex.isSolo ? 'Solo exhibition'
+                  : ex.exhibitionType === 'duo' ? 'Duo exhibition'
+                  : ex.exhibitionType === 'group' ? 'Group exhibition'
+                  : ex.exhibitionType === 'permanent' ? 'Permanent installation'
+                  : ex.exhibitionType === 'special' ? 'Special project'
+                  : ''}
+              </dd>
             </div>
           )}
         </dl>
