@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sander Dekker — Press Kit 2026</title>
+<style>
+  /* ─── CSS variables mirroring the site's globals.css ─── */
+  :root {
+    --font-body: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --color-text:    #1a1a1a;
+    --color-muted:   #555;
+    --color-subtle:  #999;
+    --color-border:  #e0e0e0;
+    --color-subtle-border: #f0f0f0;
+    --color-bg:      #fff;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  body {
+    font-family: var(--font-body);
+    font-size: 11pt;
+    color: var(--color-text);
+    background: var(--color-bg);
+    line-height: 1.67;
+    letter-spacing: 0.5px;
+    max-width: 210mm;
+    margin: 0 auto;
+  }
+
+  @media print {
+    @page { size: A4; margin: 0; }
+    body { max-width: none; }
+    a { color: inherit; }
+  }
+
+  a { color: var(--color-text); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* ── SECTION LABEL — matches .section-title in globals.css ── */
+  .label {
+    font-size: 8pt;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-subtle);
+    margin-bottom: 5mm;
+    display: block;
+  }
+
+  /* ── BIO 50/50 ─────────────────────────────────────── */
+  .bio-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  /* Left col: name block on top, photo fills rest → bottom-aligned */
+  .bio-left {
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--color-border);
+  }
+  .bio-name-block {
+    padding: 8mm 10mm 6mm;
+    border-bottom: 1px solid var(--color-border);
+    flex-shrink: 0;
+  }
+  .bio-name {
+    font-size: 22pt;
+    font-weight: 700;
+    letter-spacing: -.02em;
+    line-height: 1;
+    margin-bottom: 2mm;
+  }
+  .bio-tagline {
+    font-size: 8.5pt;
+    color: var(--color-muted);
+    line-height: 1.7;
+    letter-spacing: 0.5px;
+  }
+  .bio-image {
+    flex: 1;
+    overflow: hidden;
+    background: #f2f2f2;
+    min-height: 50mm;
+  }
+  .bio-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center center;
+    display: block;
+  }
+
+  /* Right col: bio text + contact at bottom */
+  .bio-text {
+    padding: 8mm 10mm 8mm 10mm;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .bio-text-body p { font-size: 10pt; line-height: 1.7; color: #333; letter-spacing: 0.5px; }
+  .bio-text-body p + p { margin-top: 3mm; }
+  .bio-contact {
+    margin-top: 6mm;
+    padding-top: 5mm;
+    border-top: 1px solid var(--color-border);
+    font-size: 8pt;
+    color: var(--color-subtle);
+    line-height: 1.9;
+    letter-spacing: 0.5px;
+  }
+  .bio-contact a { color: var(--color-subtle); }
+
+  /* ── PRESS 1 col ───────────────────────────────────── */
+  .press-section {
+    padding: 8mm 12mm;
+    border-top: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
+  }
+  .quotes {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 4mm 10mm;
+    margin-bottom: 5mm;
+  }
+  .quote {
+    font-size: 9pt;
+    line-height: 1.6;
+    color: #333;
+    font-style: italic;
+    padding-left: 3mm;
+    border-left: 2px solid var(--color-text);
+    letter-spacing: 0.3px;
+  }
+  .quote-source {
+    font-size: 7.5pt;
+    color: var(--color-subtle);
+    margin-top: 1.5mm;
+    font-style: normal;
+    letter-spacing: 0.05em;
+  }
+  .press-outlets {
+    font-size: 8pt;
+    color: #aaa;
+    line-height: 1.7;
+    letter-spacing: 0.05em;
+    border-top: 1px solid var(--color-subtle-border);
+    padding-top: 4mm;
+    margin-top: 2mm;
+  }
+  .press-outlets strong { color: #888; font-weight: 600; }
+
+  /* ── PROJECTS 2×2 GRID ─────────────────────────────── */
+  .projects-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-top: 1px solid var(--color-border);
+    page-break-before: always;
+    break-before: page;
+  }
+  .project {
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px solid var(--color-border);
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  /* Right column gets a left border */
+  .project:nth-child(even) {
+    border-left: 1px solid var(--color-border);
+  }
+  .project-image {
+    overflow: hidden;
+    background: #f5f5f5;
+    aspect-ratio: 16 / 9;
+    width: 100%;
+  }
+  .project-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center center;
+    display: block;
+  }
+  .project-text {
+    padding: 4mm 6mm 5mm;
+    border-top: 1px solid var(--color-border);
+    flex: 1;
+  }
+  .project-name {
+    font-size: 11pt;
+    font-weight: 700;
+    letter-spacing: 0;
+    line-height: 1.15;
+    margin-bottom: 0.5mm;
+  }
+  .project-years {
+    font-size: 7.5pt;
+    color: var(--color-subtle);
+    letter-spacing: 0.05em;
+    margin-bottom: 2mm;
+    font-style: italic;
+  }
+  .project-body {
+    font-size: 8.5pt;
+    line-height: 1.55;
+    color: #333;
+    letter-spacing: 0.3px;
+  }
+  .project-body p + p { margin-top: 1.5mm; }
+
+  /* Button style matching cv-download-btn from globals.css */
+  .project-link {
+    display: inline-block;
+    margin-top: 3.5mm;
+    font-size: 7.5pt;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text);
+    border: 1px solid var(--color-text);
+    padding: 3px 10px;
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s;
+  }
+  .project-link:hover {
+    background: var(--color-text);
+    color: var(--color-bg);
+    text-decoration: none;
+  }
+
+  /* ── CV 3 col ──────────────────────────────────────── */
+  .cv-section {
+    padding: 8mm 12mm;
+    border-top: 1px solid var(--color-border);
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0 8mm;
+    page-break-before: always;
+    break-before: page;
+  }
+  /* matches .cv-sub-title from globals.css */
+  .cv-col h3 {
+    font-size: 7.5pt;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+    margin-bottom: 2.5mm;
+    margin-top: 5mm;
+    padding-top: 4mm;
+    border-top: 1px solid var(--color-subtle-border);
+  }
+  .cv-col h3:first-child {
+    border-top: none;
+    padding-top: 0;
+    margin-top: 0;
+  }
+  /* matches .cv-list li from globals.css */
+  .cv-row {
+    display: grid;
+    grid-template-columns: 9mm 1fr;
+    gap: .5mm 2mm;
+    margin-bottom: .5mm;
+    font-size: 8.5pt;
+    line-height: 1.55;
+    color: #333;
+    border-bottom: 1px solid var(--color-subtle-border);
+    padding-bottom: .5mm;
+    letter-spacing: 0.3px;
+  }
+  .cv-year { color: #bbb; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  /* ── FOOTER ────────────────────────────────────────── */
+  .footer {
+    border-top: 1px solid var(--color-text);
+    padding: 7mm 12mm 9mm;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6mm;
+  }
+  .gallery-entry { font-size: 8.5pt; line-height: 1.7; color: var(--color-muted); letter-spacing: 0.5px; }
+  .gallery-entry strong { display: block; font-size: 10pt; font-weight: 700; color: var(--color-text); margin-bottom: .5mm; }
+  .gallery-entry a { color: var(--color-subtle); }
+  .footer-bottom {
+    padding: 4mm 12mm 6mm;
+    border-top: 1px solid var(--color-border);
+    display: flex;
+    justify-content: space-between;
+    font-size: 7.5pt;
+    color: #aaa;
+    letter-spacing: 0.05em;
+  }
+  /* ── DOWNLOAD BAR — hidden in print ─────────────────── */
+  .download-bar {
+    position: sticky;
+    top: 0;
+    z-index: 999;
+    background: #fff;
+    border-bottom: 1px solid var(--color-border);
+    padding: 10px 12mm;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .download-bar-label {
+    font-size: 8.5pt;
+    color: var(--color-subtle);
+    letter-spacing: 0.5px;
+  }
+  .download-btn {
+    display: inline-block;
+    background: var(--color-text);
+    color: #fff;
+    font-family: var(--font-body);
+    font-size: 9pt;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border: none;
+    padding: 8px 18px;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .download-btn:hover { opacity: 0.75; }
+
+  @media print {
+    .download-bar { display: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══ DOWNLOAD BAR ═════════════════════════════════════ -->
+<div class="download-bar">
+  <span class="download-bar-label">Sander Dekker — Press Kit 2026</span>
+  <a class="download-btn" href="/sander-dekker-press-kit.pdf" download="Sander-Dekker-Press-Kit-2026.pdf">↓ Download PDF</a>
+</div>
+
+<!-- ══ BIO — naam + foto links · tekst rechts ══════════════ -->
+<section class="bio-section">
+
+  <!-- Linkerkolom: naam boven, foto vult rest → onderkant gelijk -->
+  <div class="bio-left">
+    <div class="bio-name-block">
+      <div class="bio-name">Sander Dekker</div>
+      <div class="bio-tagline">
+        Artist &nbsp;·&nbsp; Amsterdam, NL &nbsp;·&nbsp; b. 1980<br>
+        Photography &nbsp;·&nbsp; Installation &nbsp;·&nbsp; Publication
+      </div>
+    </div>
+    <div class="bio-image">
+      <img src="https://cdn.sanity.io/images/u11u127q/production/1f4655b7aebacc40ff292fbae0781428bc1899d7-1250x1000.jpg?w=1200&fit=max"
+           alt="Sander Dekker" />
+    </div>
+  </div>
+
+  <!-- Rechterkolom: biografie + contact onderaan -->
+  <div class="bio-text">
+    <div class="bio-text-body">
+      <span class="label">Biography</span>
+      <p>Sander Dekker (Amsterdam, 1980) is an artist working with photography, installation and self-published books and zines.</p>
+      <p>His work centres on how people present themselves — to each other, to cameras, and to the world they build around themselves. The core of his practice is The Social Media Project, a decade-long series of encounters with strangers photographed in their own homes after first contact online. It caught something specific: a brief moment when reaching out to a stranger felt open, easy and charged with possibility. That openness is slowly disappearing.</p>
+      <p>The questions that project raised have continued to drive everything since — through permanent installations, handmade publications, participatory work, and ongoing projects centred on people who push back against external pressure simply by being fully, visibly themselves.</p>
+    </div>
+    <div class="bio-contact">
+      <a href="mailto:hello@mynameissanderdekker.com">hello@mynameissanderdekker.com</a><br>
+      <a href="https://www.mynameissanderdekker.com">mynameissanderdekker.com</a> &nbsp;·&nbsp;
+      <a href="https://www.instagram.com/iamsanderdekker">@iamsanderdekker</a><br>
+      Press Kit 2026
+    </div>
+  </div>
+
+</section>
+
+<!-- ══ SELECTED PRESS ════════════════════════════════════ -->
+<section class="press-section">
+  <span class="label">Selected Press</span>
+  <div class="quotes">
+    <div class="quote">
+      "While embracing his own strangeness, he makes a true connection with his models. It's what makes his work so very appealing."
+      <div class="quote-source">Marloes van Vugt — foreword, My Name Is Sander Dekker Nº.2</div>
+    </div>
+    <div class="quote">
+      "What makes his work so remarkable is the individuality and autonomy of his characters: they refuse to relinquish their power and above all: they seem to be unapologetically themselves."
+      <div class="quote-source">Flor Linckens — <a href="https://galleryviewer.com">Gallery Viewer</a></div>
+    </div>
+    <div class="quote">
+      "It's a reflection of the zeitgeist: how normal it has become to show so much of yourself on social media, and how easy it was — or is — to make contact."
+      <div class="quote-source">Margot Pol — de Volkskrant</div>
+    </div>
+    <div class="quote">
+      "Like Arbus, Clark and Sultan, Sander Dekker is a child of his time."
+      <div class="quote-source">Edo Dijksterhuis — Het Parool</div>
+    </div>
+  </div>
+  <div class="press-outlets">
+    <strong>NL</strong> Het Parool &nbsp;·&nbsp; de Volkskrant &nbsp;&nbsp;
+    <strong>International</strong> Juxtapoz &nbsp;·&nbsp; VICE &nbsp;·&nbsp; Purple France &nbsp;·&nbsp; CODE Magazine &nbsp;·&nbsp; Lodown Magazine &nbsp;·&nbsp; BLINK Korea &nbsp;·&nbsp; Snoecks &nbsp;·&nbsp; Le Petit Voyeur &nbsp;&nbsp;
+    <strong>Platforms</strong> FOAM &nbsp;·&nbsp; Gallery Viewer &nbsp;·&nbsp; ABC Video
+  </div>
+</section>
+
+<!-- ══ PROJECTS 2×2 GRID ══════════════════════════════════ -->
+<div class="projects-grid">
+
+  <!-- Social Media Project -->
+  <section class="project">
+    <div class="project-image">
+      <img src="https://cdn.sanity.io/images/u11u127q/production/38d9641b349e7d8c1ce3c2950ec8f26383f21c87-900x600.jpg"
+           alt="The Social Media Project" />
+    </div>
+    <div class="project-text">
+      <div class="project-name">The Social Media Project</div>
+      <div class="project-years">Photography &nbsp;·&nbsp; 2011–2021</div>
+      <div class="project-body">
+        <p>In 2011, Dekker began reaching out to strangers on social media with a simple request: let me photograph you in your own home. Most said yes. A decade-long document of a specific kind of human openness — caught just before it closed. An archive of encounters that increasingly feel like they belong to another era.</p>
+      </div>
+      <a class="project-link" href="https://www.mynameissanderdekker.com/projects/social-media-project">View project →</a>
+    </div>
+  </section>
+
+  <!-- TenFifteen -->
+  <section class="project">
+    <div class="project-image">
+      <img src="https://cdn.sanity.io/images/u11u127q/production/93fb75e7abf0092c954ff24a6e4268a75ac28560-900x600.jpg"
+           alt="The Social Landscape — TenFifteen" />
+    </div>
+    <div class="project-text">
+      <div class="project-name">The Social Landscape (TenFifteen)</div>
+      <div class="project-years">Installation &nbsp;·&nbsp; 2012–present</div>
+      <div class="project-body">
+        <p>Thousands of black-and-white photographs, each ten by fifteen centimetres, presented side by side in a large-scale installation. Individually intimate. Together an overwhelming landscape that mirrors the endless social media scroll. Permanently installed at Hotel Not Hotel Amsterdam, Torch Gallery, Strayfield Gallery Copenhagen, and Leica Store Lisse.</p>
+      </div>
+      <a class="project-link" href="https://www.mynameissanderdekker.com/projects/the-social-landscape">View project →</a>
+    </div>
+  </section>
+
+  <!-- Zine Project -->
+  <section class="project">
+    <div class="project-image">
+      <img src="https://cdn.sanity.io/images/u11u127q/production/eeb6a3a91cbb48efaa280d0fd519682717f37cd8-1400x788.jpg"
+           alt="The Zine Project" />
+    </div>
+    <div class="project-text">
+      <div class="project-name">The Zine Project</div>
+      <div class="project-years">Self-published &nbsp;·&nbsp; 2021–2025</div>
+      <div class="project-body">
+        <p>Ten handmade, limited-edition zines made between 2021 and 2025 — each a short trip to Paris, Warsaw, Mexico, Amsterdam, Asia. No publisher, no brief, no compromises. All ten editions sold out. The complete set shown at Josilda da Conceição Gallery and Torch Gallery Amsterdam.</p>
+      </div>
+      <a class="project-link" href="https://www.mynameissanderdekker.com/projects/zine-project">View project →</a>
+    </div>
+  </section>
+
+  <!-- Innate Curiosity -->
+  <section class="project">
+    <div class="project-image">
+      <img src="https://cdn.sanity.io/images/u11u127q/production/746715dfc485a2365ac98b0b24611f9160d73942-1400x933.jpg"
+           alt="Innate Curiosity" />
+    </div>
+    <div class="project-text">
+      <div class="project-name">Innate Curiosity</div>
+      <div class="project-years">Installation &nbsp;·&nbsp; 2026–present</div>
+      <div class="project-body">
+        <p>A series of physical installations that withhold — demanding that you lean in, reach in, look for yourself. Closed aluminium blinds concealing a backlit photograph. A railway bin containing a handmade 1980s magazine. What happens to curiosity when discovery is served rather than earned?</p>
+      </div>
+      <a class="project-link" href="https://www.mynameissanderdekker.com/projects/innate-curiosity">View project →</a>
+    </div>
+  </section>
+
+</div>
+
+<!-- ══ CV 3 COLS ═════════════════════════════════════════ -->
+<section class="cv-section">
+
+  <div class="cv-col">
+    <h3>Solo exhibitions (selection)</h3>
+    <div class="cv-row"><span class="cv-year">2025</span><span>Torch Gallery, Amsterdam NL</span></div>
+    <div class="cv-row"><span class="cv-year">2023</span><span><a href="https://www.mynameissanderdekker.com/exhibitions/the-zine-project-2">Josilda da Conceição Gallery, Amsterdam NL</a></span></div>
+    <div class="cv-row"><span class="cv-year">2022</span><span>Torch Gallery, Amsterdam NL</span></div>
+    <div class="cv-row"><span class="cv-year">2020</span><span>Strayfield Gallery, Copenhagen DK</span></div>
+    <div class="cv-row"><span class="cv-year">2018</span><span>Torch Gallery, Amsterdam NL</span></div>
+    <div class="cv-row"><span class="cv-year">2018</span><span>Amsterdam Central Station NL</span></div>
+    <div class="cv-row"><span class="cv-year">2016</span><span>30Works Gallery, Cologne DE</span></div>
+    <div class="cv-row"><span class="cv-year">2015</span><span>Walls Gallery, Amsterdam NL</span></div>
+
+    <h3>Art fairs (selection)</h3>
+    <div class="cv-row"><span class="cv-year">2026</span><span>NAP+, Amsterdam NL</span></div>
+    <div class="cv-row"><span class="cv-year">2024</span><span>NAP+, Amsterdam NL</span></div>
+    <div class="cv-row"><span class="cv-year">2022</span><span>Unseen Amsterdam NL</span></div>
+    <div class="cv-row"><span class="cv-year">2017</span><span>6voor6 Art Fair, Amsterdam NL</span></div>
+    <div class="cv-row"><span class="cv-year">2015</span><span>KunstRAI, Amsterdam NL</span></div>
+    <div class="cv-row"><span class="cv-year">2014</span><span>PAN Amsterdam NL</span></div>
+  </div>
+
+  <div class="cv-col">
+    <h3>Group exhibitions (selection)</h3>
+    <div class="cv-row"><span class="cv-year">2024</span><span>40Y Torch Gallery, Amsterdam NL</span></div>
+    <div class="cv-row"><span class="cv-year">2022</span><span>Caesuur &amp; Lípa, Middelburg NL</span></div>
+    <div class="cv-row"><span class="cv-year">2022</span><span>Luxfer &amp; Lípa, Česká Skalice CZ</span></div>
+    <div class="cv-row"><span class="cv-year">2020</span><span>Strayfield Gallery, Hellerup DK</span></div>
+    <div class="cv-row"><span class="cv-year">2018</span><span>Arti et Amicitiae, Amsterdam NL</span></div>
+    <div class="cv-row"><span class="cv-year">2017</span><span>Josilda da Conceição, Amsterdam NL</span></div>
+    <div class="cv-row"><span class="cv-year">2016</span><span>Bright Side Gallery, Amsterdam NL</span></div>
+    <div class="cv-row"><span class="cv-year">2013</span><span>FOAM, Amsterdam NL</span></div>
+    <div class="cv-row"><span class="cv-year">2013</span><span>Nuit Blanche, Amsterdam NL</span></div>
+
+    <h3>Permanent installations</h3>
+    <div class="cv-row"><span class="cv-year">2026</span><span>Leica Store, Lisse NL</span></div>
+    <div class="cv-row"><span class="cv-year">2020</span><span>Strayfield Gallery, Hellerup DK</span></div>
+    <div class="cv-row"><span class="cv-year">2018</span><span>Torch Gallery, Amsterdam NL</span></div>
+    <div class="cv-row"><span class="cv-year">2018</span><span>Hotel Not Hotel, Amsterdam NL</span></div>
+  </div>
+
+  <div class="cv-col">
+    <h3>Publications (selection)</h3>
+    <div class="cv-row"><span class="cv-year">2025</span><span>The Zine Project — Collector's Box (all 10 zines)</span></div>
+    <div class="cv-row"><span class="cv-year">2021–25</span><span>The Zine Project — 10 handmade limited-edition zines. All sold out.</span></div>
+    <div class="cv-row"><span class="cv-year">2016</span><span><a href="https://www.mynameissanderdekker.com/works/my-name-is-sander-dekker-n-2">My Name Is Sander Dekker Vol. 2</a> — ISBN 9789082111330</span></div>
+    <div class="cv-row"><span class="cv-year">2015</span><span><a href="https://www.mynameissanderdekker.com/works/my-name-is-sander-dekker-n-1-5">My Name Is Sander Dekker Vol. 1.5</a> — ISBN 9789082111323</span></div>
+    <div class="cv-row"><span class="cv-year">2013</span><span>My Name Is Sander Dekker Vol. 1 — ISBN 9789082111316</span></div>
+
+    <h3>Zine Project (selection)</h3>
+    <div class="cv-row"><span class="cv-year">2025</span><span>Nº10 TenFifteen · Ed. 150</span></div>
+    <div class="cv-row"><span class="cv-year">2025</span><span><a href="https://www.mynameissanderdekker.com/projects/asia">Nº9 A.S.I.A.</a> · Ed. 40</span></div>
+    <div class="cv-row"><span class="cv-year">2024</span><span><a href="https://www.mynameissanderdekker.com/projects/warsaw-saga">Nº8 The Warsaw SAGA</a> · Ed. 40</span></div>
+    <div class="cv-row"><span class="cv-year">2023</span><span>Nº5 Mexico · Ed. 35</span></div>
+    <div class="cv-row"><span class="cv-year">2022</span><span><a href="https://www.mynameissanderdekker.com/projects/girls-in-paris">Nº2 Girls in Paris</a> · Ed. 35</span></div>
+    <div class="cv-row"><span class="cv-year">2021</span><span>Nº1 Annemarijn · Ed. 25</span></div>
+  </div>
+
+</section>
+
+<!-- ══ FOOTER — GALLERY REPRESENTATION ══════════════════ -->
+<footer class="footer">
+  <div class="gallery-entry">
+    <strong>Mother Gallery</strong>
+    Torch Art Gallery<br>
+    Amsterdam, NL<br>
+    <a href="mailto:mo@torchgallery.com">mo@torchgallery.com</a><br>
+    <a href="https://www.torchgallery.com">torchgallery.com</a>
+  </div>
+  <div class="gallery-entry">
+    <strong>Special Projects</strong>
+    Josilda da Conceição Gallery<br>
+    Amsterdam, NL<br>
+    <a href="mailto:josilda@daconceicao.nl">josilda@daconceicao.nl</a><br>
+    <a href="https://www.josildadaconceicao.com">josildadaconceicao.com</a>
+  </div>
+  <div class="gallery-entry">
+    <strong>Denmark</strong>
+    Strayfield Gallery<br>
+    Hellerup, DK<br>
+    <a href="mailto:info@strayfieldgallery.com">info@strayfieldgallery.com</a><br>
+    <a href="https://www.strayfieldgallery.com">strayfieldgallery.com</a>
+  </div>
+</footer>
+<div class="footer-bottom">
+  <span>For exhibition proposals, press enquiries, artwork acquisition and collaborations — <a href="mailto:hello@mynameissanderdekker.com">hello@mynameissanderdekker.com</a></span>
+  <span><a href="https://www.instagram.com/iamsanderdekker">@iamsanderdekker</a> &nbsp;·&nbsp; © Sander Dekker 2026</span>
+</div>
+
+</body>
+</html>
