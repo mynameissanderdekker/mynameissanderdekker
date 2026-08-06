@@ -138,7 +138,7 @@ export default function Footer() {
           </p>
           <p>Amsterdam, the Netherlands</p>
           <p>
-            <a href="/sander-dekker-press-kit.pdf" download="Sander-Dekker-Press-Kit-2026.pdf">
+            <a href="/press-kit.html" target="_blank" rel="noopener">
               Press kit (PDF)
             </a>
           </p>
