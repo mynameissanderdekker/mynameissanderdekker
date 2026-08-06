@@ -48,17 +48,18 @@ export const viewingRoom = defineType({
       description: 'Link to a contact — the viewing room is then recorded in their history automatically. Never visible on the website.',
     }),
     defineField({
-      name: 'collectorName',
-      title: 'Collector name (private)',
+      name: 'recipientName',
+      title: 'Recipient name (private)',
       type: 'string',
       group: 'info',
-      description: 'Override if recipient is not in contacts, or has a different name. Never visible on the website.',
+      description: 'Override if no contact is linked, or if the name should differ. Never visible on the website.',
     }),
     defineField({
-      name: 'collectorEmail',
-      title: 'Collector email (private)',
+      name: 'recipientEmail',
+      title: 'Recipient email (private)',
       type: 'string',
       group: 'info',
+      description: 'Override if no contact is linked, or if the email should differ. Never visible on the website.',
     }),
     defineField({
       name: 'occasion',
@@ -150,7 +151,7 @@ export const viewingRoom = defineType({
   preview: {
     select: {
       title:     'title',
-      collector: 'collectorName',
+      collector: 'recipientName',
       published: 'isPublished',
       works:     'artworks',
     },

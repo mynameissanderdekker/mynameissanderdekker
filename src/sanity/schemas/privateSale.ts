@@ -16,13 +16,13 @@ export const privateSale = defineType({
   preview: {
     select: {
       title: 'title',
-      clientName: 'clientName',
+      recipientName: 'recipientName',
       isActive: 'isActive',
     },
-    prepare({ title, clientName, isActive }) {
+    prepare({ title, recipientName, isActive }) {
       return {
         title: title || 'Untitled',
-        subtitle: [clientName, isActive ? 'Active' : 'Inactive'].filter(Boolean).join(' · '),
+        subtitle: [recipientName, isActive ? 'Active' : 'Inactive'].filter(Boolean).join(' · '),
       }
     },
   },
@@ -45,15 +45,17 @@ export const privateSale = defineType({
       description: 'Link to a contact record — name and email are then auto-filled below. Leave empty for one-off recipients.',
     }),
     defineField({
-      name: 'clientName',
-      title: 'Client name',
+      name: 'recipientName',
+      title: 'Recipient name',
       type: 'string',
+      description: 'Override if no contact is linked, or if the name should differ.',
       validation: Rule => Rule.required(),
     }),
     defineField({
-      name: 'clientEmail',
-      title: 'Client email',
+      name: 'recipientEmail',
+      title: 'Recipient email',
       type: 'string',
+      description: 'Override if no contact is linked, or if the email should differ.',
     }),
 
     // ── Access ──────────────────────────────────────────────────────────────

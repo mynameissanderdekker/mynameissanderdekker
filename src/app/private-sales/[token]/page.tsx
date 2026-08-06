@@ -32,7 +32,7 @@ export default async function PrivateSalePage({ params }: Props) {
     `*[_type == "privateSale" && token == $token && isActive == true][0]{
       _id,
       title,
-      clientName,
+      recipientName,
       password,
       expiresAt,
       introText,

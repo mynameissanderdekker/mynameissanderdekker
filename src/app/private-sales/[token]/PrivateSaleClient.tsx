@@ -19,7 +19,7 @@ interface ArtworkItem {
 
 interface Sale {
   title: string
-  clientName: string
+  recipientName: string
   introText?: string
   footerText?: string
   artworks: ArtworkItem[]
@@ -110,7 +110,7 @@ export default function PrivateSaleClient({ sale, requiresPassword, correctPassw
           <div>
             <p style={{ margin: '0 0 6px', fontSize: 11, letterSpacing: 3, textTransform: 'uppercase', color: '#888' }}>Private Selection</p>
             <h1 style={{ margin: '0 0 4px', fontSize: 22, fontWeight: 400, color: '#111' }}>Sander Dekker</h1>
-            <p style={{ margin: 0, fontSize: 14, color: '#666' }}>Prepared for {sale.clientName}</p>
+            <p style={{ margin: 0, fontSize: 14, color: '#666' }}>Prepared for {sale.recipientName}</p>
           </div>
           <button
             onClick={handlePrint}
