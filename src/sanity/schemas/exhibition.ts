@@ -117,7 +117,7 @@ export const exhibition = defineType({
     defineField({
       name: 'press',
       title: 'Press',
-      description: 'Select press articles — create new ones via Studio → Press',
+      description: 'Press articles about this exhibition. Tip: also link from the Press document itself (press.exhibitions[]) — keep both in sync.',
       type: 'array',
       of: [{ type: 'reference', to: [{ type: 'press' }], options: { disableNew: true } }],
     }),

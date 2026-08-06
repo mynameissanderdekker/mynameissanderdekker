@@ -82,11 +82,25 @@ export const artFair = defineType({
       type: 'url',
     }),
     defineField({
+      name: 'artworkSeries',
+      title: 'Artworks from series',
+      description: 'Select a Series — all works in that series are shown at this fair',
+      type: 'array',
+      of: [{ type: 'reference', to: [{ type: 'projectSeries' }], options: { disableNew: true } }],
+    }),
+    defineField({
       name: 'artworks',
-      title: 'Artworks',
-      description: 'Artworks shown at this art fair',
+      title: 'Individual artworks',
+      description: 'Add specific works not covered by a series above',
       type: 'array',
       of: [{ type: 'reference', to: [{ type: 'artwork' }] }],
+    }),
+    defineField({
+      name: 'press',
+      title: 'Press',
+      description: 'Select press articles about this fair — create new ones via Studio → Press',
+      type: 'array',
+      of: [{ type: 'reference', to: [{ type: 'press' }], options: { disableNew: true } }],
     }),
     defineField({
       name: 'notes',

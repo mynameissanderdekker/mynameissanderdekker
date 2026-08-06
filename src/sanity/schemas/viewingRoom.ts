@@ -39,11 +39,20 @@ export const viewingRoom = defineType({
 
     // ── Collector (private) ───────────────────────────────────────────────────
     defineField({
+      name: 'contact',
+      title: 'Contact',
+      type: 'reference',
+      to: [{ type: 'contact' }],
+      group: 'info',
+      options: { disableNew: true },
+      description: 'Link to a contact — the viewing room is then recorded in their history automatically. Never visible on the website.',
+    }),
+    defineField({
       name: 'collectorName',
       title: 'Collector name (private)',
       type: 'string',
       group: 'info',
-      description: 'Never visible on the website',
+      description: 'Override if recipient is not in contacts, or has a different name. Never visible on the website.',
     }),
     defineField({
       name: 'collectorEmail',

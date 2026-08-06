@@ -37,6 +37,14 @@ export const privateSale = defineType({
 
     // ── Client ──────────────────────────────────────────────────────────────
     defineField({
+      name: 'contact',
+      title: 'Contact',
+      type: 'reference',
+      to: [{ type: 'contact' }],
+      options: { disableNew: true },
+      description: 'Link to a contact record — name and email are then auto-filled below. Leave empty for one-off recipients.',
+    }),
+    defineField({
       name: 'clientName',
       title: 'Client name',
       type: 'string',

@@ -34,12 +34,11 @@ export const projectSeries = defineType({
     defineField({
       name: 'publications',
       title: 'Publications',
-      description: 'Zines related to this series',
+      description: 'Zines / books / catalogues related to this series — create new ones via Studio → Publications',
       type: 'array',
       of: [{
         type: 'reference',
-        to: [{ type: 'zine' }, { type: 'artwork' }],
-        options: { filter: '_type == "zine" || (_type == "artwork" && category == "book")' },
+        to: [{ type: 'zine' }],
       }],
     }),
     defineField({ name: 'order', type: 'number', title: 'Sort order' }),

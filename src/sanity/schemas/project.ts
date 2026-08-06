@@ -82,13 +82,8 @@ export const project = defineType({
       readOnly: true,
       components: { input: CvLinkedExhibitionsInput },
     }),
-    defineField({
-      name: 'press',
-      title: 'Press',
-      description: 'Select press articles — create new ones via Studio → Press',
-      type: 'array',
-      of: [{ type: 'reference', to: [{ type: 'press' }], options: { disableNew: true } }],
-    }),
+    // Press is maintained from the Press document side (press.projects[]).
+    // There is no press field here to avoid duplication and sync issues.
 
     // ── SEO ───────────────────────────────────────────────────────────────────
     defineField({
