@@ -253,17 +253,39 @@ export const structure: StructureResolver = async (S, { getClient }) => {
         .title('Projects')
         .id('projectsOverview')
         .child(
-          S.documentTypeList('project')
+          S.list()
+            .id('projects-pages-list')
             .title('Projects')
-            .filter('_type == "project" && isPage == true && !(_id in path("drafts.**"))')
-            .defaultOrdering([{ field: 'order', direction: 'asc' }])
+            .items([
+              S.listItem()
+                .title('All projects')
+                .id('projects-all')
+                .child(
+                  S.documentTypeList('project')
+                    .title('All projects')
+                    .filter('_type == "project" && isPage == true && !(_id in path("drafts.**"))')
+                    .defaultOrdering([{ field: 'order', direction: 'asc' }])
+                ),
+              S.divider(),
+              ...cvProjects.map(p =>
+                S.listItem()
+                  .title(p.title)
+                  .id(`project-page-${p._id}`)
+                  .child(
+                    S.document()
+                      .schemaType('project')
+                      .documentId(p._id)
+                      .title(p.title)
+                  )
+              ),
+            ])
         ),
 
       // Works / Webshop pagina configuratie
       S.listItem()
-        .title('Webshop')
+        .title('Available (webshop)')
         .id('worksPage')
-        .child(S.document().schemaType('worksPage').documentId('worksPage').title('Webshop')),
+        .child(S.document().schemaType('worksPage').documentId('worksPage').title('Available (webshop)')),
 
 
       // ── WORKS ─────────────────────────────────────────────────────────────
