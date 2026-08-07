@@ -249,37 +249,18 @@ export const structure: StructureResolver = async (S, { getClient }) => {
             ])
         ),
 
-      S.listItem()
-        .title('Projects')
-        .id('projectsOverview')
-        .child(
-          S.list()
-            .id('projects-pages-list')
-            .title('Projects')
-            .items([
-              S.listItem()
-                .title('All projects')
-                .id('projects-all')
-                .child(
-                  S.documentTypeList('project')
-                    .title('All projects')
-                    .filter('_type == "project" && isPage == true && !(_id in path("drafts.**"))')
-                    .defaultOrdering([{ field: 'order', direction: 'asc' }])
-                ),
-              S.divider(),
-              ...cvProjects.map(p =>
-                S.listItem()
-                  .title(p.title)
-                  .id(`project-page-${p._id}`)
-                  .child(
-                    S.document()
-                      .schemaType('project')
-                      .documentId(p._id)
-                      .title(p.title)
-                  )
-              ),
-            ])
-        ),
+      // Individuele projectpagina's — 1-op-1 met het live menu
+      ...cvProjects.map(p =>
+        S.listItem()
+          .title(p.title)
+          .id(`project-page-${p._id}`)
+          .child(
+            S.document()
+              .schemaType('project')
+              .documentId(p._id)
+              .title(p.title)
+          )
+      ),
 
       // Works / Webshop pagina configuratie
       S.listItem()
