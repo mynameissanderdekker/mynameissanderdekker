@@ -249,20 +249,28 @@ export const structure: StructureResolver = async (S, { getClient }) => {
             ])
         ),
 
-      // Individuele projectpagina's — 1-op-1 met het live menu
-      ...cvProjects.map(p =>
-        S.listItem()
-          .title(p.title)
-          .id(`project-page-${p._id}`)
-          .child(
-            S.document()
-              .schemaType('project')
-              .documentId(p._id)
-              .title(p.title)
-          )
-      ),
+      S.listItem()
+        .title('Projects')
+        .id('projectsOverview')
+        .child(
+          S.list()
+            .id('projects-pages-list')
+            .title('Projects')
+            .items(
+              cvProjects.map(p =>
+                S.listItem()
+                  .title(p.title)
+                  .id(`project-page-${p._id}`)
+                  .child(
+                    S.document()
+                      .schemaType('project')
+                      .documentId(p._id)
+                      .title(p.title)
+                  )
+              )
+            )
+        ),
 
-      // Works / Webshop pagina configuratie
       S.listItem()
         .title('Available (webshop)')
         .id('worksPage')
