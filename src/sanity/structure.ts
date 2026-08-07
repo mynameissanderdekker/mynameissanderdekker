@@ -277,7 +277,6 @@ export const structure: StructureResolver = async (S, { getClient }) => {
       S.divider().title('TRADE'),
 
       S.documentTypeListItem('privateSale').title('Private Sales Selections'),
-      orderListItem(S),
       S.listItem()
         .title('Exhibitions')
         .id('exhibition')
@@ -367,6 +366,7 @@ export const structure: StructureResolver = async (S, { getClient }) => {
       // ── WEBSHOP ───────────────────────────────────────────────────────────
       S.divider().title('WEBSHOP'),
 
+      orderListItem(S),
       S.documentTypeListItem('coupon').title('Coupons'),
       S.listItem()
         .title('Reports')
