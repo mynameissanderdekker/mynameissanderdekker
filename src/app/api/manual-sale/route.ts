@@ -5,15 +5,23 @@ import { syncToMailchimp } from '@/lib/mailchimp'
 
 const FROM = 'Sander Dekker <hello@mynameissanderdekker.com>'
 
+interface SaleItem {
+  artworkId: string
+  artworkTitle: string
+  artworkYear?: number
+  copyNumber: string
+  priceExclVAT: number
+  vatRate: number
+}
+
 export async function POST(req: NextRequest) {
-  // Auth check — admin cookie (custom admin) of geldig Sanity-token (Studio)
+  // Auth check — admin cookie of geldig Sanity-token (Studio)
   const session     = req.cookies.get('admin_session')?.value
   const sanityToken = req.headers.get('x-sanity-token')
 
   let authorized = session === process.env.ADMIN_PASSWORD
 
   if (!authorized && sanityToken) {
-    // Valideer het token tegen Sanity's user-endpoint
     try {
       const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID
       const check = await fetch(`https://${projectId}.api.sanity.io/v1/users/me`, {
@@ -28,8 +36,7 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json() as {
-    // Contact
-    contactId?: string        // bestaand contact
+    contactId?: string
     firstName: string
     lastName: string
     email: string
@@ -40,16 +47,9 @@ export async function POST(req: NextRequest) {
     postalCode?: string
     city?: string
     country?: string
-    // Artwork
-    artworkId: string
-    artworkTitle: string
-    artworkYear?: number
-    copyNumber: string        // bijv. "3/7"
+    items: SaleItem[]
     soldVia: 'direct' | 'gallery' | 'artfair' | 'other'
-    saleDate: string          // YYYY-MM-DD
-    priceExclVAT: number
-    vatRate: number
-    // Invoice
+    saleDate: string
     invoiceNumber: string
     paymentTermsDays?: number
     notes?: string
@@ -62,7 +62,6 @@ export async function POST(req: NextRequest) {
   let contactId: string
 
   if (body.contactId) {
-    // Bestaand contact updaten indien adres etc. ontbreekt
     await sanity.patch(body.contactId)
       .setIfMissing({ type: 'collector' })
       .set({
@@ -76,7 +75,6 @@ export async function POST(req: NextRequest) {
       .commit()
     contactId = body.contactId
   } else {
-    // Nieuw contact
     const existing = await sanity.fetch<{ _id: string } | null>(
       `*[_type == "contact" && email == $email][0]{ _id }`,
       { email: body.email }
@@ -103,35 +101,25 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // ── Purchase toevoegen aan contact ────────────────────────────────────
-  const purchaseEntry = {
+  // ── Purchases toevoegen aan contact (één per item) ────────────────────
+  const purchaseEntries = body.items.map(item => ({
     _key:          crypto.randomUUID(),
-    artwork:       { _type: 'reference', _ref: body.artworkId },
-    copyNumber:    body.copyNumber,
+    artwork:       { _type: 'reference', _ref: item.artworkId },
+    copyNumber:    item.copyNumber || undefined,
     soldVia:       body.soldVia,
     editionNumber: body.invoiceNumber,
     date:          body.saleDate,
-    price:         body.priceExclVAT,
-  }
+    price:         item.priceExclVAT,
+  }))
 
   await sanity.patch(contactId)
     .setIfMissing({ purchases: [] })
-    .append('purchases', [purchaseEntry])
+    .append('purchases', purchaseEntries)
     .commit()
 
-  // ── Artwork op 'not_for_sale' zetten indien uitverkocht ──────────────
-  // (we laten dit aan de gebruiker over via de status toggle — artwork-editie
-  //  kan meerdere kopieën hebben. We updaten alleen 'buyers' notitie.)
-  try {
-    await sanity.patch(body.artworkId)
-      .setIfMissing({ buyers: '' })
-      .commit()
-  } catch {
-    // non-critical
-  }
-
-  // ── Order document aanmaken (zelfde als webshop) ──────────────────────
-  const priceIncl = body.priceExclVAT * (1 + body.vatRate / 100)
+  // ── Order document aanmaken ───────────────────────────────────────────
+  const totalIncl = body.items.reduce((sum, i) => sum + i.priceExclVAT * (1 + i.vatRate / 100), 0)
+  const totalExcl = body.items.reduce((sum, i) => sum + i.priceExclVAT, 0)
 
   await sanity.create({
     _type:         'order',
@@ -148,13 +136,13 @@ export async function POST(req: NextRequest) {
       city:       body.city || '',
       country:    body.country || '',
     } : undefined,
-    items: [{
+    items: body.items.map(item => ({
       _key:     crypto.randomUUID(),
-      title:    `${body.artworkTitle}${body.artworkYear ? ` (${body.artworkYear})` : ''} — ${body.copyNumber}`,
+      title:    `${item.artworkTitle}${item.artworkYear ? ` (${item.artworkYear})` : ''}${item.copyNumber ? ` — ${item.copyNumber}` : ''}`,
       quantity: 1,
-      price:    priceIncl,
-    }],
-    totalAmount: priceIncl,
+      price:    item.priceExclVAT * (1 + item.vatRate / 100),
+    })),
+    totalAmount: totalIncl,
     createdAt:   new Date().toISOString(),
     statusHistory: [{
       _key:      crypto.randomUUID(),
@@ -169,22 +157,40 @@ export async function POST(req: NextRequest) {
   // ── Mailchimp sync ─────────────────────────────────────────────────────
   try {
     await syncToMailchimp({
-      email:     body.email,
-      firstName: body.firstName,
-      lastName:  body.lastName,
-      type:      'collector',
-      country:   body.country,
-      subscribed: false,  // geen auto-subscribe bij handmatige verkoop
+      email:      body.email,
+      firstName:  body.firstName,
+      lastName:   body.lastName,
+      type:       'collector',
+      country:    body.country,
+      subscribed: false,
     })
   } catch { /* non-critical */ }
 
-  // ── Bevestigingsmail naar koper (optioneel) ───────────────────────────
+  // ── Bevestigingsmail naar koper ───────────────────────────────────────
   if (body.sendConfirmation && body.email && process.env.RESEND_API_KEY) {
     const resend = getResendClient()
-    const vatAmount = priceIncl - body.priceExclVAT
     const dueDate = new Date(body.saleDate)
     dueDate.setDate(dueDate.getDate() + (body.paymentTermsDays ?? 14))
     const dueDateStr = dueDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+    const dateStr    = new Date(body.saleDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+
+    const itemRows = body.items.map(item => {
+      const incl = item.priceExclVAT * (1 + item.vatRate / 100)
+      const vat  = incl - item.priceExclVAT
+      return `
+        <tr style="border-bottom:1px solid #eee">
+          <td style="padding:8px 0">
+            ${item.artworkTitle}${item.artworkYear ? `, ${item.artworkYear}` : ''}
+            ${item.copyNumber ? `<br><span style="color:#888;font-size:12px">${item.copyNumber}</span>` : ''}
+          </td>
+          <td style="padding:8px 0;text-align:right;vertical-align:top">€${item.priceExclVAT.toLocaleString('nl-NL', { minimumFractionDigits: 2 })}</td>
+        </tr>
+        <tr style="border-bottom:1px solid #eee">
+          <td style="padding:4px 0;color:#888;font-size:12px">VAT ${item.vatRate}%</td>
+          <td style="padding:4px 0;text-align:right;font-size:12px;color:#888">€${vat.toLocaleString('nl-NL', { minimumFractionDigits: 2 })}</td>
+        </tr>
+      `
+    }).join('')
 
     await resend.emails.send({
       from: FROM,
@@ -199,24 +205,14 @@ export async function POST(req: NextRequest) {
               <td style="padding:8px 0;color:#666">Invoice number</td>
               <td style="padding:8px 0;text-align:right">${body.invoiceNumber}</td>
             </tr>
-            <tr style="border-bottom:1px solid #eee">
+            <tr style="border-bottom:2px solid #111">
               <td style="padding:8px 0;color:#666">Date</td>
-              <td style="padding:8px 0;text-align:right">${new Date(body.saleDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</td>
+              <td style="padding:8px 0;text-align:right">${dateStr}</td>
             </tr>
-            <tr style="border-bottom:1px solid #eee">
-              <td style="padding:8px 0">
-                ${body.artworkTitle}${body.artworkYear ? `, ${body.artworkYear}` : ''}<br>
-                <span style="color:#888;font-size:13px">${body.copyNumber}</span>
-              </td>
-              <td style="padding:8px 0;text-align:right;vertical-align:top">€${body.priceExclVAT.toLocaleString('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-            </tr>
-            <tr style="border-bottom:1px solid #eee">
-              <td style="padding:8px 0;color:#666">VAT ${body.vatRate}%</td>
-              <td style="padding:8px 0;text-align:right">€${vatAmount.toLocaleString('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-            </tr>
+            ${itemRows}
             <tr>
-              <td style="padding:10px 0;font-weight:bold">Total</td>
-              <td style="padding:10px 0;text-align:right;font-weight:bold">€${priceIncl.toLocaleString('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+              <td style="padding:12px 0;font-weight:bold">Total incl. VAT</td>
+              <td style="padding:12px 0;text-align:right;font-weight:bold">€${totalIncl.toLocaleString('nl-NL', { minimumFractionDigits: 2 })}</td>
             </tr>
           </table>
           ${body.notes ? `<p style="color:#555;font-size:13px;font-style:italic">${body.notes}</p>` : ''}
@@ -232,15 +228,16 @@ export async function POST(req: NextRequest) {
   // ── Notificatie naar Sander ───────────────────────────────────────────
   if (process.env.RESEND_API_KEY) {
     const resend = getResendClient()
+    const itemList = body.items.map(i => `${i.artworkTitle}${i.copyNumber ? ` — ${i.copyNumber}` : ''} · €${i.priceExclVAT.toLocaleString('nl-NL')}`).join('<br>')
     await resend.emails.send({
       from: FROM,
       to:   'hello@mynameissanderdekker.com',
       subject: `Sale registered — ${body.invoiceNumber}`,
       html: `
         <p><strong>Manual sale registered</strong></p>
-        <p>${body.artworkTitle}${body.artworkYear ? ` (${body.artworkYear})` : ''} — ${body.copyNumber}</p>
+        <p>${itemList}</p>
         <p>Buyer: ${body.firstName} ${body.lastName} (${body.email})</p>
-        <p>Price: €${body.priceExclVAT.toLocaleString('nl-NL')} excl. VAT</p>
+        <p>Total excl. VAT: €${totalExcl.toLocaleString('nl-NL')} · Total incl.: €${totalIncl.toLocaleString('nl-NL')}</p>
         <p>Invoice: ${body.invoiceNumber} · via ${body.soldVia}</p>
       `,
     }).catch(console.error)

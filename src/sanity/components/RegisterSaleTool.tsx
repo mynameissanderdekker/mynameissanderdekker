@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { useClient } from 'sanity'
 
+// ── Types ─────────────────────────────────────────────────────────────────────
+
 interface ContactResult {
   _id: string
   firstName: string
@@ -16,13 +18,30 @@ interface ArtworkResult {
   title: string
   year?: number
   medium?: string
+  category?: string
   editionTotal?: number
   editionAP?: number
   priceExclVAT?: number
   vatRate?: number
 }
 
+interface CartItem {
+  artwork: ArtworkResult
+  copyNumber: string      // '' for books/no-edition
+  priceExcl: number
+  vatRate: number
+  availableEditions: string[]  // pre-computed available slots
+}
+
 type Step = 1 | 2 | 3
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+const PUBLICATION_CATEGORIES = ['book', 'Zine', 'zine', 'publication']
+
+function isPublication(artwork: ArtworkResult) {
+  return !artwork.editionTotal || PUBLICATION_CATEGORIES.includes(artwork.category ?? '')
+}
 
 function generateInvoiceNumber() {
   const now = new Date()
@@ -39,44 +58,52 @@ const soldViaOptions = [
   { value: 'other',   label: 'Other' },
 ]
 
+// ── Styles ────────────────────────────────────────────────────────────────────
+
 const s = {
-  wrap: { padding: '32px 40px', maxWidth: 680, fontFamily: 'system-ui, sans-serif', color: '#101112' } as React.CSSProperties,
-  h1: { fontWeight: 600, fontSize: 22, margin: '0 0 4px' } as React.CSSProperties,
-  sub: { fontSize: 13, color: '#6b7280', margin: '0 0 32px' } as React.CSSProperties,
-  steps: { display: 'flex', gap: 0, marginBottom: 28 } as React.CSSProperties,
-  card: { background: '#fff', border: '1px solid #e5e7eb', borderRadius: 6, padding: '20px 24px', marginBottom: 16 } as React.CSSProperties,
-  label: { display: 'block', fontSize: 11, letterSpacing: '0.07em', textTransform: 'uppercase' as const, color: '#6b7280', marginBottom: 4 },
-  inp: { width: '100%', padding: '7px 10px', fontSize: 13, border: '1px solid #d1d5db', borderRadius: 4, outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' as const },
-  btnPrimary: { padding: '8px 22px', background: '#101112', color: '#fff', border: 'none', borderRadius: 4, fontSize: 13, cursor: 'pointer', letterSpacing: '0.04em' } as React.CSSProperties,
-  btnSecondary: { padding: '8px 18px', background: '#fff', color: '#374151', border: '1px solid #d1d5db', borderRadius: 4, fontSize: 13, cursor: 'pointer' } as React.CSSProperties,
-  grid2: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' } as React.CSSProperties,
-  grid3: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px 16px' } as React.CSSProperties,
-  resultRow: { padding: '9px 12px', cursor: 'pointer', borderBottom: '1px solid #f3f4f6', fontSize: 13 } as React.CSSProperties,
-  selected: { background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 4, padding: '9px 12px', fontSize: 13, marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' } as React.CSSProperties,
+  wrap:        { padding: '32px 40px', maxWidth: 720, fontFamily: 'system-ui, sans-serif', color: '#101112' } as React.CSSProperties,
+  h1:          { fontWeight: 600, fontSize: 22, margin: '0 0 4px' } as React.CSSProperties,
+  sub:         { fontSize: 13, color: '#6b7280', margin: '0 0 32px' } as React.CSSProperties,
+  card:        { background: '#fff', border: '1px solid #e5e7eb', borderRadius: 6, padding: '20px 24px', marginBottom: 16 } as React.CSSProperties,
+  label:       { display: 'block', fontSize: 11, letterSpacing: '0.07em', textTransform: 'uppercase' as const, color: '#6b7280', marginBottom: 4 },
+  inp:         { width: '100%', padding: '7px 10px', fontSize: 13, border: '1px solid #d1d5db', borderRadius: 4, outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' as const },
+  btnPrimary:  { padding: '8px 22px', background: '#101112', color: '#fff', border: 'none', borderRadius: 4, fontSize: 13, cursor: 'pointer', letterSpacing: '0.04em' } as React.CSSProperties,
+  btnSecondary:{ padding: '8px 18px', background: '#fff', color: '#374151', border: '1px solid #d1d5db', borderRadius: 4, fontSize: 13, cursor: 'pointer' } as React.CSSProperties,
+  btnSmall:    { padding: '4px 10px', background: '#fff', color: '#374151', border: '1px solid #d1d5db', borderRadius: 3, fontSize: 12, cursor: 'pointer' } as React.CSSProperties,
+  grid2:       { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' } as React.CSSProperties,
+  grid3:       { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px 16px' } as React.CSSProperties,
+  resultRow:   { padding: '9px 12px', cursor: 'pointer', borderBottom: '1px solid #f3f4f6', fontSize: 13 } as React.CSSProperties,
+  selected:    { background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 4, padding: '9px 12px', fontSize: 13, marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' } as React.CSSProperties,
 }
+
+// ── Component ─────────────────────────────────────────────────────────────────
 
 export function RegisterSaleTool() {
   const client = useClient({ apiVersion: '2024-01-01' })
   const [step, setStep] = useState<Step>(1)
 
-  // Step 1
-  const [contactQuery, setContactQuery]     = useState('')
-  const [contactResults, setContactResults] = useState<ContactResult[]>([])
+  // Step 1 — contact
+  const [contactQuery, setContactQuery]       = useState('')
+  const [contactResults, setContactResults]   = useState<ContactResult[]>([])
   const [selectedContact, setSelectedContact] = useState<ContactResult | null>(null)
-  const [useNew, setUseNew] = useState(false)
-  const [newContact, setNewContact] = useState({ firstName: '', lastName: '', email: '', phone: '', company: '', vatNumber: '', street: '', postalCode: '', city: '', country: '' })
+  const [useNew, setUseNew]                   = useState(false)
+  const [newContact, setNewContact]           = useState({
+    firstName: '', lastName: '', email: '', phone: '',
+    company: '', vatNumber: '', street: '', postalCode: '', city: '', country: '',
+  })
 
-  // Step 2
+  // Step 2 — cart
   const [artworkQuery, setArtworkQuery]     = useState('')
   const [artworkResults, setArtworkResults] = useState<ArtworkResult[]>([])
-  const [selectedArtwork, setSelectedArtwork] = useState<ArtworkResult | null>(null)
-  const [copyNumber, setCopyNumber] = useState('')
-  const [soldVia, setSoldVia]       = useState('direct')
-  const [saleDate, setSaleDate]     = useState(new Date().toISOString().slice(0, 10))
+  const [pendingArtwork, setPendingArtwork] = useState<ArtworkResult | null>(null)
+  const [pendingEdition, setPendingEdition] = useState('')
+  const [pendingEditions, setPendingEditions] = useState<string[]>([])
+  const [loadingEditions, setLoadingEditions] = useState(false)
+  const [cart, setCart]                     = useState<CartItem[]>([])
+  const [soldVia, setSoldVia]               = useState('direct')
+  const [saleDate, setSaleDate]             = useState(new Date().toISOString().slice(0, 10))
 
-  // Step 3
-  const [priceExcl, setPriceExcl]         = useState('')
-  const [vatRate, setVatRate]             = useState('9')
+  // Step 3 — invoice
   const [invoiceNumber, setInvoiceNumber] = useState(generateInvoiceNumber)
   const [termDays, setTermDays]           = useState('14')
   const [notes, setNotes]                 = useState('')
@@ -86,7 +113,8 @@ export function RegisterSaleTool() {
   const [done, setDone]             = useState<string | null>(null)
   const [error, setError]           = useState('')
 
-  // Contact search
+  // ── Contact search ──────────────────────────────────────────────────────────
+
   const searchContacts = useCallback(async (q: string) => {
     if (q.length < 2) { setContactResults([]); return }
     const res = await client.fetch<ContactResult[]>(
@@ -101,11 +129,14 @@ export function RegisterSaleTool() {
     return () => clearTimeout(t)
   }, [contactQuery, searchContacts])
 
-  // Artwork search
+  // ── Artwork search ──────────────────────────────────────────────────────────
+
   const searchArtworks = useCallback(async (q: string) => {
     if (q.length < 2) { setArtworkResults([]); return }
     const res = await client.fetch<ArtworkResult[]>(
-      `*[_type == "artwork" && title match $q][0...15]{ _id, title, year, medium, editionTotal, editionAP, priceExclVAT, vatRate } | order(year desc)`,
+      `*[_type == "artwork" && title match $q][0...15]{
+        _id, title, year, medium, category, editionTotal, editionAP, priceExclVAT, vatRate
+      } | order(year desc)`,
       { q: `${q}*` }
     )
     setArtworkResults(res)
@@ -116,37 +147,113 @@ export function RegisterSaleTool() {
     return () => clearTimeout(t)
   }, [artworkQuery, searchArtworks])
 
-  // Pre-fill price
-  useEffect(() => {
-    if (selectedArtwork?.priceExclVAT) setPriceExcl(String(selectedArtwork.priceExclVAT))
-    if (selectedArtwork?.vatRate)      setVatRate(String(selectedArtwork.vatRate))
-  }, [selectedArtwork])
+  // ── Load available editions when artwork selected ────────────────────────────
+
+  async function selectPendingArtwork(artwork: ArtworkResult) {
+    setPendingArtwork(artwork)
+    setArtworkResults([])
+    setArtworkQuery(artwork.title)
+    setPendingEdition('')
+
+    if (isPublication(artwork)) {
+      setPendingEditions([])
+      return
+    }
+
+    setLoadingEditions(true)
+    try {
+      // Fetch all sold copy numbers for this artwork
+      const soldCopies = await client.fetch<string[]>(
+        `*[_type == "contact" && defined(purchases)]{
+          "copies": purchases[artwork._ref == $id && defined(copyNumber)].copyNumber
+        }[count(copies) > 0].copies[]`,
+        { id: artwork._id }
+      )
+
+      // Build all possible edition slots: 1/N … N/N + AP 1/M … AP M/N
+      const total = artwork.editionTotal ?? 0
+      const ap    = artwork.editionAP ?? 0
+      const all: string[] = []
+      for (let i = 1; i <= total; i++) all.push(`${i}/${total}`)
+      for (let i = 1; i <= ap; i++)    all.push(`AP ${i}/${ap}`)
+
+      // Filter out already-sold and already-in-cart editions
+      const inCart = cart.filter(c => c.artwork._id === artwork._id).map(c => c.copyNumber)
+      const sold   = new Set([...soldCopies, ...inCart])
+      const available = all.filter(e => !sold.has(e))
+
+      setPendingEditions(available)
+      if (available.length === 1) setPendingEdition(available[0])
+    } finally {
+      setLoadingEditions(false)
+    }
+  }
+
+  // ── Add to cart ─────────────────────────────────────────────────────────────
+
+  function addToCart() {
+    if (!pendingArtwork) return
+    const item: CartItem = {
+      artwork:          pendingArtwork,
+      copyNumber:       isPublication(pendingArtwork) ? '' : pendingEdition,
+      priceExcl:        pendingArtwork.priceExclVAT ?? 0,
+      vatRate:          pendingArtwork.vatRate ?? 9,
+      availableEditions: pendingEditions,
+    }
+    setCart(prev => [...prev, item])
+    setPendingArtwork(null)
+    setArtworkQuery('')
+    setPendingEdition('')
+    setPendingEditions([])
+  }
+
+  function removeFromCart(idx: number) {
+    setCart(prev => prev.filter((_, i) => i !== idx))
+  }
+
+  function updateCartPrice(idx: number, val: string) {
+    setCart(prev => prev.map((item, i) => i === idx ? { ...item, priceExcl: Number(val) } : item))
+  }
+
+  function updateCartVat(idx: number, val: string) {
+    setCart(prev => prev.map((item, i) => i === idx ? { ...item, vatRate: Number(val) } : item))
+  }
+
+  // ── Totals ──────────────────────────────────────────────────────────────────
+
+  const totalExcl = cart.reduce((sum, i) => sum + i.priceExcl, 0)
+  const totalIncl = cart.reduce((sum, i) => sum + i.priceExcl * (1 + i.vatRate / 100), 0)
+  const totalVat  = totalIncl - totalExcl
+
+  // ── Submit ──────────────────────────────────────────────────────────────────
 
   async function handleSubmit() {
-    if (!selectedArtwork) return
+    if (cart.length === 0) return
     setSubmitting(true)
     setError('')
 
     const payload = {
-      contactId:    (!useNew && selectedContact?._id) ? selectedContact._id : undefined,
-      firstName:    useNew ? newContact.firstName : selectedContact!.firstName,
-      lastName:     useNew ? newContact.lastName  : selectedContact!.lastName,
-      email:        useNew ? newContact.email      : selectedContact!.email,
-      phone:        useNew ? newContact.phone      : undefined,
-      company:      useNew ? newContact.company    : selectedContact!.company,
-      vatNumber:    useNew ? newContact.vatNumber  : undefined,
-      street:       useNew ? newContact.street     : undefined,
-      postalCode:   useNew ? newContact.postalCode : undefined,
-      city:         useNew ? newContact.city       : undefined,
-      country:      useNew ? newContact.country    : undefined,
-      artworkId:    selectedArtwork._id,
-      artworkTitle: selectedArtwork.title,
-      artworkYear:  selectedArtwork.year,
-      copyNumber,
+      contactId:  (!useNew && selectedContact?._id) ? selectedContact._id : undefined,
+      firstName:  useNew ? newContact.firstName : selectedContact!.firstName,
+      lastName:   useNew ? newContact.lastName  : selectedContact!.lastName,
+      email:      useNew ? newContact.email      : selectedContact!.email,
+      phone:      useNew ? newContact.phone      : undefined,
+      company:    useNew ? newContact.company    : selectedContact!.company,
+      vatNumber:  useNew ? newContact.vatNumber  : undefined,
+      street:     useNew ? newContact.street     : undefined,
+      postalCode: useNew ? newContact.postalCode : undefined,
+      city:       useNew ? newContact.city       : undefined,
+      country:    useNew ? newContact.country    : undefined,
+      items: cart.map(i => ({
+        artworkId:    i.artwork._id,
+        artworkTitle: i.artwork.title,
+        artworkYear:  i.artwork.year,
+        copyNumber:   i.copyNumber,
+        priceExclVAT: i.priceExcl,
+        vatRate:      i.vatRate,
+      })),
       soldVia,
       saleDate,
-      priceExclVAT:     Number(priceExcl),
-      vatRate:          Number(vatRate),
       invoiceNumber,
       paymentTermsDays: Number(termDays),
       notes,
@@ -154,15 +261,11 @@ export function RegisterSaleTool() {
     }
 
     try {
-      // Gebruik het Sanity-token dat de Studio al heeft — geen publieke secret nodig
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const sanityToken = (client as any).config?.()?.token ?? ''
       const res = await fetch('/api/manual-sale', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-sanity-token': sanityToken,
-        },
+        headers: { 'Content-Type': 'application/json', 'x-sanity-token': sanityToken },
         body: JSON.stringify(payload),
         credentials: 'include',
       })
@@ -176,25 +279,28 @@ export function RegisterSaleTool() {
     }
   }
 
+  // ── Reset ───────────────────────────────────────────────────────────────────
+
   function reset() {
     setStep(1); setDone(null); setError('')
     setContactQuery(''); setContactResults([]); setSelectedContact(null); setUseNew(false)
     setNewContact({ firstName: '', lastName: '', email: '', phone: '', company: '', vatNumber: '', street: '', postalCode: '', city: '', country: '' })
-    setArtworkQuery(''); setArtworkResults([]); setSelectedArtwork(null)
-    setCopyNumber(''); setSoldVia('direct'); setSaleDate(new Date().toISOString().slice(0, 10))
-    setPriceExcl(''); setVatRate('9'); setInvoiceNumber(generateInvoiceNumber()); setTermDays('14'); setNotes(''); setSendConf(true)
+    setArtworkQuery(''); setArtworkResults([]); setPendingArtwork(null); setPendingEdition(''); setPendingEditions([])
+    setCart([]); setSoldVia('direct'); setSaleDate(new Date().toISOString().slice(0, 10))
+    setInvoiceNumber(generateInvoiceNumber()); setTermDays('14'); setNotes(''); setSendConf(true)
   }
 
-  const stepLabels = ['Buyer', 'Artwork', 'Invoice']
-  const priceIncl = priceExcl ? Number(priceExcl) * (1 + Number(vatRate) / 100) : null
-  const vatAmount = priceIncl ? priceIncl - Number(priceExcl) : null
+  const stepLabels = ['Buyer', 'Items', 'Invoice']
+  const canAddToCart = pendingArtwork && (isPublication(pendingArtwork) || pendingEdition)
+
+  // ── Done screen ─────────────────────────────────────────────────────────────
 
   if (done) {
     return (
       <div style={{ ...s.wrap, textAlign: 'center', paddingTop: 80 }}>
         <div style={{ fontSize: 40, marginBottom: 16 }}>✓</div>
         <h2 style={{ fontWeight: 500, fontSize: 20, marginBottom: 8 }}>Sale registered</h2>
-        <p style={{ color: '#6b7280', marginBottom: 32 }}>Invoice {done} created and purchase added to contact.</p>
+        <p style={{ color: '#6b7280', marginBottom: 32 }}>Invoice {done} created and purchases added to contact.</p>
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
           <a href={`/admin/invoices/${done}`} target="_blank" rel="noopener noreferrer"
             style={{ ...s.btnSecondary, textDecoration: 'none' }}>View invoice ↗</a>
@@ -210,7 +316,7 @@ export function RegisterSaleTool() {
       <p style={s.sub}>Manual sale — no Stripe involved</p>
 
       {/* Step tabs */}
-      <div style={s.steps}>
+      <div style={{ display: 'flex', gap: 0, marginBottom: 28 }}>
         {stepLabels.map((lbl, i) => {
           const n = (i + 1) as Step
           return (
@@ -228,7 +334,7 @@ export function RegisterSaleTool() {
         })}
       </div>
 
-      {/* ── Step 1: Buyer ── */}
+      {/* ══ Step 1: Buyer ══════════════════════════════════════════════════════ */}
       {step === 1 && (
         <>
           <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
@@ -262,7 +368,7 @@ export function RegisterSaleTool() {
                 )}
                 {selectedContact && (
                   <div style={s.selected}>
-                    <span><strong>{selectedContact.firstName} {selectedContact.lastName}</strong> <span style={{ color: '#6b7280' }}>{selectedContact.email}</span></span>
+                    <span><strong>{selectedContact.firstName} {selectedContact.lastName}</strong> <span style={{ color: '#6b7280', marginLeft: 8 }}>{selectedContact.email}</span></span>
                     <button onClick={() => { setSelectedContact(null); setContactQuery('') }}
                       style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', fontSize: 16 }}>×</button>
                   </div>
@@ -270,7 +376,11 @@ export function RegisterSaleTool() {
               </>
             ) : (
               <div style={s.grid2}>
-                {([['firstName','First name *'],['lastName','Last name *'],['email','Email *'],['phone','Phone'],['company','Company'],['vatNumber','VAT number'],['street','Street'],['postalCode','Postal code'],['city','City'],['country','Country (NL, BE…)']] as [keyof typeof newContact, string][]).map(([field, lbl]) => (
+                {([
+                  ['firstName','First name *'],['lastName','Last name *'],['email','Email *'],
+                  ['phone','Phone'],['company','Company'],['vatNumber','VAT number'],
+                  ['street','Street'],['postalCode','Postal code'],['city','City'],['country','Country (NL, BE…)'],
+                ] as [keyof typeof newContact, string][]).map(([field, lbl]) => (
                   <div key={field} style={field === 'street' || field === 'email' ? { gridColumn: '1 / -1' } : {}}>
                     <span style={s.label}>{lbl}</span>
                     <input style={s.inp} value={newContact[field]} type={field === 'email' ? 'email' : 'text'}
@@ -281,111 +391,173 @@ export function RegisterSaleTool() {
             )}
           </div>
 
-          <button onClick={() => setStep(2)} style={{ ...s.btnPrimary, opacity: (useNew ? !newContact.firstName || !newContact.email : !selectedContact) ? 0.4 : 1 }}
+          <button onClick={() => setStep(2)}
+            style={{ ...s.btnPrimary, opacity: (useNew ? !newContact.firstName || !newContact.email : !selectedContact) ? 0.4 : 1 }}
             disabled={useNew ? !newContact.firstName || !newContact.email : !selectedContact}>
             Next →
           </button>
         </>
       )}
 
-      {/* ── Step 2: Artwork ── */}
+      {/* ══ Step 2: Items ══════════════════════════════════════════════════════ */}
       {step === 2 && (
         <>
+          {/* Search + add */}
           <div style={s.card}>
             <div style={{ marginBottom: 12 }}>
-              <span style={s.label}>Search artwork</span>
-              <input style={s.inp} placeholder="Title…" value={artworkQuery} autoFocus
-                onChange={e => { setArtworkQuery(e.target.value); setSelectedArtwork(null) }} />
+              <span style={s.label}>Add artwork or publication</span>
+              <input style={s.inp} placeholder="Search by title…" value={artworkQuery} autoFocus
+                onChange={e => { setArtworkQuery(e.target.value); setPendingArtwork(null); setPendingEdition(''); setPendingEditions([]) }} />
             </div>
-            {artworkResults.length > 0 && !selectedArtwork && (
+
+            {/* Search results */}
+            {artworkResults.length > 0 && !pendingArtwork && (
               <div style={{ border: '1px solid #e5e7eb', borderRadius: 4, overflow: 'hidden', marginBottom: 12 }}>
                 {artworkResults.map(a => (
-                  <div key={a._id} style={s.resultRow}
-                    onClick={() => { setSelectedArtwork(a); setArtworkResults([]); setArtworkQuery(a.title) }}>
+                  <div key={a._id} style={s.resultRow} onClick={() => selectPendingArtwork(a)}>
                     <strong>{a.title}</strong>
                     {a.year && <span style={{ color: '#6b7280', marginLeft: 8 }}>{a.year}</span>}
-                    {a.editionTotal && <span style={{ color: '#9ca3af', marginLeft: 8, fontSize: 12 }}>Ed. {a.editionTotal}{a.editionAP ? ` + ${a.editionAP} AP` : ''}</span>}
+                    {a.editionTotal
+                      ? <span style={{ color: '#9ca3af', marginLeft: 8, fontSize: 12 }}>Ed. {a.editionTotal}{a.editionAP ? ` + ${a.editionAP} AP` : ''}</span>
+                      : <span style={{ color: '#9ca3af', marginLeft: 8, fontSize: 12 }}>No edition</span>
+                    }
                     {a.priceExclVAT && <span style={{ color: '#9ca3af', marginLeft: 8, fontSize: 12 }}>€{a.priceExclVAT.toLocaleString('nl-NL')}</span>}
                   </div>
                 ))}
               </div>
             )}
-            {selectedArtwork && (
-              <div style={{ ...s.selected, marginBottom: 16 }}>
-                <span>
-                  <strong>{selectedArtwork.title}</strong>
-                  {selectedArtwork.year && <span style={{ color: '#6b7280', marginLeft: 8 }}>{selectedArtwork.year}</span>}
-                  {selectedArtwork.medium && <span style={{ color: '#9ca3af', marginLeft: 8, fontSize: 12, fontStyle: 'italic' }}>{selectedArtwork.medium}</span>}
-                </span>
-                <button onClick={() => { setSelectedArtwork(null); setArtworkQuery('') }}
-                  style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', fontSize: 16 }}>×</button>
+
+            {/* Pending item: edition picker + add button */}
+            {pendingArtwork && (
+              <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 4, padding: '12px 14px', marginBottom: 12 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
+                  <div>
+                    <strong>{pendingArtwork.title}</strong>
+                    {pendingArtwork.year && <span style={{ color: '#6b7280', marginLeft: 8 }}>{pendingArtwork.year}</span>}
+                    {pendingArtwork.medium && <span style={{ color: '#9ca3af', marginLeft: 8, fontSize: 12, fontStyle: 'italic' }}>{pendingArtwork.medium}</span>}
+                  </div>
+                  <button onClick={() => { setPendingArtwork(null); setArtworkQuery(''); setPendingEditions([]) }}
+                    style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', fontSize: 16 }}>×</button>
+                </div>
+
+                {/* Edition selector — only for non-publications */}
+                {!isPublication(pendingArtwork) && (
+                  <div style={{ marginBottom: 10 }}>
+                    <span style={s.label}>Edition</span>
+                    {loadingEditions ? (
+                      <p style={{ fontSize: 12, color: '#6b7280', margin: 0 }}>Loading available editions…</p>
+                    ) : pendingEditions.length === 0 ? (
+                      <p style={{ fontSize: 12, color: '#dc2626', margin: 0 }}>No editions available — all sold.</p>
+                    ) : (
+                      <select style={{ ...s.inp, width: 'auto' }} value={pendingEdition} onChange={e => setPendingEdition(e.target.value)}>
+                        <option value="">Select edition…</option>
+                        {pendingEditions.map(e => <option key={e} value={e}>{e}</option>)}
+                      </select>
+                    )}
+                  </div>
+                )}
+
+                {isPublication(pendingArtwork) && (
+                  <p style={{ fontSize: 12, color: '#6b7280', margin: '0 0 10px' }}>Publication — no edition number required.</p>
+                )}
+
+                <button onClick={addToCart} disabled={!canAddToCart}
+                  style={{ ...s.btnPrimary, padding: '6px 16px', fontSize: 12, opacity: canAddToCart ? 1 : 0.4 }}>
+                  + Add to sale
+                </button>
               </div>
             )}
-            <div style={s.grid3}>
-              <div>
-                <span style={s.label}>Copy number</span>
-                <input style={s.inp} placeholder="e.g. 3/7 (optional for books)" value={copyNumber} onChange={e => setCopyNumber(e.target.value)} />
-              </div>
-              <div>
-                <span style={s.label}>Sale date *</span>
-                <input style={s.inp} type="date" value={saleDate} onChange={e => setSaleDate(e.target.value)} />
-              </div>
-              <div>
-                <span style={s.label}>Sold via *</span>
-                <select style={s.inp} value={soldVia} onChange={e => setSoldVia(e.target.value)}>
-                  {soldViaOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                </select>
+          </div>
+
+          {/* Cart */}
+          {cart.length > 0 && (
+            <div style={s.card}>
+              <p style={{ ...s.label, marginBottom: 12 }}>Items in this sale ({cart.length})</p>
+              {cart.map((item, idx) => (
+                <div key={idx} style={{ borderBottom: idx < cart.length - 1 ? '1px solid #f3f4f6' : 'none', paddingBottom: 14, marginBottom: 14 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                    <div>
+                      <strong style={{ fontSize: 14 }}>{item.artwork.title}</strong>
+                      {item.artwork.year && <span style={{ color: '#6b7280', marginLeft: 8, fontSize: 13 }}>{item.artwork.year}</span>}
+                      {item.copyNumber && <span style={{ color: '#9ca3af', marginLeft: 8, fontSize: 12 }}>Ed. {item.copyNumber}</span>}
+                    </div>
+                    <button onClick={() => removeFromCart(idx)}
+                      style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', fontSize: 14 }}>Remove</button>
+                  </div>
+                  <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                    <div style={{ flex: 1 }}>
+                      <span style={s.label}>Price excl. VAT (€)</span>
+                      <input style={s.inp} type="number" min="0" step="0.01" value={item.priceExcl}
+                        onChange={e => updateCartPrice(idx, e.target.value)} />
+                    </div>
+                    <div style={{ width: 100 }}>
+                      <span style={s.label}>VAT %</span>
+                      <select style={s.inp} value={item.vatRate} onChange={e => updateCartVat(idx, e.target.value)}>
+                        <option value="0">0%</option>
+                        <option value="9">9%</option>
+                        <option value="21">21%</option>
+                      </select>
+                    </div>
+                    <div style={{ width: 120, textAlign: 'right', paddingTop: 18 }}>
+                      <span style={{ fontSize: 13, color: '#6b7280' }}>
+                        €{(item.priceExcl * (1 + item.vatRate / 100)).toLocaleString('nl-NL', { minimumFractionDigits: 2 })} incl.
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {/* Cart total */}
+              <div style={{ borderTop: '2px solid #e5e7eb', paddingTop: 12, display: 'flex', justifyContent: 'flex-end' }}>
+                <div style={{ textAlign: 'right', fontSize: 13 }}>
+                  <div style={{ color: '#6b7280', marginBottom: 2 }}>Excl. VAT: €{totalExcl.toLocaleString('nl-NL', { minimumFractionDigits: 2 })}</div>
+                  <div style={{ color: '#6b7280', marginBottom: 6 }}>VAT: €{totalVat.toLocaleString('nl-NL', { minimumFractionDigits: 2 })}</div>
+                  <div style={{ fontWeight: 600, fontSize: 15 }}>Total: €{totalIncl.toLocaleString('nl-NL', { minimumFractionDigits: 2 })}</div>
+                </div>
               </div>
             </div>
-          </div>
+          )}
+
+          {/* Sale meta */}
+          {cart.length > 0 && (
+            <div style={{ ...s.card, marginBottom: 16 }}>
+              <div style={s.grid2}>
+                <div>
+                  <span style={s.label}>Sale date</span>
+                  <input style={s.inp} type="date" value={saleDate} onChange={e => setSaleDate(e.target.value)} />
+                </div>
+                <div>
+                  <span style={s.label}>Sold via</span>
+                  <select style={s.inp} value={soldVia} onChange={e => setSoldVia(e.target.value)}>
+                    {soldViaOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                  </select>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div style={{ display: 'flex', gap: 10 }}>
             <button onClick={() => setStep(1)} style={s.btnSecondary}>← Back</button>
-            <button onClick={() => setStep(3)} style={{ ...s.btnPrimary, opacity: !selectedArtwork ? 0.4 : 1 }}
-              disabled={!selectedArtwork}>Next →</button>
+            <button onClick={() => setStep(3)} disabled={cart.length === 0}
+              style={{ ...s.btnPrimary, opacity: cart.length === 0 ? 0.4 : 1 }}>
+              Next →
+            </button>
           </div>
         </>
       )}
 
-      {/* ── Step 3: Invoice ── */}
+      {/* ══ Step 3: Invoice ════════════════════════════════════════════════════ */}
       {step === 3 && (
         <>
-          {/* Summary bar */}
+          {/* Summary */}
           <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 5, padding: '10px 16px', marginBottom: 16, fontSize: 13, color: '#374151' }}>
-            {useNew ? `${newContact.firstName} ${newContact.lastName}` : `${selectedContact?.firstName} ${selectedContact?.lastName}`}
+            <strong>{useNew ? `${newContact.firstName} ${newContact.lastName}` : `${selectedContact?.firstName} ${selectedContact?.lastName}`}</strong>
             {' — '}
-            <strong>{selectedArtwork?.title}</strong>{selectedArtwork?.year ? `, ${selectedArtwork.year}` : ''} · {copyNumber}
+            {cart.map(i => i.artwork.title).join(', ')}
           </div>
 
           <div style={s.card}>
             <div style={s.grid3}>
-              <div style={{ gridColumn: '1 / 3' }}>
-                <span style={s.label}>Price excl. VAT (€) *</span>
-                <input style={s.inp} type="number" min="0" step="0.01" value={priceExcl} onChange={e => setPriceExcl(e.target.value)} />
-              </div>
-              <div>
-                <span style={s.label}>VAT %</span>
-                <select style={s.inp} value={vatRate} onChange={e => setVatRate(e.target.value)}>
-                  <option value="0">0%</option>
-                  <option value="9">9%</option>
-                  <option value="21">21%</option>
-                </select>
-              </div>
-
-              {priceExcl && (
-                <div style={{ gridColumn: '1 / -1', background: '#f9fafb', borderRadius: 4, padding: '10px 14px' }}>
-                  {[
-                    [`Excl. VAT`, `€${Number(priceExcl).toLocaleString('nl-NL', { minimumFractionDigits: 2 })}`],
-                    [`VAT ${vatRate}%`, `€${vatAmount!.toLocaleString('nl-NL', { minimumFractionDigits: 2 })}`],
-                    [`Total incl. VAT`, `€${priceIncl!.toLocaleString('nl-NL', { minimumFractionDigits: 2 })}`],
-                  ].map(([label, val], i) => (
-                    <div key={label} style={{ display: 'flex', justifyContent: 'space-between', fontSize: i === 2 ? 14 : 12, fontWeight: i === 2 ? 600 : 400, color: i === 2 ? '#101112' : '#6b7280', borderTop: i === 2 ? '1px solid #e5e7eb' : 'none', paddingTop: i === 2 ? 8 : 0, marginBottom: i < 2 ? 4 : 0 }}>
-                      <span>{label}</span><span>{val}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
               <div>
                 <span style={s.label}>Invoice number</span>
                 <input style={s.inp} value={invoiceNumber} onChange={e => setInvoiceNumber(e.target.value)} />
@@ -394,6 +566,7 @@ export function RegisterSaleTool() {
                 <span style={s.label}>Payment terms (days)</span>
                 <input style={s.inp} type="number" min="0" value={termDays} onChange={e => setTermDays(e.target.value)} />
               </div>
+              <div />
               <div style={{ gridColumn: '1 / -1' }}>
                 <span style={s.label}>Notes (on invoice)</span>
                 <textarea style={{ ...s.inp, resize: 'vertical' } as React.CSSProperties} rows={3} value={notes} onChange={e => setNotes(e.target.value)} />
@@ -405,12 +578,26 @@ export function RegisterSaleTool() {
             </div>
           </div>
 
+          {/* Invoice total recap */}
+          <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 5, padding: '14px 16px', marginBottom: 16, fontSize: 13 }}>
+            {cart.map((item, i) => (
+              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', color: '#374151', marginBottom: 4 }}>
+                <span>{item.artwork.title}{item.copyNumber ? ` — Ed. ${item.copyNumber}` : ''}</span>
+                <span>€{item.priceExcl.toLocaleString('nl-NL', { minimumFractionDigits: 2 })} excl.</span>
+              </div>
+            ))}
+            <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: 10, marginTop: 8, display: 'flex', justifyContent: 'space-between', fontWeight: 600, fontSize: 14 }}>
+              <span>Total incl. VAT</span>
+              <span>€{totalIncl.toLocaleString('nl-NL', { minimumFractionDigits: 2 })}</span>
+            </div>
+          </div>
+
           {error && <p style={{ color: '#dc2626', fontSize: 13, marginBottom: 12 }}>{error}</p>}
 
           <div style={{ display: 'flex', gap: 10 }}>
             <button onClick={() => setStep(2)} style={s.btnSecondary}>← Back</button>
-            <button onClick={handleSubmit} disabled={submitting || !priceExcl}
-              style={{ ...s.btnPrimary, opacity: submitting || !priceExcl ? 0.5 : 1 }}>
+            <button onClick={handleSubmit} disabled={submitting}
+              style={{ ...s.btnPrimary, opacity: submitting ? 0.5 : 1 }}>
               {submitting ? 'Registering…' : 'Confirm sale'}
             </button>
           </div>
