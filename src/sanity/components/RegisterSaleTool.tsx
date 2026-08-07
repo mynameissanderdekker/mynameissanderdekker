@@ -154,11 +154,14 @@ export function RegisterSaleTool() {
     }
 
     try {
+      // Gebruik het Sanity-token dat de Studio al heeft — geen publieke secret nodig
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const sanityToken = (client as any).config?.()?.token ?? ''
       const res = await fetch('/api/manual-sale', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-key': process.env.NEXT_PUBLIC_ADMIN_KEY ?? '',
+          'x-sanity-token': sanityToken,
         },
         body: JSON.stringify(payload),
         credentials: 'include',

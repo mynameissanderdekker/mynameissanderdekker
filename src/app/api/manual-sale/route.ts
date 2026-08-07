@@ -6,11 +6,24 @@ import { syncToMailchimp } from '@/lib/mailchimp'
 const FROM = 'Sander Dekker <hello@mynameissanderdekker.com>'
 
 export async function POST(req: NextRequest) {
-  // Auth check — admin cookie of interne API key (gebruikt door Studio tool)
-  const session = req.cookies.get('admin_session')?.value
-  const apiKey  = req.headers.get('x-admin-key')
-  const validKey = process.env.ADMIN_PASSWORD
-  if (session !== validKey && apiKey !== validKey) {
+  // Auth check — admin cookie (custom admin) of geldig Sanity-token (Studio)
+  const session     = req.cookies.get('admin_session')?.value
+  const sanityToken = req.headers.get('x-sanity-token')
+
+  let authorized = session === process.env.ADMIN_PASSWORD
+
+  if (!authorized && sanityToken) {
+    // Valideer het token tegen Sanity's user-endpoint
+    try {
+      const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID
+      const check = await fetch(`https://${projectId}.api.sanity.io/v1/users/me`, {
+        headers: { Authorization: `Bearer ${sanityToken}` },
+      })
+      authorized = check.ok
+    } catch { /* network error → niet geautoriseerd */ }
+  }
+
+  if (!authorized) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
