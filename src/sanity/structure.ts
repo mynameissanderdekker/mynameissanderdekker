@@ -5,6 +5,16 @@ import { OrderReports } from './components/OrderReports'
 import { MailingListExport } from './components/MailingListExport'
 import { RegisterSaleTool } from './components/RegisterSaleTool'
 
+function HardcodedPage({ title, url }: { title: string; url: string }) {
+  return React.createElement('div', {
+    style: { padding: '32px 40px', fontFamily: 'system-ui, sans-serif', color: '#6b7280', fontSize: 14 }
+  },
+    React.createElement('p', { style: { marginBottom: 8, color: '#101112', fontWeight: 600 } }, title),
+    React.createElement('p', { style: { marginBottom: 16 } }, 'This page is hardcoded in the codebase and cannot be edited from Studio.'),
+    React.createElement('a', { href: url, target: '_blank', rel: 'noopener noreferrer', style: { color: '#2563eb', textDecoration: 'underline', fontSize: 13 } }, 'Open live page ↗')
+  )
+}
+
 // Artwork list with category browsing (excludes 'book' category → see Publications)
 const PUBLICATION_CATEGORIES = ['book', 'Zine']
 
@@ -276,6 +286,11 @@ export const structure: StructureResolver = async (S, { getClient }) => {
         .id('worksPage')
         .child(S.document().schemaType('worksPage').documentId('worksPage').title('Available (webshop)')),
 
+      S.listItem()
+        .title('Contact (hardcoded)')
+        .id('contactPage')
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .child(S.component(() => HardcodedPage({ title: 'Contact', url: 'https://www.mynameissanderdekker.com/contact' }) as any).title('Contact')),
 
       // ── WORKS ─────────────────────────────────────────────────────────────
       S.divider().title('WORKS'),
