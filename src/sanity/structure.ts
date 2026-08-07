@@ -273,11 +273,11 @@ export const structure: StructureResolver = async (S, { getClient }) => {
       S.documentTypeListItem('projectSeries').title('Project Series'),
       S.documentTypeListItem('viewingRoom').title('Viewing Rooms'),
 
-      // ── SALES & NETWORK ───────────────────────────────────────────────────
-      S.divider().title('SALES & NETWORK'),
+      // ── TRADE ────────────────────────────────────────────────────────────
+      S.divider().title('TRADE'),
 
-      contactsListItem(S),
       S.documentTypeListItem('privateSale').title('Private Sales Selections'),
+      orderListItem(S),
       S.listItem()
         .title('Exhibitions')
         .id('exhibition')
@@ -358,12 +358,15 @@ export const structure: StructureResolver = async (S, { getClient }) => {
               ),
             ])
         ),
+      // ── NETWORK ──────────────────────────────────────────────────────────
+      S.divider().title('NETWORK'),
+
+      contactsListItem(S),
       S.documentTypeListItem('press').title('Press'),
 
       // ── WEBSHOP ───────────────────────────────────────────────────────────
       S.divider().title('WEBSHOP'),
 
-      orderListItem(S),
       S.documentTypeListItem('coupon').title('Coupons'),
       S.listItem()
         .title('Reports')
