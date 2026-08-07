@@ -134,9 +134,7 @@ export function RegisterSaleTool() {
   const searchArtworks = useCallback(async (q: string) => {
     if (q.length < 2) { setArtworkResults([]); return }
     const res = await client.fetch<ArtworkResult[]>(
-      `*[_type == "artwork" && title match $q][0...15]{
-        _id, title, year, medium, category, editionTotal, editionAP, priceExclVAT, vatRate
-      } | order(year desc)`,
+      `*[_type == "artwork" && title match $q] | order(year desc) [0...15]{ _id, title, year, medium, category, editionTotal, editionAP, priceExclVAT, vatRate }`,
       { q: `${q}*` }
     )
     setArtworkResults(res)
