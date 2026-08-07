@@ -3,6 +3,7 @@ import React from 'react'
 import { OrderCountBadge } from './components/OrderCountBadge'
 import { OrderReports } from './components/OrderReports'
 import { MailingListExport } from './components/MailingListExport'
+import { RegisterSaleTool } from './components/RegisterSaleTool'
 
 // Artwork list with category browsing (excludes 'book' category → see Publications)
 const PUBLICATION_CATEGORIES = ['book', 'Zine']
@@ -277,6 +278,11 @@ export const structure: StructureResolver = async (S, { getClient }) => {
       S.divider().title('TRADE'),
 
       S.documentTypeListItem('privateSale').title('Private Sales Selections'),
+      S.listItem()
+        .title('Register a sale')
+        .id('registerSale')
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .child(S.component(RegisterSaleTool as any).title('Register a sale')),
       S.listItem()
         .title('Exhibitions')
         .id('exhibition')

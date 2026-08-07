@@ -6,9 +6,11 @@ import { syncToMailchimp } from '@/lib/mailchimp'
 const FROM = 'Sander Dekker <hello@mynameissanderdekker.com>'
 
 export async function POST(req: NextRequest) {
-  // Auth check — zelfde cookie als de rest van /admin
+  // Auth check — admin cookie of interne API key (gebruikt door Studio tool)
   const session = req.cookies.get('admin_session')?.value
-  if (session !== process.env.ADMIN_PASSWORD) {
+  const apiKey  = req.headers.get('x-admin-key')
+  const validKey = process.env.ADMIN_PASSWORD
+  if (session !== validKey && apiKey !== validKey) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
