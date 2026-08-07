@@ -323,8 +323,8 @@ export function RegisterSaleTool() {
             )}
             <div style={s.grid3}>
               <div>
-                <span style={s.label}>Copy number *</span>
-                <input style={s.inp} placeholder="e.g. 3/7" value={copyNumber} onChange={e => setCopyNumber(e.target.value)} />
+                <span style={s.label}>Copy number</span>
+                <input style={s.inp} placeholder="e.g. 3/7 (optional for books)" value={copyNumber} onChange={e => setCopyNumber(e.target.value)} />
               </div>
               <div>
                 <span style={s.label}>Sale date *</span>
@@ -341,8 +341,8 @@ export function RegisterSaleTool() {
 
           <div style={{ display: 'flex', gap: 10 }}>
             <button onClick={() => setStep(1)} style={s.btnSecondary}>← Back</button>
-            <button onClick={() => setStep(3)} style={{ ...s.btnPrimary, opacity: (!selectedArtwork || !copyNumber) ? 0.4 : 1 }}
-              disabled={!selectedArtwork || !copyNumber}>Next →</button>
+            <button onClick={() => setStep(3)} style={{ ...s.btnPrimary, opacity: !selectedArtwork ? 0.4 : 1 }}
+              disabled={!selectedArtwork}>Next →</button>
           </div>
         </>
       )}
