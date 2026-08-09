@@ -244,6 +244,13 @@ export const galleryBlock = {
         layout: 'radio',
       },
     }),
+    defineField({
+      name: 'masonry',
+      title: 'Masonry layout',
+      description: 'Images flow into columns by height (like on the Fun page). Leave off for a uniform grid.',
+      type: 'boolean',
+      initialValue: false,
+    }),
   ],
 }
 

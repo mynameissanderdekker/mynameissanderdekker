@@ -24,7 +24,7 @@ interface ImageTextBlock   {
   layout?: '4+8-left' | '8+4-right' | '3+9-left' | '9+3-right'
   caption?: string
 }
-interface GalleryBlock     { _type: 'galleryBlock'; images?: SanityImage[]; externalUrls?: string[]; columns?: 2 | 3 | 4; alignment?: 'left' | 'center' | 'right' }
+interface GalleryBlock     { _type: 'galleryBlock'; images?: SanityImage[]; externalUrls?: string[]; columns?: 2 | 3 | 4; alignment?: 'left' | 'center' | 'right'; masonry?: boolean }
 interface CardItem         { image?: SanityImage; imageUrl?: string; title?: string; text?: unknown[]; buttonLabel?: string; buttonUrl?: string }
 interface CardsBlock       { _type: 'cardsBlock'; columns?: 2 | 3 | 4; cards?: CardItem[] }
 interface PullQuoteBlock   { _type: 'pullQuote'; text: string }
@@ -189,15 +189,29 @@ function ImageText({ block }: { block: ImageTextBlock }) {
 
 function Gallery({ block }: { block: GalleryBlock }) {
   const alignment = block.alignment ?? 'left'
+  const masonry = block.masonry ?? false
   const sanityUrls = (block.images ?? [])
     .map(img => img?.asset ? urlFor(img).width(1200).fit('max').url() : null)
     .filter(Boolean) as string[]
   const allUrls = [...sanityUrls, ...(block.externalUrls ?? [])]
   const cols = block.columns ?? Math.min(allUrls.length || 1, 3)
   const justifyMap: Record<string, string> = { left: 'flex-start', center: 'center', right: 'flex-end' }
-  // CSS `columns` (masonry) ignores justifyContent — use flex for center/right
-  const useFlex = alignment !== 'left'
+  // Masonry: CSS columns. Grid: use flex for center/right, grid class for left.
+  const useFlex = !masonry && alignment !== 'left'
   const itemW = `calc(${100 / cols}% - ${12 * (cols - 1) / cols}px)`
+
+  if (masonry) {
+    return (
+      <div className={`pb-gallery pb-gallery--masonry pb-gallery--${cols}col`} style={{ marginTop: '3rem' }}>
+        {allUrls.map((url, i) => (
+          <div key={i} className="pb-gallery-item">
+            <Image src={url} alt="" width={1200} height={800} style={{ width: '100%', height: 'auto', display: 'block' }} sizes={cols === 1 ? '100vw' : cols === 2 ? '50vw' : cols === 3 ? '33vw' : '25vw'} />
+          </div>
+        ))}
+      </div>
+    )
+  }
+
   return (
     <div
       className={useFlex ? undefined : `pb-gallery pb-gallery--${cols}col`}
