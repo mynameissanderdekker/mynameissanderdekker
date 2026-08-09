@@ -116,7 +116,7 @@ export function RegisterSaleTool() {
   // ── Contact search ──────────────────────────────────────────────────────────
 
   const searchContacts = useCallback(async (q: string) => {
-    if (q.length < 2) { setContactResults([]); return }
+    if (!q) { setContactResults([]); return }
     const res = await client.fetch<ContactResult[]>(
       `*[_type == "contact" && (firstName match $q || lastName match $q || email match $q)][0...10]{ _id, firstName, lastName, email, company }`,
       { q: `${q}*` }
@@ -125,23 +125,23 @@ export function RegisterSaleTool() {
   }, [client])
 
   useEffect(() => {
-    const t = setTimeout(() => searchContacts(contactQuery), 300)
+    const t = setTimeout(() => searchContacts(contactQuery), 150)
     return () => clearTimeout(t)
   }, [contactQuery, searchContacts])
 
   // ── Artwork search ──────────────────────────────────────────────────────────
 
   const searchArtworks = useCallback(async (q: string) => {
-    if (q.length < 2) { setArtworkResults([]); return }
+    if (!q) { setArtworkResults([]); return }
     const res = await client.fetch<ArtworkResult[]>(
-      `*[_type == "artwork" && title match $q] | order(year desc) [0...15]{ _id, title, year, medium, category, editionTotal, editionAP, priceExclVAT, vatRate }`,
+      `*[_type == "artwork" && !(_id in path("drafts.**")) && title match $q] | order(year desc) [0...15]{ _id, title, year, medium, category, editionTotal, editionAP, priceExclVAT, vatRate }`,
       { q: `${q}*` }
     )
     setArtworkResults(res)
   }, [client])
 
   useEffect(() => {
-    const t = setTimeout(() => searchArtworks(artworkQuery), 300)
+    const t = setTimeout(() => searchArtworks(artworkQuery), 150)
     return () => clearTimeout(t)
   }, [artworkQuery, searchArtworks])
 
@@ -175,9 +175,20 @@ export function RegisterSaleTool() {
       for (let i = 1; i <= total; i++) all.push(`${i}/${total}`)
       for (let i = 1; i <= ap; i++)    all.push(`AP ${i}/${ap}`)
 
+      // Normalize stored copy numbers: "4" → "4/7", "AP 1" → "AP 1/2"
+      function normalizeCopy(copy: string): string {
+        if (!copy) return copy
+        if (copy.includes('/')) return copy            // already "N/M" or "AP N/M"
+        const apMatch = copy.match(/^AP\s*(\d+)$/i)
+        if (apMatch) return `AP ${apMatch[1]}/${ap}`  // "AP 1" → "AP 1/2"
+        const n = parseInt(copy, 10)
+        if (!isNaN(n)) return `${n}/${total}`          // "4" → "4/7"
+        return copy
+      }
+
       // Filter out already-sold and already-in-cart editions
       const inCart = cart.filter(c => c.artwork._id === artwork._id).map(c => c.copyNumber)
-      const sold   = new Set([...soldCopies, ...inCart])
+      const sold   = new Set([...soldCopies.map(normalizeCopy), ...inCart])
       const available = all.filter(e => !sold.has(e))
 
       setPendingEditions(available)

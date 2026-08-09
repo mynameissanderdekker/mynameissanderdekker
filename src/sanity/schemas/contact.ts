@@ -2,6 +2,7 @@ import { defineField, defineType } from 'sanity'
 import { CirclePhotoField } from '../components/CirclePhotoField'
 import { InstagramLink } from '../components/InstagramLink'
 import { PurchasesTotalField } from '../components/PurchasesTotalField'
+import { EditionPickerInput } from '../components/EditionPickerInput'
 
 export const contact = defineType({
   name: 'contact',
@@ -221,9 +222,10 @@ export const contact = defineType({
             }),
             defineField({
               name: 'copyNumber',
-              title: 'Copy number',
+              title: 'Edition',
               type: 'string',
-              description: 'The physical copy, e.g. "3/7" or "AP 1/2"',
+              description: 'Select the edition sold, e.g. "3/7" or "1/2 AP"',
+              components: { input: EditionPickerInput },
             }),
             defineField({
               name: 'soldVia',
