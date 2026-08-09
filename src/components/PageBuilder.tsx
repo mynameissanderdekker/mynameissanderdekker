@@ -348,7 +348,7 @@ function Cards({ block }: { block: CardsBlock }) {
               </div>
             )}
             {card.buttonLabel && card.buttonUrl && (
-              <a href={card.buttonUrl} className="btn-artwork-info" style={{ marginTop: '12px' }}>
+              <a href={card.buttonUrl.replace(/^https?:\/\/localhost(:\d+)?/, '')} className="btn-artwork-info" style={{ marginTop: '12px' }}>
                 {card.buttonLabel}
               </a>
             )}

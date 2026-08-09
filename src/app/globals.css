@@ -2158,8 +2158,9 @@ strong { font-weight: var(--weight-bold); }
   }
 
   /* ── Cards on mobile ── */
-  .pb-cards--3col {
-    grid-template-columns: repeat(2, 1fr);
+  .pb-cards--3col,
+  .pb-cards--2col {
+    grid-template-columns: 1fr;
     padding: 0 16px;
   }
 

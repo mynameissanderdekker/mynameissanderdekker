@@ -38,8 +38,10 @@ export function CookieBanner() {
           gap: '20px',
           zIndex: 9999,
           fontSize: '13px',
-          whiteSpace: 'nowrap',
           boxShadow: '0 4px 24px rgba(0,0,0,0.3)',
+          width: 'max-content',
+          maxWidth: 'calc(100vw - 32px)',
+          flexWrap: 'wrap',
         }}>
           <span>
             This site uses Google Analytics to measure visits.{' '}
