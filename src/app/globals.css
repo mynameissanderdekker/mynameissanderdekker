@@ -2165,18 +2165,14 @@ strong { font-weight: var(--weight-bold); }
     max-width: 100%;
   }
 
-  /* ── Gallery: 2 cols on mobile ── */
+  /* ── Grid rule: 2col → 1col, 3col → 1col, 4col → 2col ── */
+  .pb-gallery--2col,
   .pb-gallery--3col,
-  .pb-gallery--4col {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  .pb-cards--2col,
+  .pb-cards--3col { grid-template-columns: 1fr; }
 
-  /* ── Cards on mobile ── */
-  .pb-cards--3col,
-  .pb-cards--2col {
-    grid-template-columns: 1fr;
-    padding: 0 16px;
-  }
+  .pb-gallery--4col,
+  .pb-cards--4col  { grid-template-columns: repeat(2, 1fr); }
 
   /* ── Works grid: already 2 cols at 700px, keep ── */
 
@@ -2561,6 +2557,8 @@ strong { font-weight: var(--weight-bold); }
 @media (max-width: 700px) {
   .zine-grid-3 { grid-template-columns: 1fr; }
   .zine-grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .zine-grid   { grid-template-columns: 1fr; }
+  .zine-grid-all { grid-template-columns: repeat(2, 1fr); }
 }
 
 .zine-card {
