@@ -197,7 +197,7 @@ export async function POST(req: NextRequest) {
       to:   body.email,
       subject: `Invoice ${body.invoiceNumber} — Sander Dekker`,
       html: `
-        <div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;color:#111;font-size:15px;line-height:1.6">
+        <div style="font-family:Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;color:#111;font-size:15px;line-height:1.6">
           <p>Dear ${body.firstName},</p>
           <p>Thank you. Please find your invoice details below.</p>
           <table style="width:100%;border-collapse:collapse;margin:24px 0;font-size:14px">
