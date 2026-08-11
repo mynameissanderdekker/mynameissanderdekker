@@ -1,9 +1,9 @@
 import type { StructureBuilder, StructureResolver } from 'sanity/structure'
 import React from 'react'
 import { OrderCountBadge } from './components/OrderCountBadge'
+import { OrderReports } from './components/OrderReports'
 import { MailingListExport } from './components/MailingListExport'
 import { RegisterSaleTool } from './components/RegisterSaleTool'
-import { SalesOverviewTool } from './components/SalesOverviewTool'
 
 function HardcodedPage({ title, url }: { title: string; url: string }) {
   return React.createElement('div', {
@@ -310,11 +310,6 @@ export const structure: StructureResolver = async (S, { getClient }) => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .child(S.component(RegisterSaleTool as any).title('Register a sale')),
       S.listItem()
-        .title('Sales Overview')
-        .id('sales-overview')
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .child(S.component(SalesOverviewTool as any).title('Sales Overview')),
-      S.listItem()
         .title('Exhibitions')
         .id('exhibition')
         .child(
@@ -405,6 +400,11 @@ export const structure: StructureResolver = async (S, { getClient }) => {
 
       orderListItem(S),
       S.documentTypeListItem('coupon').title('Coupons'),
+      S.listItem()
+        .title('Reports')
+        .id('shopReports')
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .child(S.component(OrderReports as any).title('Reports')),
       shopSettingsListItem(S),
 
       // ── CAMPAIGNS ─────────────────────────────────────────────────────────
