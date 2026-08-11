@@ -139,7 +139,7 @@ export default async function InvoicePage({ params }: Props) {
                   <div style={{ fontSize: 12, color: '#888', marginTop: 2 }}>Qty: {item.quantity} · Via: {soldVia}</div>
                 </td>
                 <td style={{ padding: '12px 0', textAlign: 'right', verticalAlign: 'top' }}>
-                  €{item.exclPrice.toLocaleString('nl-NL', { minimumFractionDigits: 2 })}
+                  €{item.exclPrice.toLocaleString('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </td>
               </tr>
             ))}
@@ -148,7 +148,7 @@ export default async function InvoicePage({ params }: Props) {
             <tr>
               <td style={{ paddingTop: 16, fontSize: 13, color: '#888' }}>Subtotal excl. BTW</td>
               <td style={{ paddingTop: 16, textAlign: 'right', fontSize: 13, color: '#888' }}>
-                €{totalExcl.toLocaleString('nl-NL', { minimumFractionDigits: 2 })}
+                €{totalExcl.toLocaleString('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </td>
             </tr>
             <tr>
@@ -156,13 +156,13 @@ export default async function InvoicePage({ params }: Props) {
                 BTW {itemsCalc.length === 1 ? `${itemsCalc[0].rate}%` : ''}
               </td>
               <td style={{ paddingTop: 4, textAlign: 'right', fontSize: 13, color: '#888' }}>
-                €{totalVat.toLocaleString('nl-NL', { minimumFractionDigits: 2 })}
+                €{totalVat.toLocaleString('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </td>
             </tr>
             <tr>
               <td style={{ paddingTop: 10, borderTop: '1px solid #e0e0e0', fontSize: 15, fontWeight: 600 }}>Total (incl. BTW)</td>
               <td style={{ paddingTop: 10, borderTop: '1px solid #e0e0e0', textAlign: 'right', fontSize: 15, fontWeight: 600 }}>
-                €{totalIncl.toLocaleString('nl-NL', { minimumFractionDigits: 2 })}
+                €{totalIncl.toLocaleString('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </td>
             </tr>
           </tfoot>
