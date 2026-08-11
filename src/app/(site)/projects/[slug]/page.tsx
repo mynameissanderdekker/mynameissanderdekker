@@ -175,7 +175,14 @@ function ArtworksGrid({ artworks, label = 'Artworks' }: { artworks: LinkedArtwor
           if (enquire) {
             return (
               <div key={a._id} className="works-grid-item">
-                {inner}
+                <Link href={`/works/${a.slug.current}`} className="works-grid-img-wrap">
+                  {imgUrl
+                    ? <img src={imgUrl} alt={a.title} className="works-grid-img" />
+                    : <div className="works-grid-img" style={{ background: '#f0f0f0' }} />
+                  }
+                </Link>
+                <h3 className="works-grid-title">{a.title}</h3>
+                {price && <p className="works-price">{price}</p>}
                 <Link href={`/works/${a.slug.current}`} className="btn-artwork-info">ARTWORK INFORMATION</Link>
               </div>
             )
