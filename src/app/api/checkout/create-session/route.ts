@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
         },
         {
           key: 'vat_number',
-          label: { type: 'custom', custom: 'VAT / BTW number' },
+          label: { type: 'custom', custom: 'BTW number' },
           type: 'text',
           optional: true,
         },

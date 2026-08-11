@@ -387,7 +387,7 @@ export function RegisterSaleTool() {
               <div style={s.grid2}>
                 {([
                   ['firstName','First name *'],['lastName','Last name *'],['email','Email *'],
-                  ['phone','Phone'],['company','Company'],['vatNumber','VAT number'],
+                  ['phone','Phone'],['company','Company'],['vatNumber','BTW number'],
                   ['street','Street'],['postalCode','Postal code'],['city','City'],['country','Country (NL, BE…)'],
                 ] as [keyof typeof newContact, string][]).map(([field, lbl]) => (
                   <div key={field} style={field === 'street' || field === 'email' ? { gridColumn: '1 / -1' } : {}}>
@@ -495,12 +495,12 @@ export function RegisterSaleTool() {
                   </div>
                   <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
                     <div style={{ flex: 1 }}>
-                      <span style={s.label}>Price excl. VAT (€)</span>
+                      <span style={s.label}>Price excl. BTW (€)</span>
                       <input style={s.inp} type="number" min="0" step="0.01" value={item.priceExcl}
                         onChange={e => updateCartPrice(idx, e.target.value)} />
                     </div>
                     <div style={{ width: 100 }}>
-                      <span style={s.label}>VAT %</span>
+                      <span style={s.label}>BTW %</span>
                       <select style={s.inp} value={item.vatRate} onChange={e => updateCartVat(idx, e.target.value)}>
                         <option value="0">0% — Reverse charge</option>
                         <option value="9">9% — Low rate</option>
@@ -519,8 +519,8 @@ export function RegisterSaleTool() {
               {/* Cart total */}
               <div style={{ borderTop: '2px solid #e5e7eb', paddingTop: 12, display: 'flex', justifyContent: 'flex-end' }}>
                 <div style={{ textAlign: 'right', fontSize: 13 }}>
-                  <div style={{ color: '#6b7280', marginBottom: 2 }}>Excl. VAT: €{totalExcl.toLocaleString('nl-NL', { minimumFractionDigits: 2 })}</div>
-                  <div style={{ color: '#6b7280', marginBottom: 6 }}>VAT: €{totalVat.toLocaleString('nl-NL', { minimumFractionDigits: 2 })}</div>
+                  <div style={{ color: '#6b7280', marginBottom: 2 }}>Excl. BTW: €{totalExcl.toLocaleString('nl-NL', { minimumFractionDigits: 2 })}</div>
+                  <div style={{ color: '#6b7280', marginBottom: 6 }}>BTW: €{totalVat.toLocaleString('nl-NL', { minimumFractionDigits: 2 })}</div>
                   <div style={{ fontWeight: 600, fontSize: 15 }}>Total: €{totalIncl.toLocaleString('nl-NL', { minimumFractionDigits: 2 })}</div>
                 </div>
               </div>
@@ -596,7 +596,7 @@ export function RegisterSaleTool() {
               </div>
             ))}
             <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: 10, marginTop: 8, display: 'flex', justifyContent: 'space-between', fontWeight: 600, fontSize: 14 }}>
-              <span>Total incl. VAT</span>
+              <span>Total incl. BTW</span>
               <span>€{totalIncl.toLocaleString('nl-NL', { minimumFractionDigits: 2 })}</span>
             </div>
           </div>

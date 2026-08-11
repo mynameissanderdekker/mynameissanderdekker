@@ -24,7 +24,7 @@ export const shopSettings = defineType({
     }),
     defineField({
       name: 'vatNumber',
-      title: 'VAT number',
+      title: 'BTW number',
       type: 'string',
     }),
     defineField({

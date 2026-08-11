@@ -12,7 +12,7 @@ export default function LegalTermsPage() {
 
       <p>
         <strong>My name is Sander Dekker</strong><br />
-        VAT number: NL002124967B84<br />
+        BTW number: NL002124967B84<br />
         Chamber of Commerce number: 52124819<br />
         Located: Amsterdam, Netherlands
       </p>

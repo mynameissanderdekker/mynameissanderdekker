@@ -176,7 +176,7 @@ export default function PrivateSaleClient({ sale, requiresPassword, correctPassw
                   )}
                   {priceExcl != null && (
                     <p style={{ margin: '0 0 4px', fontSize: 14, color: '#111' }}>
-                      €{priceExcl.toLocaleString('nl-NL', { minimumFractionDigits: 0 })} excl. VAT
+                      €{priceExcl.toLocaleString('nl-NL', { minimumFractionDigits: 0 })} excl. BTW
                       {priceIncl != null && (
                         <span style={{ color: '#888', fontSize: 12, marginLeft: 6 }}>
                           (€{Math.round(priceIncl).toLocaleString('nl-NL')} incl.)

@@ -22,7 +22,7 @@ const SELLER = {
 export interface InvoiceItem {
   title:    string
   quantity: number
-  price:    number   // unit price incl. VAT
+  price:    number   // unit price incl. BTW
 }
 
 export interface InvoiceData {

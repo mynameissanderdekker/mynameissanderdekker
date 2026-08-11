@@ -268,7 +268,7 @@ export function SalesOverviewTool() {
           <div style={s.statValue}>{filtered.length}</div>
         </div>
         <div style={s.statCard}>
-          <div style={s.statLabel}>Revenue (incl. VAT)</div>
+          <div style={s.statLabel}>Revenue (incl. BTW)</div>
           <div style={s.statValue}>{fmt(totalRevenue)}</div>
         </div>
         <div style={s.statCard}>

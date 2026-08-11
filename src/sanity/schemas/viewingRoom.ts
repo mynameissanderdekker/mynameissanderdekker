@@ -144,7 +144,7 @@ export const viewingRoom = defineType({
       type: 'boolean',
       group: 'access',
       initialValue: false,
-      description: 'On = price excl. VAT visible on the room page',
+      description: 'On = price excl. BTW visible on the room page',
     }),
   ],
 

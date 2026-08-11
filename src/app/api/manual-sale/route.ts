@@ -187,7 +187,7 @@ export async function POST(req: NextRequest) {
           <td style="padding:8px 0;text-align:right;vertical-align:top">€${item.priceExclVAT.toLocaleString('nl-NL', { minimumFractionDigits: 2 })}</td>
         </tr>
         <tr style="border-bottom:1px solid #eee">
-          <td style="padding:4px 0;color:#888;font-size:12px">VAT ${item.vatRate}%</td>
+          <td style="padding:4px 0;color:#888;font-size:12px">BTW ${item.vatRate}%</td>
           <td style="padding:4px 0;text-align:right;font-size:12px;color:#888">€${vat.toLocaleString('nl-NL', { minimumFractionDigits: 2 })}</td>
         </tr>
       `
@@ -212,7 +212,7 @@ export async function POST(req: NextRequest) {
             </tr>
             ${itemRows}
             <tr>
-              <td style="padding:12px 0;font-weight:bold">Total incl. VAT</td>
+              <td style="padding:12px 0;font-weight:bold">Total incl. BTW</td>
               <td style="padding:12px 0;text-align:right;font-weight:bold">€${totalIncl.toLocaleString('nl-NL', { minimumFractionDigits: 2 })}</td>
             </tr>
           </table>
@@ -238,7 +238,7 @@ export async function POST(req: NextRequest) {
         <p><strong>Manual sale registered</strong></p>
         <p>${itemList}</p>
         <p>Buyer: ${body.firstName} ${body.lastName} (${body.email})</p>
-        <p>Total excl. VAT: €${totalExcl.toLocaleString('nl-NL')} · Total incl.: €${totalIncl.toLocaleString('nl-NL')}</p>
+        <p>Total excl. BTW: €${totalExcl.toLocaleString('nl-NL')} · Total incl.: €${totalIncl.toLocaleString('nl-NL')}</p>
         <p>Invoice: ${body.invoiceNumber} · via ${body.soldVia}</p>
       `,
     }).catch(console.error)

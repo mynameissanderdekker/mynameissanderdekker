@@ -447,11 +447,11 @@ export default function NewSalePage() {
             <div style={card}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px 16px' }}>
                 <div style={{ gridColumn: '1 / 3' }}>
-                  <span style={label}>Price excl. VAT (€) *</span>
+                  <span style={label}>Price excl. BTW (€) *</span>
                   <input style={inp} type="number" min="0" step="0.01" value={priceExclVAT} onChange={e => setPriceExclVAT(e.target.value)} />
                 </div>
                 <div>
-                  <span style={label}>VAT %</span>
+                  <span style={label}>BTW %</span>
                   <select style={{ ...inp }} value={vatRate} onChange={e => setVatRate(e.target.value)}>
                     <option value="0">0%</option>
                     <option value="9">9%</option>
@@ -462,15 +462,15 @@ export default function NewSalePage() {
                 {priceExclVAT && (
                   <div style={{ gridColumn: '1 / -1', background: '#f9f9f8', borderRadius: 3, padding: '10px 14px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#666', marginBottom: 4 }}>
-                      <span>Excl. VAT</span>
+                      <span>Excl. BTW</span>
                       <span>€{Number(priceExclVAT).toLocaleString('nl-NL', { minimumFractionDigits: 2 })}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#666', marginBottom: 4 }}>
-                      <span>VAT {vatRate}%</span>
+                      <span>BTW {vatRate}%</span>
                       <span>€{(Number(priceExclVAT) * Number(vatRate) / 100).toLocaleString('nl-NL', { minimumFractionDigits: 2 })}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 15, color: '#111', fontWeight: 600, borderTop: '1px solid #e0e0e0', paddingTop: 8 }}>
-                      <span>Total incl. VAT</span>
+                      <span>Total incl. BTW</span>
                       <span>€{(Number(priceExclVAT) * (1 + Number(vatRate) / 100)).toLocaleString('nl-NL', { minimumFractionDigits: 2 })}</span>
                     </div>
                   </div>

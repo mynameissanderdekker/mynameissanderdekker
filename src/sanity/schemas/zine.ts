@@ -140,14 +140,14 @@ export const zine = defineType({
     }),
     defineField({
       name: 'priceExclVAT',
-      title: 'Price (excl. VAT)',
+      title: 'Price (excl. BTW)',
       type: 'number',
-      description: 'Price in EUR excluding VAT',
+      description: 'Price in EUR excluding BTW',
       group: 'edition',
     }),
     defineField({
       name: 'vatRate',
-      title: 'VAT rate (%)',
+      title: 'BTW rate (%)',
       type: 'number',
       group: 'edition',
       initialValue: 9,
@@ -184,7 +184,7 @@ export const zine = defineType({
             }),
             defineField({
               name: 'priceExclVAT',
-              title: 'Price (excl. VAT)',
+              title: 'Price (excl. BTW)',
               type: 'number',
               validation: (r) => r.required(),
             }),

@@ -44,7 +44,7 @@ export const contact = defineType({
     }),
     defineField({
       name: 'vatNumber',
-      title: 'VAT / BTW number',
+      title: 'BTW number',
       type: 'string',
       group: 'info',
     }),
@@ -255,7 +255,7 @@ export const contact = defineType({
             }),
             defineField({
               name: 'price',
-              title: 'Sale price (excl. VAT)',
+              title: 'Sale price (excl. BTW)',
               type: 'number',
             }),
           ],

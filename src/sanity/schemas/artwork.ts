@@ -149,13 +149,13 @@ export const artwork = defineType({
     }),
     defineField({
       name: 'priceExclVAT',
-      title: 'Price (excl. VAT)',
+      title: 'Price (excl. BTW)',
       type: 'number',
       group: 'edition',
     }),
     defineField({
       name: 'vatRate',
-      title: 'VAT rate',
+      title: 'BTW rate',
       type: 'number',
       group: 'edition',
       description: 'E.g. 9 or 21',
@@ -195,7 +195,7 @@ export const artwork = defineType({
             }),
             defineField({
               name: 'priceExclVAT',
-              title: 'Price (excl. VAT)',
+              title: 'Price (excl. BTW)',
               type: 'number',
               validation: (r) => r.required(),
             }),
