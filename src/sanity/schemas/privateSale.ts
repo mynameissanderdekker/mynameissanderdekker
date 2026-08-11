@@ -79,6 +79,7 @@ export const privateSale = defineType({
         {
           type: 'object',
           name: 'privateSaleItem',
+          title: 'Artwork',
           preview: {
             select: {
               title: 'artwork.title',
