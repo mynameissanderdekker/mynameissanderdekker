@@ -305,10 +305,10 @@ export const structure: StructureResolver = async (S, { getClient }) => {
 
       S.documentTypeListItem('privateSale').title('Viewing Rooms'),
       S.listItem()
-        .title('Register a sale')
+        .title('Make or Register a Sale')
         .id('registerSale')
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .child(S.component(RegisterSaleTool as any).title('Register a sale')),
+        .child(S.component(RegisterSaleTool as any).title('Make or Register a Sale')),
       S.listItem()
         .title('Sales Overview')
         .id('sales-overview')
