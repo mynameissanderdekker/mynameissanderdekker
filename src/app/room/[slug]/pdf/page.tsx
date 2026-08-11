@@ -34,7 +34,6 @@ interface RoomArtwork {
 
 interface RoomData {
   title: string
-  occasion?: string
   showPrices: boolean
   artworks: RoomArtwork[]
   contact?: { firstName?: string; lastName?: string }
@@ -65,7 +64,7 @@ export default async function ViewingRoomPdf({ params, searchParams }: Props) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const room = await (client.fetch as any)(
     `*[_type == "privateSale" && slug.current == $slug && isActive == true][0] {
-      title, occasion, showPrices,
+      title, showPrices,
       "contact": contact->{ firstName, lastName },
       "artworks": artworks[] {
         _key, priceOverride, note,
@@ -145,7 +144,6 @@ export default async function ViewingRoomPdf({ params, searchParams }: Props) {
                 <div>{room.contact.firstName} {room.contact.lastName}</div>
               )}
               <div>{dateStr}</div>
-              {room.occasion && <div style={{ marginTop: 2 }}>{room.occasion}</div>}
             </div>
           </div>
 
