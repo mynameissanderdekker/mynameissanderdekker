@@ -63,6 +63,13 @@ export const privateSale = defineType({
       type: 'boolean',
       initialValue: true,
     }),
+
+    // ── Legacy fields (hidden — kept to suppress "Unknown field" warnings) ──
+    defineField({ name: 'recipientName',  title: 'Recipient name',  type: 'string', hidden: true }),
+    defineField({ name: 'recipientEmail', title: 'Recipient email', type: 'string', hidden: true }),
+    defineField({ name: 'token',          title: 'Access token',    type: 'string', hidden: true }),
+    defineField({ name: 'introText',      title: 'Intro text',      type: 'text',   hidden: true }),
+    defineField({ name: 'footerText',     title: 'Footer text',     type: 'text',   hidden: true }),
     defineField({
       name: 'artworks',
       title: 'Artworks',
