@@ -2,33 +2,63 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSanityWriteClient } from '@/lib/sanityClient'
 
 const QUERY = `
-  *[_type == "viewingRoom" && slug.current == $slug][0] {
-    title,
-    description,
-    isPublished,
-    password,
-    expiresAt,
-    showPrices,
-    "artworks": artworks[] {
-      _key,
-      contextNote,
-      "artwork": artwork-> {
-        _id,
-        title,
-        year,
-        medium,
-        status,
-        priceExclVAT,
-        vatRate,
-        editionTotal,
-        editionAP,
-        dimensions,
-        "slug": slug.current,
-        "image": images[0].asset->url,
-        "editionRecords": editionRecords[] { number, status }
+  coalesce(
+    *[_type == "privateSale" && slug.current == $slug][0] {
+      title,
+      "description": occasion,
+      "isPublished": isActive,
+      password,
+      expiresAt,
+      showPrices,
+      "artworks": artworks[] {
+        _key,
+        "contextNote": note,
+        priceOverride,
+        "artwork": artwork-> {
+          _id,
+          title,
+          year,
+          medium,
+          status,
+          priceExclVAT,
+          vatRate,
+          editionTotal,
+          editionAP,
+          dimensions,
+          "slug": slug.current,
+          "image": images[0].asset->url,
+          "editionRecords": editionRecords[] { number, status }
+        }
+      }
+    },
+    *[_type == "viewingRoom" && slug.current == $slug][0] {
+      title,
+      description,
+      isPublished,
+      password,
+      expiresAt,
+      showPrices,
+      "artworks": artworks[] {
+        _key,
+        contextNote,
+        "artwork": artwork-> {
+          _id,
+          title,
+          year,
+          medium,
+          status,
+          priceExclVAT,
+          vatRate,
+          editionTotal,
+          editionAP,
+          dimensions,
+          "slug": slug.current,
+          "image": images[0].asset->url,
+          "editionRecords": editionRecords[] { number, status }
+        }
       }
     }
-  }
+  )
 `
 
 export async function GET(

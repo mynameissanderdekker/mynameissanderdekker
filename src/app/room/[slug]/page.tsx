@@ -30,6 +30,7 @@ interface ArtworkData {
 interface RoomArtwork {
   _key: string
   contextNote?: string
+  priceOverride?: number
   artwork: ArtworkData
 }
 
@@ -193,11 +194,12 @@ export default function RoomPage() {
 
         {/* Artwork list */}
         <div className="room-artworks">
-          {room.artworks.map(({ _key, artwork, contextNote }) => {
+          {room.artworks.map(({ _key, artwork, contextNote, priceOverride }) => {
             const dims = formatDimensions(artwork.dimensions)
             const available = countAvailable(artwork.editionRecords)
-            const price = artwork.priceExclVAT && artwork.vatRate != null
-              ? formatPrice(artwork.priceExclVAT, artwork.vatRate)
+            const priceExcl = priceOverride ?? artwork.priceExclVAT
+            const price = priceExcl && artwork.vatRate != null
+              ? formatPrice(priceExcl, artwork.vatRate)
               : null
 
             return (

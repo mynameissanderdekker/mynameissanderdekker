@@ -298,7 +298,7 @@ export const structure: StructureResolver = async (S, { getClient }) => {
       artworkListItem(S, categories ?? []),
       publicationsListItem(S),
       S.documentTypeListItem('projectSeries').title('Project Series'),
-      S.documentTypeListItem('viewingRoom').title('Viewing Rooms'),
+      S.documentTypeListItem('viewingRoom').title('Viewing Rooms (legacy)'),
 
       // ── TRADE ────────────────────────────────────────────────────────────
       S.divider().title('TRADE'),

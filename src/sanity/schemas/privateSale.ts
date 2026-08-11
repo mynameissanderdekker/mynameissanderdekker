@@ -32,7 +32,6 @@ export const privateSale = defineType({
       title: 'PDF Downloads',
       type: 'string',
       readOnly: true,
-      // @ts-expect-error custom component
       components: { input: ViewingRoomPdfLinks },
     }),
     defineField({
@@ -73,7 +72,6 @@ export const privateSale = defineType({
       name: 'artworks',
       title: 'Artworks',
       type: 'array',
-      // @ts-expect-error custom component
       components: { input: QuickAddArtworks },
       of: [
         {
@@ -86,7 +84,7 @@ export const privateSale = defineType({
               priceOverride: 'priceOverride',
               media: 'artwork.images.0',
             },
-            prepare({ title, year, priceOverride, media }: { title?: string; year?: number; priceOverride?: number; media?: unknown }) {
+            prepare({ title, year, priceOverride, media }: { title?: string; year?: number; priceOverride?: number; media?: any }) {
               return {
                 title: title || 'Untitled',
                 subtitle: [year, priceOverride != null ? `€${priceOverride}` : 'catalogue price'].filter(Boolean).join(' · '),

@@ -191,9 +191,9 @@ export default async function ViewingRoomPdf({ params, searchParams }: Props) {
 
                     {price && (
                       <div className="artwork-price">
-                        <div className="artwork-price-excl">{price.excl} excl. VAT</div>
+                        <div className="artwork-price-excl">{price.excl} excl. BTW</div>
                         {price.rate > 0 && (
-                          <div className="artwork-price-incl">{price.incl} incl. {price.rate}% VAT</div>
+                          <div className="artwork-price-incl">{price.incl} incl. {price.rate}% BTW</div>
                         )}
                       </div>
                     )}
