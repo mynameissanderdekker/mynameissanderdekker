@@ -69,7 +69,7 @@ export default async function InvoicePage({ params }: Props) {
       {/* Invoice */}
       <div className="invoice-wrap" style={{
         maxWidth: 720, margin: '40px auto', padding: '40px 48px',
-        fontFamily: 'Georgia, serif', color: '#111', background: '#fff',
+        fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif', color: '#111', background: '#fff',
         border: '1px solid #e8e8e8',
       }}>
 
