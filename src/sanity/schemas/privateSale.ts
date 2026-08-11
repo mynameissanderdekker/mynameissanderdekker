@@ -116,58 +116,6 @@ export const privateSale = defineType({
             }),
           ],
         },
-        {
-          type: 'object',
-          name: 'privateSaleProject',
-          title: 'Project',
-          preview: {
-            select: { title: 'project.title', media: 'project.images.0' },
-            prepare({ title, media }: { title?: string; media?: unknown }) {
-              return { title: title || 'Untitled project', media }
-            },
-          },
-          fields: [
-            defineField({
-              name: 'project',
-              title: 'Project',
-              type: 'reference',
-              to: [{ type: 'project' }],
-              validation: Rule => Rule.required(),
-            }),
-            defineField({
-              name: 'note',
-              title: 'Note',
-              type: 'text',
-              rows: 2,
-            }),
-          ],
-        },
-        {
-          type: 'object',
-          name: 'privateSaleExhibition',
-          title: 'Exhibition',
-          preview: {
-            select: { title: 'exhibition.title' },
-            prepare({ title }: { title?: string }) {
-              return { title: title || 'Untitled exhibition' }
-            },
-          },
-          fields: [
-            defineField({
-              name: 'exhibition',
-              title: 'Exhibition',
-              type: 'reference',
-              to: [{ type: 'exhibition' }],
-              validation: Rule => Rule.required(),
-            }),
-            defineField({
-              name: 'note',
-              title: 'Note',
-              type: 'text',
-              rows: 2,
-            }),
-          ],
-        },
       ],
     }),
   ],
