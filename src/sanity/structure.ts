@@ -303,7 +303,7 @@ export const structure: StructureResolver = async (S, { getClient }) => {
       // ── TRADE ────────────────────────────────────────────────────────────
       S.divider().title('TRADE'),
 
-      S.documentTypeListItem('privateSale').title('Private Sales Selections'),
+      S.documentTypeListItem('privateSale').title('Viewing Rooms'),
       S.listItem()
         .title('Register a sale')
         .id('registerSale')

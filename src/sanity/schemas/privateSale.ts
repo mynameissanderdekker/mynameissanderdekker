@@ -1,97 +1,80 @@
 import { defineField, defineType } from 'sanity'
-import { randomBytes } from 'crypto'
-
-function generateToken() {
-  try {
-    return randomBytes(16).toString('hex')
-  } catch {
-    return Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2)
-  }
-}
+import { ViewingRoomSlugInput } from '../components/ViewingRoomUrlPreview'
+import { ViewingRoomPdfLinks } from '../components/ViewingRoomPdfLinks'
+import { QuickAddArtworks } from '../components/QuickAddArtworks'
 
 export const privateSale = defineType({
   name: 'privateSale',
-  title: 'Private Sale',
+  title: 'Viewing Room',
   type: 'document',
   preview: {
-    select: {
-      title: 'title',
-      recipientName: 'recipientName',
-      isActive: 'isActive',
-    },
-    prepare({ title, recipientName, isActive }) {
-      return {
-        title: title || 'Untitled',
-        subtitle: [recipientName, isActive ? 'Active' : 'Inactive'].filter(Boolean).join(' · '),
-      }
+    select: { title: 'title', isActive: 'isActive' },
+    prepare({ title, isActive }: { title?: string; isActive?: boolean }) {
+      return { title: title || 'Untitled', subtitle: isActive ? 'Active' : 'Inactive' }
     },
   },
   fields: [
     defineField({
       name: 'title',
       title: 'Title',
-      description: 'Internal name for this selection (not shown to client)',
       type: 'string',
       validation: Rule => Rule.required(),
     }),
-
-    // ── Client ──────────────────────────────────────────────────────────────
+    defineField({
+      name: 'slug',
+      title: 'Link',
+      type: 'slug',
+      options: { source: 'title', maxLength: 96 },
+      components: { input: ViewingRoomSlugInput },
+    }),
+    defineField({
+      name: 'pdfLinks',
+      title: 'PDF Downloads',
+      type: 'string',
+      readOnly: true,
+      // @ts-expect-error custom component
+      components: { input: ViewingRoomPdfLinks },
+    }),
     defineField({
       name: 'contact',
       title: 'Contact',
       type: 'reference',
       to: [{ type: 'contact' }],
       options: { disableNew: true },
-      description: 'Link to a contact record — name and email are then auto-filled below. Leave empty for one-off recipients.',
     }),
     defineField({
-      name: 'recipientName',
-      title: 'Recipient name',
+      name: 'occasion',
+      title: 'Occasion',
       type: 'string',
-      description: 'Override if no contact is linked, or if the name should differ.',
-      validation: Rule => Rule.required(),
     }),
     defineField({
-      name: 'recipientEmail',
-      title: 'Recipient email',
-      type: 'string',
-      description: 'Override if no contact is linked, or if the email should differ.',
-    }),
-
-    // ── Access ──────────────────────────────────────────────────────────────
-    defineField({
-      name: 'token',
-      title: 'Access token',
-      description: 'Auto-generated unique URL token — share as /private-sales/[token]',
-      type: 'string',
-      readOnly: true,
-      initialValue: () => generateToken(),
+      name: 'showPrices',
+      title: 'Show prices',
+      type: 'boolean',
+      initialValue: true,
     }),
     defineField({
       name: 'password',
-      title: 'Password (optional)',
-      description: 'If set, client must enter this before viewing the selection',
+      title: 'Password',
       type: 'string',
     }),
     defineField({
       name: 'expiresAt',
       title: 'Expires at',
-      description: 'Leave empty for no expiry',
       type: 'datetime',
     }),
     defineField({
       name: 'isActive',
       title: 'Active',
-      description: 'Inactive selections return a 404',
       type: 'boolean',
       initialValue: true,
     }),
-
-    // ── Artworks ─────────────────────────────────────────────────────────────
     defineField({
       name: 'artworks',
       title: 'Artworks',
       type: 'array',
+      // @ts-expect-error custom component
+      components: { input: QuickAddArtworks },
       of: [
         {
           type: 'object',
@@ -101,11 +84,13 @@ export const privateSale = defineType({
               title: 'artwork.title',
               year: 'artwork.year',
               priceOverride: 'priceOverride',
+              media: 'artwork.images.0',
             },
-            prepare({ title, year, priceOverride }) {
+            prepare({ title, year, priceOverride, media }: { title?: string; year?: number; priceOverride?: number; media?: unknown }) {
               return {
                 title: title || 'Untitled',
                 subtitle: [year, priceOverride != null ? `€${priceOverride}` : 'catalogue price'].filter(Boolean).join(' · '),
+                media,
               }
             },
           },
@@ -119,36 +104,18 @@ export const privateSale = defineType({
             }),
             defineField({
               name: 'priceOverride',
-              title: 'Price override (€)',
-              description: 'Leave empty to use the artwork\'s catalogue price',
+              title: 'Price override (€ excl. BTW)',
               type: 'number',
             }),
             defineField({
               name: 'note',
               title: 'Note',
-              description: 'Optional note shown below this artwork on the client page',
               type: 'text',
               rows: 2,
             }),
           ],
         },
       ],
-    }),
-
-    // ── Message ───────────────────────────────────────────────────────────────
-    defineField({
-      name: 'introText',
-      title: 'Intro text',
-      description: 'Personal message shown at the top of the client page',
-      type: 'text',
-      rows: 4,
-    }),
-    defineField({
-      name: 'footerText',
-      title: 'Footer text',
-      description: 'Shown at the bottom (e.g. contact details, payment terms)',
-      type: 'text',
-      rows: 3,
     }),
   ],
 })

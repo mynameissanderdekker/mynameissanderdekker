@@ -181,11 +181,14 @@ export default function RoomPage() {
           )}
         </header>
 
-        {/* Print button */}
-        <div className="room-actions no-print">
-          <button className="room-print-btn" onClick={() => window.print()}>
-            Afdrukken / PDF opslaan
-          </button>
+        {/* PDF buttons */}
+        <div className="room-actions no-print flex items-center gap-2">
+          <a href={`/room/${slug}/pdf?style=compact`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 border border-gray-300 px-4 py-2 text-[12px] tracking-[0.15em] uppercase text-gray-500 hover:border-black hover:text-black transition-colors duration-150">
+            Compact PDF
+          </a>
+          <a href={`/room/${slug}/pdf?style=full`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 border border-gray-300 px-4 py-2 text-[12px] tracking-[0.15em] uppercase text-gray-500 hover:border-black hover:text-black transition-colors duration-150">
+            Full PDF
+          </a>
         </div>
 
         {/* Artwork list */}
