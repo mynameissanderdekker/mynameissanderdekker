@@ -502,9 +502,9 @@ export function RegisterSaleTool() {
                     <div style={{ width: 100 }}>
                       <span style={s.label}>VAT %</span>
                       <select style={s.inp} value={item.vatRate} onChange={e => updateCartVat(idx, e.target.value)}>
-                        <option value="0">0%</option>
-                        <option value="9">9%</option>
-                        <option value="21">21%</option>
+                        <option value="0">0% — Verlegd</option>
+                        <option value="9">9% — Laag</option>
+                        <option value="21">21% — Hoog</option>
                       </select>
                     </div>
                     <div style={{ width: 120, textAlign: 'right', paddingTop: 18 }}>
