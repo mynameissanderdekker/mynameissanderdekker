@@ -141,6 +141,7 @@ export async function POST(req: NextRequest) {
       title:    `${item.artworkTitle}${item.artworkYear ? ` (${item.artworkYear})` : ''}${item.copyNumber ? ` — ${item.copyNumber}` : ''}`,
       quantity: 1,
       price:    item.priceExclVAT * (1 + item.vatRate / 100),
+      vatRate:  item.vatRate,
     })),
     totalAmount: totalIncl,
     createdAt:   new Date().toISOString(),

@@ -37,12 +37,24 @@ export default async function InvoicePage({ params }: Props) {
   const date = new Date(order.createdAt)
   const dateStr = date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
 
-  // Determine VAT from items (totalAmount is incl. VAT; derive from item prices)
-  // Items store price incl. VAT; we show totals
-  const totalIncl: number = order.totalAmount ?? 0
-  const vatRate  = 9
-  const subtotal = totalIncl / (1 + vatRate / 100)
-  const vatAmount = totalIncl - subtotal
+  // Items — price is incl. VAT, vatRate may or may not be stored
+  interface OrderItem { title: string; quantity: number; price: number; vatRate?: number }
+  const items: OrderItem[] = order.items ?? []
+
+  // Use totalAmount when > 0, otherwise sum item prices (handles legacy/webshop orders)
+  const totalIncl: number = (order.totalAmount && order.totalAmount > 0)
+    ? order.totalAmount
+    : items.reduce((sum, i) => sum + (i.price ?? 0), 0)
+
+  // Per-item VAT breakdown (vatRate stored for new manual sales, fallback 9% for older/webshop)
+  const itemsCalc = items.map(item => {
+    const rate     = item.vatRate ?? 9
+    const inclPrice = item.price ?? 0
+    const exclPrice = inclPrice / (1 + rate / 100)
+    return { ...item, rate, exclPrice, vatAmount: inclPrice - exclPrice }
+  })
+  const totalExcl = itemsCalc.reduce((sum, i) => sum + i.exclPrice, 0)
+  const totalVat  = totalIncl - totalExcl
 
   // Try to parse sold-via from statusHistory note
   const histNote: string = order.statusHistory?.[0]?.note ?? ''
@@ -58,6 +70,7 @@ export default async function InvoicePage({ params }: Props) {
   return (
     <>
       <style>{`
+        body { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif !important; }
         @media print {
           .no-print { display: none !important; }
           body { margin: 0; -webkit-print-color-adjust: exact; }
@@ -119,14 +132,14 @@ export default async function InvoicePage({ params }: Props) {
             </tr>
           </thead>
           <tbody>
-            {(order.items ?? []).map((item: { title: string; quantity: number; price: number }, i: number) => (
+            {itemsCalc.map((item, i) => (
               <tr key={i} style={{ borderBottom: '1px solid #f0f0f0' }}>
                 <td style={{ padding: '12px 0', lineHeight: 1.5 }}>
                   <div>{item.title}</div>
                   <div style={{ fontSize: 12, color: '#888', marginTop: 2 }}>Qty: {item.quantity} · Via: {soldVia}</div>
                 </td>
                 <td style={{ padding: '12px 0', textAlign: 'right', verticalAlign: 'top' }}>
-                  €{Number(item.price).toLocaleString('nl-NL', { minimumFractionDigits: 2 })}
+                  €{item.exclPrice.toLocaleString('nl-NL', { minimumFractionDigits: 2 })}
                 </td>
               </tr>
             ))}
@@ -135,18 +148,20 @@ export default async function InvoicePage({ params }: Props) {
             <tr>
               <td style={{ paddingTop: 16, fontSize: 13, color: '#888' }}>Subtotal excl. BTW</td>
               <td style={{ paddingTop: 16, textAlign: 'right', fontSize: 13, color: '#888' }}>
-                €{subtotal.toLocaleString('nl-NL', { minimumFractionDigits: 2 })}
+                €{totalExcl.toLocaleString('nl-NL', { minimumFractionDigits: 2 })}
               </td>
             </tr>
             <tr>
-              <td style={{ paddingTop: 4, fontSize: 13, color: '#888' }}>BTW {vatRate}%</td>
+              <td style={{ paddingTop: 4, fontSize: 13, color: '#888' }}>
+                BTW {itemsCalc.length === 1 ? `${itemsCalc[0].rate}%` : ''}
+              </td>
               <td style={{ paddingTop: 4, textAlign: 'right', fontSize: 13, color: '#888' }}>
-                €{vatAmount.toLocaleString('nl-NL', { minimumFractionDigits: 2 })}
+                €{totalVat.toLocaleString('nl-NL', { minimumFractionDigits: 2 })}
               </td>
             </tr>
             <tr>
-              <td style={{ paddingTop: 10, borderTop: '1px solid #eeeeec', fontSize: 15, fontWeight: 600 }}>Total (incl. VAT)</td>
-              <td style={{ paddingTop: 10, borderTop: '1px solid #eeeeec', textAlign: 'right', fontSize: 15, fontWeight: 600 }}>
+              <td style={{ paddingTop: 10, borderTop: '1px solid #e0e0e0', fontSize: 15, fontWeight: 600 }}>Total (incl. BTW)</td>
+              <td style={{ paddingTop: 10, borderTop: '1px solid #e0e0e0', textAlign: 'right', fontSize: 15, fontWeight: 600 }}>
                 €{totalIncl.toLocaleString('nl-NL', { minimumFractionDigits: 2 })}
               </td>
             </tr>
