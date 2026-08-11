@@ -34,6 +34,7 @@ interface CartItem {
 }
 
 type Step = 1 | 2 | 3
+type SaleMode = 'make' | 'register'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -80,6 +81,8 @@ const s = {
 
 export function RegisterSaleTool() {
   const client = useClient({ apiVersion: '2024-01-01' })
+  const [saleMode, setSaleMode] = useState<SaleMode>('make')
+  const [alreadyPaid, setAlreadyPaid] = useState(false)
   const [step, setStep] = useState<Step>(1)
 
   // Step 1 — contact
@@ -110,7 +113,7 @@ export function RegisterSaleTool() {
   const [sendConf, setSendConf]           = useState(true)
 
   const [submitting, setSubmitting] = useState(false)
-  const [done, setDone]             = useState<string | null>(null)
+  const [done, setDone]             = useState<{ invoiceNumber: string; paid: boolean } | null>(null)
   const [error, setError]           = useState('')
 
   // ── Contact search ──────────────────────────────────────────────────────────
@@ -241,6 +244,8 @@ export function RegisterSaleTool() {
     setSubmitting(true)
     setError('')
 
+    const paid = saleMode === 'register' || alreadyPaid
+
     const payload = {
       contactId:  (!useNew && selectedContact?._id) ? selectedContact._id : undefined,
       firstName:  useNew ? newContact.firstName : selectedContact!.firstName,
@@ -267,6 +272,7 @@ export function RegisterSaleTool() {
       paymentTermsDays: Number(termDays),
       notes,
       sendConfirmation: sendConf,
+      paid,
     }
 
     try {
@@ -280,7 +286,7 @@ export function RegisterSaleTool() {
       })
       if (!res.ok) throw new Error(await res.text())
       const data = await res.json()
-      setDone(data.invoiceNumber)
+      setDone({ invoiceNumber: data.invoiceNumber, paid })
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Something went wrong')
     } finally {
@@ -292,6 +298,7 @@ export function RegisterSaleTool() {
 
   function reset() {
     setStep(1); setDone(null); setError('')
+    setSaleMode('make'); setAlreadyPaid(false)
     setContactQuery(''); setContactResults([]); setSelectedContact(null); setUseNew(false)
     setNewContact({ firstName: '', lastName: '', email: '', phone: '', company: '', vatNumber: '', street: '', postalCode: '', city: '', country: '' })
     setArtworkQuery(''); setArtworkResults([]); setPendingArtwork(null); setPendingEdition(''); setPendingEditions([])
@@ -301,6 +308,7 @@ export function RegisterSaleTool() {
 
   const stepLabels = ['Buyer', 'Items', 'Invoice']
   const canAddToCart = pendingArtwork && (isPublication(pendingArtwork) || pendingEdition)
+  const isPaid = saleMode === 'register' || alreadyPaid
 
   // ── Done screen ─────────────────────────────────────────────────────────────
 
@@ -308,12 +316,16 @@ export function RegisterSaleTool() {
     return (
       <div style={{ ...s.wrap, textAlign: 'center', paddingTop: 80 }}>
         <div style={{ fontSize: 40, marginBottom: 16 }}>✓</div>
-        <h2 style={{ fontWeight: 500, fontSize: 20, marginBottom: 8 }}>Sale registered</h2>
-        <p style={{ color: '#6b7280', marginBottom: 32 }}>Invoice {done} created and purchases added to contact.</p>
+        <h2 style={{ fontWeight: 500, fontSize: 20, marginBottom: 8 }}>{done.paid ? 'Sale registered' : 'Invoice created'}</h2>
+        <p style={{ color: '#6b7280', marginBottom: 32 }}>
+          {done.paid
+            ? `Invoice ${done.invoiceNumber} created and purchases added to contact.`
+            : `Invoice ${done.invoiceNumber} created and awaiting payment.`}
+        </p>
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
-          <a href={`/admin/invoices/${done}`} target="_blank" rel="noopener noreferrer"
+          <a href={`/admin/invoices/${done.invoiceNumber}`} target="_blank" rel="noopener noreferrer"
             style={{ ...s.btnSecondary, textDecoration: 'none' }}>View invoice ↗</a>
-          <button onClick={reset} style={s.btnPrimary}>Register another sale</button>
+          <button onClick={reset} style={s.btnPrimary}>{done.paid ? 'Register another sale' : 'Make another sale'}</button>
         </div>
       </div>
     )
@@ -321,8 +333,29 @@ export function RegisterSaleTool() {
 
   return (
     <div style={s.wrap}>
-      <h1 style={s.h1}>Register a sale</h1>
+      <h1 style={s.h1}>Make or Register a Sale</h1>
       <p style={s.sub}>Manual sale — no Stripe involved</p>
+
+      {/* Mode toggle */}
+      <div style={{ display: 'flex', marginBottom: 24, borderRadius: 6, overflow: 'hidden', border: '1px solid #d1d5db', width: 'fit-content' }}>
+        {([
+          { value: 'make', label: 'Make a sale', sub: 'Create invoice' },
+          { value: 'register', label: 'Register a sale', sub: 'Already paid' },
+        ] as { value: SaleMode; label: string; sub: string }[]).map((opt, i) => (
+          <button key={opt.value} onClick={() => { setSaleMode(opt.value); setAlreadyPaid(false) }}
+            style={{
+              padding: '9px 20px', textAlign: 'left',
+              background: saleMode === opt.value ? '#101112' : '#fff',
+              color: saleMode === opt.value ? '#fff' : '#6b7280',
+              border: 'none', borderLeft: i > 0 ? '1px solid #d1d5db' : 'none',
+              cursor: 'pointer', fontFamily: 'inherit', fontSize: 13,
+              fontWeight: saleMode === opt.value ? 600 : 400,
+            }}>
+            <div>{opt.label}</div>
+            <div style={{ fontSize: 11, opacity: 0.6, marginTop: 1 }}>{opt.sub}</div>
+          </button>
+        ))}
+      </div>
 
       {/* Step tabs */}
       <div style={{ display: 'flex', gap: 0, marginBottom: 28 }}>
@@ -571,18 +604,38 @@ export function RegisterSaleTool() {
                 <span style={s.label}>Invoice number</span>
                 <input style={s.inp} value={invoiceNumber} onChange={e => setInvoiceNumber(e.target.value)} />
               </div>
-              <div>
-                <span style={s.label}>Payment terms (days)</span>
-                <input style={s.inp} type="number" min="0" value={termDays} onChange={e => setTermDays(e.target.value)} />
-              </div>
+              {!isPaid && (
+                <div>
+                  <span style={s.label}>Payment terms (days)</span>
+                  <input style={s.inp} type="number" min="0" value={termDays} onChange={e => setTermDays(e.target.value)} />
+                </div>
+              )}
               <div />
               <div style={{ gridColumn: '1 / -1' }}>
                 <span style={s.label}>Notes (on invoice)</span>
                 <textarea style={{ ...s.inp, resize: 'vertical' } as React.CSSProperties} rows={3} value={notes} onChange={e => setNotes(e.target.value)} />
               </div>
+              {saleMode === 'make' && (
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <label style={{
+                    display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, cursor: 'pointer',
+                    color: '#374151', padding: '10px 14px', borderRadius: 4,
+                    border: `1px solid ${alreadyPaid ? '#bbf7d0' : '#e5e7eb'}`,
+                    background: alreadyPaid ? '#f0fdf4' : '#fff',
+                  }}>
+                    <input type="checkbox" checked={alreadyPaid} onChange={e => setAlreadyPaid(e.target.checked)} style={{ width: 15, height: 15, cursor: 'pointer' }} />
+                    <span>
+                      <strong style={{ fontWeight: 500 }}>Already paid</strong>
+                      <span style={{ color: '#9ca3af', marginLeft: 6 }}>— register immediately instead of sending an invoice</span>
+                    </span>
+                  </label>
+                </div>
+              )}
               <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 8 }}>
                 <input type="checkbox" id="sendconf" checked={sendConf} onChange={e => setSendConf(e.target.checked)} style={{ width: 15, height: 15, cursor: 'pointer' }} />
-                <label htmlFor="sendconf" style={{ fontSize: 13, color: '#374151', cursor: 'pointer' }}>Send invoice confirmation email to buyer</label>
+                <label htmlFor="sendconf" style={{ fontSize: 13, color: '#374151', cursor: 'pointer' }}>
+                  {isPaid ? 'Send confirmation email to buyer' : 'Send invoice by email to buyer'}
+                </label>
               </div>
             </div>
           </div>
@@ -607,7 +660,7 @@ export function RegisterSaleTool() {
             <button onClick={() => setStep(2)} style={s.btnSecondary}>← Back</button>
             <button onClick={handleSubmit} disabled={submitting}
               style={{ ...s.btnPrimary, opacity: submitting ? 0.5 : 1 }}>
-              {submitting ? 'Registering…' : 'Confirm sale'}
+              {submitting ? 'Saving…' : isPaid ? 'Register sale' : 'Create invoice'}
             </button>
           </div>
         </>

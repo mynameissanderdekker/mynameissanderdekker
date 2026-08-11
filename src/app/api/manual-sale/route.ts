@@ -54,6 +54,7 @@ export async function POST(req: NextRequest) {
     paymentTermsDays?: number
     notes?: string
     sendConfirmation?: boolean
+    paid?: boolean
   }
 
   const sanity = getSanityWriteClient()
@@ -124,7 +125,7 @@ export async function POST(req: NextRequest) {
   await sanity.create({
     _type:         'order',
     orderNumber:   body.invoiceNumber,
-    status:        'new',
+    status:        body.paid ? 'delivered' : 'new',
     customerName:  `${body.firstName} ${body.lastName}`,
     customerEmail: body.email,
     customerPhone: body.phone || undefined,
@@ -196,14 +197,16 @@ export async function POST(req: NextRequest) {
     await resend.emails.send({
       from: FROM,
       to:   body.email,
-      subject: `Invoice ${body.invoiceNumber} — Sander Dekker`,
+      subject: body.paid
+        ? `Thank you for your purchase — ${body.invoiceNumber}`
+        : `Invoice ${body.invoiceNumber} — Sander Dekker`,
       html: `
         <div style="font-family:Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;color:#111;font-size:15px;line-height:1.6">
           <p>Dear ${body.firstName},</p>
-          <p>Thank you. Please find your invoice details below.</p>
+          <p>${body.paid ? 'Thank you for your purchase. Here is a summary of your order.' : 'Thank you. Please find your invoice details below.'}</p>
           <table style="width:100%;border-collapse:collapse;margin:24px 0;font-size:14px">
             <tr style="border-bottom:1px solid #eee">
-              <td style="padding:8px 0;color:#666">Invoice number</td>
+              <td style="padding:8px 0;color:#666">${body.paid ? 'Order number' : 'Invoice number'}</td>
               <td style="padding:8px 0;text-align:right">${body.invoiceNumber}</td>
             </tr>
             <tr style="border-bottom:2px solid #111">
@@ -217,7 +220,7 @@ export async function POST(req: NextRequest) {
             </tr>
           </table>
           ${body.notes ? `<p style="color:#555;font-size:13px;font-style:italic">${body.notes}</p>` : ''}
-          <p style="font-size:13px;color:#666">Payment due by ${dueDateStr}.</p>
+          ${body.paid ? '' : `<p style="font-size:13px;color:#666">Payment due by ${dueDateStr}.</p>`}
           <p>Kind regards,<br>Sander Dekker</p>
           <hr style="border:none;border-top:1px solid #eee;margin:32px 0">
           <p style="font-size:11px;color:#aaa">Sander Dekker · hello@mynameissanderdekker.com · mynameissanderdekker.com</p>
@@ -233,9 +236,9 @@ export async function POST(req: NextRequest) {
     await resend.emails.send({
       from: FROM,
       to:   'hello@mynameissanderdekker.com',
-      subject: `Sale registered — ${body.invoiceNumber}`,
+      subject: `${body.paid ? 'Sale registered' : 'Invoice created'} — ${body.invoiceNumber}`,
       html: `
-        <p><strong>Manual sale registered</strong></p>
+        <p><strong>${body.paid ? 'Manual sale registered (paid)' : 'Invoice created (awaiting payment)'}</strong></p>
         <p>${itemList}</p>
         <p>Buyer: ${body.firstName} ${body.lastName} (${body.email})</p>
         <p>Total excl. BTW: €${totalExcl.toLocaleString('nl-NL')} · Total incl.: €${totalIncl.toLocaleString('nl-NL')}</p>
