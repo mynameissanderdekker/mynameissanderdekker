@@ -14,6 +14,7 @@ export const artwork = defineType({
     { name: 'info',       title: 'Info',            default: true },
     { name: 'edition',    title: 'Edition & Sales' },
     { name: 'context',    title: 'Context' },
+    { name: 'logistics',  title: 'Logistics' },
     { name: 'visibility', title: 'Webshop' },
   ],
   fields: [
@@ -265,6 +266,29 @@ export const artwork = defineType({
       type: 'array',
       group: 'context',
       of: [{ type: 'reference', to: [{ type: 'artFair' }] }],
+    }),
+
+    // ── Logistics ─────────────────────────────────────────────────────────────
+    defineField({
+      name: 'currentLocation',
+      title: 'Current location',
+      type: 'reference',
+      to: [{ type: 'location' }],
+      group: 'logistics',
+      description: 'Where is this work right now?',
+    }),
+    defineField({
+      name: 'locationSince',
+      title: 'At this location since',
+      type: 'date',
+      group: 'logistics',
+    }),
+    defineField({
+      name: 'locationNote',
+      title: 'Location note',
+      type: 'string',
+      group: 'logistics',
+      description: 'Optional detail, e.g. "Room 3, east wall" or "Crate B-12"',
     }),
 
     // ── Webshop ───────────────────────────────────────────────────────────────

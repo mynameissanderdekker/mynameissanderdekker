@@ -298,6 +298,26 @@ export const structure: StructureResolver = async (S, { getClient }) => {
       artworkListItem(S, categories ?? []),
       publicationsListItem(S),
       S.documentTypeListItem('projectSeries').title('Project Series'),
+      // ── LOGISTICS ────────────────────────────────────────────────────────
+      S.divider().title('LOGISTICS'),
+
+      S.listItem()
+        .title('Artwork Locations')
+        .id('artwork-locations')
+        .child(
+          S.documentTypeList('artwork')
+            .title('Artwork Locations')
+            .defaultOrdering([{ field: 'title', direction: 'asc' }])
+        ),
+      S.documentTypeListItem('loan')
+        .title('Loans / Bruikleen')
+        .child(
+          S.documentTypeList('loan')
+            .title('Loans / Bruikleen')
+            .defaultOrdering([{ field: 'startDate', direction: 'desc' }])
+        ),
+      S.documentTypeListItem('location').title('Locations'),
+
       // ── TRADE ────────────────────────────────────────────────────────────
       S.divider().title('TRADE'),
 

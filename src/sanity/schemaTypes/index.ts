@@ -20,6 +20,8 @@ import { shopSettings } from '../schemas/shopSettings'
 import { privateSale } from '../schemas/privateSale'
 import { pressRelease } from '../schemas/pressRelease'
 import { press } from '../schemas/press'
+import { location } from '../schemas/location'
+import { loan } from '../schemas/loan'
 
 export const schema: { types: SchemaTypeDefinition[] } = {
   types: [
@@ -41,6 +43,9 @@ export const schema: { types: SchemaTypeDefinition[] } = {
     shopSettings,
     // Sales
     privateSale,
+    // Logistics
+    location,
+    loan,
     // Zines
     zine,
     // Page config
