@@ -73,6 +73,27 @@ function artworkListItem(S: StructureBuilder, categories: string[]) {
                 .filter('_type == "artwork" && count(*[_type == "contact" && ^._id in purchases[].artwork._ref]) > 0')
                 .defaultOrdering([{ field: 'year', direction: 'desc' }])
             ),
+          S.divider(),
+          S.listItem()
+            .title('In webshop')
+            .id('artwork-in-webshop')
+            .child(
+              S.documentTypeList('artwork')
+                .title('In webshop')
+                .filter('_type == "artwork" && showInWebshop == true && !(category in $pubCats)')
+                .params({ pubCats: PUBLICATION_CATEGORIES })
+                .defaultOrdering([{ field: 'featured', direction: 'desc' }, { field: 'order', direction: 'asc' }])
+            ),
+          S.listItem()
+            .title('Not in webshop')
+            .id('artwork-not-in-webshop')
+            .child(
+              S.documentTypeList('artwork')
+                .title('Not in webshop')
+                .filter('_type == "artwork" && (showInWebshop != true) && !(category in $pubCats)')
+                .params({ pubCats: PUBLICATION_CATEGORIES })
+                .defaultOrdering([{ field: 'year', direction: 'desc' }])
+            ),
         ])
     )
 }
@@ -108,6 +129,35 @@ function publicationsListItem(S: StructureBuilder) {
                 .title('Zines')
                 .filter('_type == "artwork" && category == "Zine"')
                 .defaultOrdering([{ field: 'year', direction: 'desc' }])
+            ),
+          S.divider(),
+          S.listItem()
+            .title('In webshop')
+            .id('publications-in-webshop')
+            .child(
+              S.list()
+                .id('publications-in-webshop-list')
+                .title('In webshop')
+                .items([
+                  S.listItem()
+                    .title('Zines')
+                    .id('publications-webshop-zines')
+                    .child(
+                      S.documentTypeList('zine')
+                        .title('Zines — in webshop')
+                        .filter('_type == "zine" && showInWebshop == true')
+                        .defaultOrdering([{ field: 'featured', direction: 'desc' }, { field: 'order', direction: 'asc' }])
+                    ),
+                  S.listItem()
+                    .title('Books')
+                    .id('publications-webshop-books')
+                    .child(
+                      S.documentTypeList('artwork')
+                        .title('Books — in webshop')
+                        .filter('_type == "artwork" && category == "book" && showInWebshop == true')
+                        .defaultOrdering([{ field: 'featured', direction: 'desc' }, { field: 'order', direction: 'asc' }])
+                    ),
+                ])
             ),
         ])
     )
