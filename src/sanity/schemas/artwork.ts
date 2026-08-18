@@ -4,6 +4,7 @@ import { CompactDimensions } from '../components/CompactDimensions'
 import { CategoryInput } from '../components/CategoryInput'
 import { ArtworkQRCode } from '../components/ArtworkQRCode'
 import { ArtworkBuyers } from '../components/ArtworkBuyers'
+import { ArtworkCoA } from '../components/ArtworkCoA'
 
 // ── Main artwork schema ───────────────────────────────────────────────────────
 export const artwork = defineType({
@@ -139,6 +140,14 @@ export const artwork = defineType({
       type: 'number',
       group: 'info',
       description: 'Used for shipping cost calculation',
+    }),
+    defineField({
+      name: 'coaPanel',
+      title: 'Certificate of Authenticity',
+      type: 'string',
+      group: 'info',
+      readOnly: true,
+      components: { field: ArtworkCoA },
     }),
     defineField({
       name: 'description',
