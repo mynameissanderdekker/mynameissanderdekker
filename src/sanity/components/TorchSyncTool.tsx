@@ -70,7 +70,7 @@ export function TorchSyncTool() {
     setLoading(true)
     try {
       const rows = await client.fetch<ArtworkRow[]>(
-        `*[_type == "artwork"] | order(year desc, title asc) {
+        `*[_type == "artwork" && !(_id in path("drafts.**"))] | order(year desc, title asc) {
           _id, title, year, category, status, editionType, torchId
         }`
       )
@@ -131,7 +131,11 @@ export function TorchSyncTool() {
     try {
       const res = await fetch('/api/sync-to-torch', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-sanity-token': sanityToken },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-sanity-token': sanityToken,
+          'x-studio-key': process.env.NEXT_PUBLIC_STUDIO_SYNC_KEY ?? '',
+        },
         body: JSON.stringify({ artworkIds: ids }),
       })
       const data = await res.json()
