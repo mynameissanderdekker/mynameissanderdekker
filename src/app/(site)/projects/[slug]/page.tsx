@@ -75,8 +75,6 @@ interface LinkedArtwork {
   dimensions?: { widthCm?: number; heightCm?: number }
   slug?: { current: string }
   mainImage?: { asset?: { _ref?: string }; hotspot?: unknown; crop?: unknown }
-  priceExclVAT?: number
-  vatRate?: number | string
   status?: string
 }
 
@@ -135,11 +133,6 @@ async function getZines() {
   )
 }
 
-function formatPrice(excl: number, vatRate: number | string = 9) {
-  const incl = excl * (1 + Number(vatRate) / 100)
-  return new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(incl)
-}
-
 // ── Linked artworks grid ───────────────────────────────────────────────────────
 
 function ArtworksGrid({ artworks, label = 'Artworks' }: { artworks: LinkedArtwork[]; label?: string }) {
@@ -152,13 +145,9 @@ function ArtworksGrid({ artworks, label = 'Artworks' }: { artworks: LinkedArtwor
           const imgUrl = a.mainImage?.asset
             ? urlFor(a.mainImage).width(600).fit('max').url()
             : null
-          const soldOut  = a.status === 'sold_out'
-          const enquire  = a.status === 'enquire'
-          const price    = (!enquire && !soldOut && a.priceExclVAT)
-            ? formatPrice(a.priceExclVAT, a.vatRate)
-            : null
+          const soldOut = a.status === 'sold_out'
 
-          const inner = (
+          const cardContent = (
             <>
               <div className="works-grid-img-wrap">
                 {imgUrl
@@ -179,29 +168,18 @@ function ArtworksGrid({ artworks, label = 'Artworks' }: { artworks: LinkedArtwor
                   ].filter(Boolean).join(' · ')}
                 </p>
               )}
-              {price && <p className="works-price">{price}</p>}
             </>
           )
 
           if (soldOut || !a.slug?.current) {
-            return <div key={a._id} className="works-grid-item is-sold-out">{inner}</div>
+            return <div key={a._id} className="works-grid-item is-sold-out">{cardContent}</div>
           }
-          if (enquire) {
-            return (
-              <div key={a._id} className="works-grid-item">
-                <Link href={`/works/${a.slug.current}`} className="works-grid-img-wrap">
-                  {imgUrl
-                    ? <img src={imgUrl} alt={a.title} className="works-grid-img" />
-                    : <div className="works-grid-img" style={{ background: '#f0f0f0' }} />
-                  }
-                </Link>
-                <h3 className="works-grid-title">{a.title}</h3>
-                {price && <p className="works-price">{price}</p>}
-                <Link href={`/works/${a.slug.current}`} className="btn-artwork-info">ARTWORK INFORMATION</Link>
-              </div>
-            )
-          }
-          return <Link key={a._id} href={`/works/${a.slug.current}`} className="works-grid-item-link">{inner}</Link>
+          return (
+            <div key={a._id} className="works-grid-item">
+              {cardContent}
+              <Link href={`/works/${a.slug.current}`} className="btn-artwork-info">ARTWORK INFORMATION</Link>
+            </div>
+          )
         })}
       </div>
     </div>
