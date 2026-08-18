@@ -4,8 +4,8 @@ import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import type { ArtworkItem } from '@/app/(site)/works/all/page'
 
-function formatPrice(excl: number, vatRate = 9) {
-  const incl = excl * (1 + vatRate / 100)
+function formatPrice(excl: number, vatRate: number | string = 9) {
+  const incl = excl * (1 + Number(vatRate) / 100)
   return new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(incl)
 }
 
@@ -33,6 +33,17 @@ function WorkCard({ w }: { w: ArtworkItem }) {
         {soldOut && <span className="works-badge works-badge-sold">SOLD OUT</span>}
       </div>
       <h3 className="works-grid-title">{w.title}</h3>
+      {w.medium && <p className="works-grid-medium">{w.medium}</p>}
+      {(w.year || w.dimensions) && (
+        <p className="works-grid-meta">
+          {[
+            w.year,
+            w.dimensions?.widthCm && w.dimensions?.heightCm
+              ? `${w.dimensions.widthCm} × ${w.dimensions.heightCm} cm`
+              : null,
+          ].filter(Boolean).join(' · ')}
+        </p>
+      )}
       {price && <p className="works-price">{price}</p>}
     </>
   )

@@ -14,6 +14,8 @@ export interface ArtworkItem {
   status?: string
   category?: string
   featured?: boolean
+  medium?: string
+  dimensions?: { widthCm?: number; heightCm?: number }
 }
 
 async function getAllWorks(): Promise<{ works: ArtworkItem[]; categories: string[] }> {
@@ -23,7 +25,8 @@ async function getAllWorks(): Promise<{ works: ArtworkItem[]; categories: string
         _id, title, year, slug,
         "mainImage": images[0].asset->{ url },
         "priceExclVAT": select(defined(priceIncVat) => round(priceIncVat / (1 + select(vatRate == "21" => 21, vatRate == "0" => 0, 9) / 100) * 100) / 100, priceExclVAT),
-        priceIncVat, vatRate, "options": options[]{priceExclVAT}, status, category, featured
+        priceIncVat, vatRate, "options": options[]{priceExclVAT}, status, category, featured,
+        medium, dimensions
       }`,
       {},
       { next: { revalidate: false } },
