@@ -123,7 +123,8 @@ export async function POST(req: NextRequest) {
       heightCm:    artwork.dimensions?.heightCm,
       depthCm:     artwork.dimensions?.depthCm,
       category:    artwork.category,
-      editionType: artwork.editionType,
+      // If editionType isn't stored but editionTotal is set, infer 'edition'
+      editionType: artwork.editionType ?? (artwork.editionTotal ? 'edition' : 'unique'),
       editionTotal: artwork.editionTotal,
       editionAP:   artwork.editionAP,
       priceExVat:  artwork.priceIncVat,
