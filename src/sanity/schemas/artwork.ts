@@ -164,14 +164,22 @@ export const artwork = defineType({
       options: {
         list: [
           { title: 'Available', value: 'available' },
-          { title: 'Sold Out', value: 'sold_out' },
-          { title: 'On Loan', value: 'on_loan' },
-          { title: 'Not for Sale', value: 'not_for_sale' },
-          { title: 'Enquire', value: 'enquire' },
+          { title: 'Sold', value: 'sold' },
+          { title: 'Reserved', value: 'reserved' },
+          { title: 'On loan', value: 'on-loan' },
+          { title: 'Not for sale', value: 'not-for-sale' },
         ],
         layout: 'radio',
       },
-      initialValue: 'enquire',
+      initialValue: 'available',
+    }),
+    defineField({
+      name: 'priceOnRequest',
+      title: 'Price on request',
+      description: "Hide price and show 'Price on request' instead",
+      type: 'boolean',
+      group: 'basis',
+      initialValue: false,
     }),
 
     // ── Details ───────────────────────────────────────────────────────────────

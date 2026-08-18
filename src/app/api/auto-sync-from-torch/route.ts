@@ -135,9 +135,9 @@ async function run(req: NextRequest) {
       // ── Pull torchSoldCount + status TO MNSDK ─────────────────────────────────
       const patch: Record<string, unknown> = { torchSoldCount }
 
-      // Update status ONLY if Torch signals sold_out and MNSDK isn't already
-      if (torchData.artworkStatus === 'sold_out' && artwork.status !== 'sold_out') {
-        patch.status = 'sold_out'
+      // Update status ONLY if Torch signals sold and MNSDK isn't already
+      if (torchData.artworkStatus === 'sold' && artwork.status !== 'sold') {
+        patch.status = 'sold'
       }
 
       const mnsdkChanged = torchSoldCount !== (artwork.torchSoldCount ?? 0) || patch.status !== undefined
@@ -156,7 +156,7 @@ async function run(req: NextRequest) {
           detail: [
             torchChanged  ? `mnsdkSoldCount → Torch: ${currentMnsdkSoldCount}` : null,
             mnsdkChanged  ? `torchSoldCount → MNSDK: ${torchSoldCount}` : null,
-            patch.status  ? `status → sold_out` : null,
+            patch.status  ? `status → sold` : null,
           ].filter(Boolean).join(', '),
         })
       } else {

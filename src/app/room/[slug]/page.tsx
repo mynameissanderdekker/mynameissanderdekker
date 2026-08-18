@@ -17,6 +17,7 @@ interface ArtworkData {
   year: number
   medium?: string
   status: string
+  priceOnRequest?: boolean
   priceExclVAT?: number
   vatRate?: number
   editionTotal?: number
@@ -255,15 +256,15 @@ export default function RoomPage() {
                     {artwork.status === 'available' && (
                       <span className="room-status-badge room-status-badge--available">Beschikbaar</span>
                     )}
-                    {artwork.status === 'enquire' && (
+                    {artwork.priceOnRequest && (
                       <span className="room-status-badge room-status-badge--enquire">Op aanvraag</span>
                     )}
-                    {artwork.status === 'sold_out' && (
-                      <span className="room-status-badge room-status-badge--sold">Uitverkocht</span>
+                    {artwork.status === 'sold' && (
+                      <span className="room-status-badge room-status-badge--sold">Verkocht</span>
                     )}
                   </div>
 
-                  {(artwork.status === 'available' || artwork.status === 'enquire') && (
+                  {artwork.status === 'available' && (
                     <button
                       className="room-enquire-btn no-print"
                       onClick={() => setActiveArtwork(artwork)}

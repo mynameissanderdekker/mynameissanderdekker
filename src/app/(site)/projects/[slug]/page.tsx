@@ -145,7 +145,7 @@ function ArtworksGrid({ artworks, label = 'Artworks' }: { artworks: LinkedArtwor
           const imgUrl = a.mainImage?.asset
             ? urlFor(a.mainImage).width(600).fit('max').url()
             : null
-          const soldOut = a.status === 'sold_out'
+          const soldOut = a.status === 'sold'
 
           const cardContent = (
             <>

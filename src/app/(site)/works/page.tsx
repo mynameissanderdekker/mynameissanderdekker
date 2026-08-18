@@ -166,7 +166,7 @@ function WorkCard({ w }: { w: ArtworkCard }) {
       ? `${rawUrl}?w=600&auto=format&q=80`
       : rawUrl
     : null
-  const soldOut = w.status === 'sold_out'
+  const soldOut = w.status === 'sold'
   const price = w.priceExclVAT ? formatPrice(w.priceExclVAT, w.vatRate) : null
 
   const zineProjectHref = ZINE_PROJECT_LINKS[w.slug.current]

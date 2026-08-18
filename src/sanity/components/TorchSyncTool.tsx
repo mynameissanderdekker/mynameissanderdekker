@@ -29,11 +29,11 @@ export const TorchSyncIcon = () => (
 // ── Status pill ───────────────────────────────────────────────────────────────
 
 const STATUS_COLOR: Record<string, string> = {
-  available:    '#2e7d32',
-  sold_out:     '#c62828',
-  on_loan:      '#e65100',
-  not_for_sale: '#555',
-  enquire:      '#1565c0',
+  available:      '#2e7d32',
+  sold:           '#c62828',
+  reserved:       '#e65100',
+  'on-loan':      '#f57c00',
+  'not-for-sale': '#555',
 }
 
 function Pill({ label, color }: { label: string; color?: string }) {

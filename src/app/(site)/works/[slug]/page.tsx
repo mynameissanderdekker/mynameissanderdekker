@@ -103,7 +103,7 @@ export default async function WorkPage({ params }: { params: Promise<{ slug: str
   if (!artwork) notFound()
 
   const isAvailable = artwork.status === 'available'
-  const isSoldOut   = artwork.status === 'sold_out'
+  const isSoldOut   = artwork.status === 'sold'
 
   // Determine the relevant price (first option or base price)
   const offerPrice = artwork.options?.length

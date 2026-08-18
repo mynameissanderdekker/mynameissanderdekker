@@ -202,7 +202,7 @@ export async function POST(req: NextRequest) {
 
 // ── PATCH: write status back to MNSDK (used by PullFromTorchAction) ───────────
 
-const ARTWORK_STATUS_VALUES = ['available', 'sold_out', 'on_loan', 'not_for_sale', 'enquire']
+const ARTWORK_STATUS_VALUES = ['available', 'sold', 'reserved', 'on-loan', 'not-for-sale']
 
 export async function PATCH(req: NextRequest) {
   if (!(await isAuthorized(req))) {
