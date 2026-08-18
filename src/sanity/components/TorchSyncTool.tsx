@@ -65,6 +65,39 @@ export function TorchSyncTool() {
   const [isSyncing, setIsSyncing] = useState(false)
   const [filter, setFilter]       = useState<'all' | 'unsynced' | 'synced'>('all')
   const [search, setSearch]       = useState('')
+  const [authed, setAuthed]       = useState<boolean | null>(null) // null = checking
+  const [password, setPassword]   = useState('')
+  const [loginError, setLoginError] = useState('')
+  const [loggingIn, setLoggingIn] = useState(false)
+
+  // ── Auth check on mount ───────────────────────────────────────────────────
+  useEffect(() => {
+    fetch('/api/sync-to-torch', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ artworkIds: [] }) })
+      .then(r => setAuthed(r.status !== 401))
+      .catch(() => setAuthed(false))
+  }, [])
+
+  async function handleLogin(e: React.FormEvent) {
+    e.preventDefault()
+    setLoggingIn(true)
+    setLoginError('')
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      })
+      if (res.ok) {
+        setAuthed(true)
+        setPassword('')
+      } else {
+        setLoginError('Verkeerd wachtwoord')
+      }
+    } catch {
+      setLoginError('Inloggen mislukt')
+    }
+    setLoggingIn(false)
+  }
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -139,10 +172,7 @@ export function TorchSyncTool() {
       })
 
       if (res.status === 401) {
-        const err: Record<string, SyncState> = {}
-        ids.forEach(id => { err[id] = 'error' })
-        setSyncState(prev => ({ ...prev, ...err }))
-        alert('Sync mislukt: niet ingelogd (401). Log in op Sanity Studio en probeer opnieuw. Als het probleem aanhoudt: ga naar /admin op deze site en log in.')
+        setAuthed(false) // show login form
         setIsSyncing(false)
         setSelected(new Set())
         return
@@ -186,6 +216,35 @@ export function TorchSyncTool() {
   const unsyncedCount = artworks.length - syncedCount
 
   // ── Render ────────────────────────────────────────────────────────────────
+
+  // Auth check loading
+  if (authed === null) {
+    return <div style={{ padding: '40px', fontFamily: 'system-ui, sans-serif', color: '#888' }}>Checking auth…</div>
+  }
+
+  // Not logged in — show password form
+  if (!authed) {
+    return (
+      <div style={{ padding: '40px', maxWidth: 360, fontFamily: 'system-ui, sans-serif' }}>
+        <h1 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>Torch Gallery Sync</h1>
+        <p style={{ fontSize: 13, color: '#888', marginBottom: 24 }}>Log in met je admin wachtwoord om verder te gaan.</p>
+        <form onSubmit={handleLogin}>
+          <input
+            type="password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            placeholder="Admin wachtwoord"
+            autoFocus
+            style={{ width: '100%', padding: '10px 12px', fontSize: 14, border: '1px solid #ddd', borderRadius: 6, marginBottom: 10, boxSizing: 'border-box' }}
+          />
+          {loginError && <p style={{ color: '#c00', fontSize: 13, margin: '0 0 10px' }}>{loginError}</p>}
+          <button type="submit" disabled={loggingIn} style={{ width: '100%', padding: '10px', background: '#111', color: '#fff', border: 'none', borderRadius: 6, fontSize: 14, cursor: 'pointer' }}>
+            {loggingIn ? 'Inloggen…' : 'Inloggen'}
+          </button>
+        </form>
+      </div>
+    )
+  }
 
   return (
     <div style={{ padding: '32px 40px', maxWidth: 900, fontFamily: 'system-ui, sans-serif' }}>

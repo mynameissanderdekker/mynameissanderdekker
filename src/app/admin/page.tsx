@@ -13,7 +13,7 @@ const tools = [
     description: 'Send a newsletter or announcement.',
   },
   {
-    href: 'https://mynameissanderdekker.sanity.studio',
+    href: '/studio',
     title: 'Sanity Studio',
     description: 'Edit content, artworks, contacts, press.',
     external: true,
