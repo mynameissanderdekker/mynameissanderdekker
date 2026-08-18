@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@sanity/client'
 
-const TORCH_PROJECT_ID  = '53tz2hh0'
-const TORCH_DATASET     = 'production'
 const MNSDK_PROJECT_ID  = 'u11u127q'
 const MNSDK_DATASET     = 'production'
 
@@ -51,16 +49,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'artworkIds required' }, { status: 400 })
     }
 
-    const torchToken = process.env.TORCH_WRITE_TOKEN
     const mnsdkWriteToken = process.env.SANITY_WRITE_TOKEN ?? process.env.SANITY_API_WRITE_TOKEN
-    if (!torchToken) {
-      return NextResponse.json({ error: 'TORCH_WRITE_TOKEN not configured' }, { status: 500 })
-    }
+    const torchSyncKey    = process.env.TORCH_SYNC_KEY ?? 'torch-sync-mnsdk-2024'
+    const torchBaseUrl    = 'https://torcheditions.com'
 
     // MNSDK dataset is public — reads work without a token.
-    // An invalid token would block even public reads, so we use separate clients:
-    // mnsdkReadClient  — no token, for all fetch() calls
-    // mnsdkWriteClient — write token, only for patch().commit()
     const mnsdkReadClient = createClient({
       projectId: MNSDK_PROJECT_ID,
       dataset:   MNSDK_DATASET,
@@ -76,16 +69,7 @@ export async function POST(req: NextRequest) {
       token: mnsdkWriteToken,
     })
 
-    const torchClient = createClient({
-      projectId: TORCH_PROJECT_ID,
-      dataset:   TORCH_DATASET,
-      apiVersion: '2024-01-01',
-      useCdn: false,
-      token: torchToken,
-    })
-
-    // ── Fetch artworks from MNSDK (incl. sold count from buyer contacts) ─────────
-    console.log('[sync] step1: fetching artworks from MNSDK (no token)')
+    // ── Fetch artworks from MNSDK ─────────────────────────────────────────────
     const artworks = await mnsdkReadClient.fetch(
       `*[_type == "artwork" && _id in $ids] {
         _id, title, year, medium,
@@ -100,115 +84,95 @@ export async function POST(req: NextRequest) {
       }`,
       { ids: artworkIds }
     )
-    console.log('[sync] step1 done:', artworks?.length, 'artworks')
 
     if (!artworks || artworks.length === 0) {
       return NextResponse.json({ error: 'No artworks found in MNSDK' }, { status: 404 })
     }
 
-    // ── Find Sander Dekker in Torch ────────────────────────────────────────────
-    console.log('[sync] step2: querying Torch artist (torch token len:', torchToken?.length, ')')
-    const torchArtist = await torchClient.fetch<{ _id: string } | null>(
-      `*[_type == "artist" && lower(name) match "sander*"][0] { _id }`
-    )
-    console.log('[sync] step2 done: artist', torchArtist?._id ?? 'not found')
-
-    // ── Build submittedWork entries ────────────────────────────────────────────
-    type WorkEntry = {
-      _type: string
-      _key: string
-      mnsdkId: string
-      [key: string]: unknown
-    }
-
-    const works: WorkEntry[] = artworks.map((artwork: {
+    // ── Build payload for Torch endpoint ──────────────────────────────────────
+    type ArtworkRaw = {
       _id: string; title?: string; year?: number; medium?: string;
       dimensions?: { widthCm?: number; heightCm?: number; depthCm?: number };
       category?: string; editionType?: string; editionTotal?: number;
       editionAP?: number; priceIncVat?: number; vatRate?: string;
-      description?: string; status?: string;
+      description?: string; status?: string; mnsdkSoldCount?: number;
       images?: Array<{ url?: string }>;
-    }) => {
-      const key = crypto.randomUUID().replace(/-/g, '').slice(0, 12)
-      const images = (artwork.images ?? [])
+    }
+
+    const artworkPayload = (artworks as ArtworkRaw[]).map(artwork => ({
+      mnsdkId:     artwork._id,
+      title:       artwork.title,
+      year:        artwork.year != null ? String(artwork.year) : undefined,
+      medium:      artwork.medium,
+      widthCm:     artwork.dimensions?.widthCm,
+      heightCm:    artwork.dimensions?.heightCm,
+      depthCm:     artwork.dimensions?.depthCm,
+      category:    artwork.category,
+      editionType: artwork.editionType,
+      editionTotal: artwork.editionTotal,
+      editionAP:   artwork.editionAP,
+      priceExVat:  artwork.priceIncVat,
+      vatRate:     artwork.vatRate,
+      description: artwork.description,
+      mnsdkSoldCount: artwork.mnsdkSoldCount ?? 0,
+      notes: [
+        artwork.status ? `Status op MNSDK: ${artwork.status}` : null,
+        artwork.mnsdkSoldCount ? `Al verkocht door kunstenaar: ${artwork.mnsdkSoldCount} ex.` : null,
+        `MNSDK ID: ${artwork._id}`,
+      ].filter(Boolean).join('\n'),
+      images: (artwork.images ?? [])
         .filter(img => img.url)
         .map((img, i) => ({
-          _type: 'submittedImage',
-          _key: `img${i}`,
-          url: img.url,
+          url: img.url!,
           filename: (img.url ?? '').split('/').pop() ?? `image-${i}`,
-        }))
+        })),
+      status: artwork.status,
+    }))
 
-      return {
-        _type: 'submittedWork',
-        _key: key,
-        mnsdkId: artwork._id,
-        title:       artwork.title,
-        year:        artwork.year != null ? String(artwork.year) : undefined,
-        medium:      artwork.medium,
-        widthCm:     artwork.dimensions?.widthCm,
-        heightCm:    artwork.dimensions?.heightCm,
-        depthCm:     artwork.dimensions?.depthCm,
-        category:    artwork.category,
-        editionType: artwork.editionType,
-        editionTotal: artwork.editionTotal,
-        editionAP:   artwork.editionAP,
-        priceExVat:  artwork.priceIncVat, // MNSDK stores incl. VAT; gallery can adjust
-        vatRate:     artwork.vatRate,
-        description: artwork.description,
-        mnsdkSoldCount: (artwork as { mnsdkSoldCount?: number }).mnsdkSoldCount ?? 0,
-        notes: [
-          artwork.status ? `Status op MNSDK: ${artwork.status}` : null,
-          (artwork as { mnsdkSoldCount?: number }).mnsdkSoldCount
-            ? `Al verkocht door kunstenaar: ${(artwork as { mnsdkSoldCount?: number }).mnsdkSoldCount} ex.`
-            : null,
-          `MNSDK ID: ${artwork._id}`,
-        ].filter(Boolean).join('\n'),
-        images: images.length > 0 ? images : undefined,
-        status: 'pending',
-      }
+    // ── Call Torch's own endpoint to create artistSubmission ──────────────────
+    // Torch uses its own SANITY_API_WRITE_TOKEN server-side — no cross-project
+    // token needed on the MNSDK side.
+    const torchRes = await fetch(`${torchBaseUrl}/api/from-mnsdk`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${torchSyncKey}`,
+      },
+      body: JSON.stringify({ artworks: artworkPayload }),
     })
 
-    // ── Create artistSubmission in Torch ───────────────────────────────────────
-    const dateStr = new Date().toLocaleDateString('nl-NL', {
-      day: 'numeric', month: 'long', year: 'numeric'
-    })
-    const submissionTitle = works.length === 1
-      ? `Sander Dekker — ${works[0].title ?? 'Artwork'} (${dateStr})`
-      : `Sander Dekker — ${works.length} werken (${dateStr})`
+    if (!torchRes.ok) {
+      const errText = await torchRes.text()
+      console.error('[sync] Torch endpoint error:', torchRes.status, errText)
+      return NextResponse.json(
+        { error: `Torch returned ${torchRes.status}: ${errText}` },
+        { status: 502 }
+      )
+    }
 
-    const submissionToken = crypto.randomUUID().replace(/-/g, '')
+    const torchData = await torchRes.json() as {
+      success: boolean
+      submissionId: string
+      works: Array<{ mnsdkId: string; workKey: string }>
+    }
 
-    const submission = await torchClient.create({
-      _type: 'artistSubmission',
-      title: submissionTitle,
-      status: 'submitted',
-      token: submissionToken,
-      ...(torchArtist?._id ? { artist: { _type: 'reference', _ref: torchArtist._id } } : {}),
-      works,
-    })
-
-    // ── Write torchId back to each MNSDK artwork ───────────────────────────────
-    // Format: "sub:{submissionDocId}:{workKey}" — allows pull-from-torch to
-    // locate this specific work within the submission.
-    // Non-fatal: if write token is misconfigured the submission still succeeded.
-    for (const work of works) {
+    // ── Write torchId back to each MNSDK artwork (non-fatal) ──────────────────
+    for (const w of torchData.works) {
       try {
         await mnsdkWriteClient
-          .patch(work.mnsdkId as string)
-          .set({ torchId: `sub:${submission._id}:${work._key}` })
+          .patch(w.mnsdkId)
+          .set({ torchId: `sub:${torchData.submissionId}:${w.workKey}` })
           .commit()
       } catch (writeErr) {
-        console.warn('[sync] torchId writeback failed for', work.mnsdkId, writeErr instanceof Error ? writeErr.message : writeErr)
+        console.warn('[sync] torchId writeback failed for', w.mnsdkId, writeErr instanceof Error ? writeErr.message : writeErr)
       }
     }
 
     return NextResponse.json({
       success: true,
-      submissionId: submission._id,
-      count: works.length,
-      // Return per-artwork mapping so the UI can update local state
-      artworks: works.map(w => ({ mnsdkId: w.mnsdkId, workKey: w._key })),
+      submissionId: torchData.submissionId,
+      count: torchData.works.length,
+      artworks: torchData.works.map(w => ({ mnsdkId: w.mnsdkId, workKey: w.workKey })),
     })
 
   } catch (err: unknown) {
