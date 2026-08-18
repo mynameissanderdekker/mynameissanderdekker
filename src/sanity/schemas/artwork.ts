@@ -141,8 +141,6 @@ export const artwork = defineType({
       type: 'number',
       group: 'basis',
       fieldset: 'priceLine',
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      hidden: ({ document }: any) => !!document?.priceOnRequest,
     }),
     defineField({
       name: 'vatRate',
@@ -150,8 +148,6 @@ export const artwork = defineType({
       type: 'string',
       group: 'basis',
       fieldset: 'priceLine',
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      hidden: ({ document }: any) => !!document?.priceOnRequest,
       options: {
         list: [
           { title: '9%', value: '9' },
