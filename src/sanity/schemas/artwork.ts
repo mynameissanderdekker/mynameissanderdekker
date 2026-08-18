@@ -185,15 +185,6 @@ export const artwork = defineType({
       },
       initialValue: 'available',
     }),
-    defineField({
-      name: 'priceOnRequest',
-      title: 'Price on request',
-      description: "Hide price and show 'Price on request' instead",
-      type: 'boolean',
-      group: 'basis',
-      initialValue: false,
-    }),
-
     // ── Details ───────────────────────────────────────────────────────────────
     defineField({
       name: 'slug',
