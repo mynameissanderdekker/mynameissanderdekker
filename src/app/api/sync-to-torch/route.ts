@@ -85,6 +85,7 @@ export async function POST(req: NextRequest) {
     })
 
     // ── Fetch artworks from MNSDK (incl. sold count from buyer contacts) ─────────
+    console.log('[sync] step1: fetching artworks from MNSDK (no token)')
     const artworks = await mnsdkReadClient.fetch(
       `*[_type == "artwork" && _id in $ids] {
         _id, title, year, medium,
@@ -99,15 +100,18 @@ export async function POST(req: NextRequest) {
       }`,
       { ids: artworkIds }
     )
+    console.log('[sync] step1 done:', artworks?.length, 'artworks')
 
     if (!artworks || artworks.length === 0) {
       return NextResponse.json({ error: 'No artworks found in MNSDK' }, { status: 404 })
     }
 
     // ── Find Sander Dekker in Torch ────────────────────────────────────────────
+    console.log('[sync] step2: querying Torch artist (torch token len:', torchToken?.length, ')')
     const torchArtist = await torchClient.fetch<{ _id: string } | null>(
       `*[_type == "artist" && lower(name) match "sander*"][0] { _id }`
     )
+    console.log('[sync] step2 done: artist', torchArtist?._id ?? 'not found')
 
     // ── Build submittedWork entries ────────────────────────────────────────────
     type WorkEntry = {
