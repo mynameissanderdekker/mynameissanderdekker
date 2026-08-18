@@ -80,15 +80,18 @@ export function CategoryMultiInput(props: any) {
   )
 }
 
+// Default MNSDK artwork categories (always shown, even before any artwork has a category)
+const DEFAULT_CATEGORIES = ['Artwork', 'Special Edition', 'Wallpaper', 'Zine', 'Book']
+
 /**
  * Single-select category input for string fields (artwork, zine).
- * - Toont bestaande categorieën als klikbare chips
- * - Tekstveld + '+' om een nieuwe aan te maken
+ * - Shows default MNSDK categories + any custom categories already used in artworks
+ * - Pills toggle selection; text field + '+' to add a new custom category
  */
 export function CategoryInput(props: StringInputProps) {
   const { value, onChange } = props
   const client = useClient({ apiVersion: '2024-01-01' })
-  const [existing, setExisting] = useState<string[]>([])
+  const [extra, setExtra] = useState<string[]>([])
   const [draft, setDraft] = useState('')
 
   useEffect(() => {
@@ -96,11 +99,16 @@ export function CategoryInput(props: StringInputProps) {
       .fetch<string[]>(
         `array::unique(*[_type == "artwork" && defined(category) && category != ""].category) | order(@)`
       )
-      .then((cats) => setExisting((cats ?? []).filter(Boolean)))
+      .then((cats) => {
+        const custom = (cats ?? []).filter(Boolean).filter(c => !DEFAULT_CATEGORIES.includes(c))
+        setExtra(custom)
+      })
   }, [client])
 
+  const categories = [...DEFAULT_CATEGORIES, ...extra]
+
   function select(cat: string) {
-    onChange(cat ? set(cat) : unset())
+    onChange(value === cat ? unset() : set(cat))
   }
 
   function add() {
@@ -108,52 +116,56 @@ export function CategoryInput(props: StringInputProps) {
     if (!trimmed) return
     select(trimmed)
     setDraft('')
-    if (!existing.includes(trimmed)) {
-      setExisting((prev) => [...prev, trimmed].sort())
+    if (!categories.includes(trimmed)) {
+      setExtra((prev) => [...prev, trimmed].sort())
     }
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-      {/* Bestaande categorieën */}
-      {existing.length > 0 && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-          {existing.map((cat) => (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+      {/* Category pills */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+        {categories.map((cat) => {
+          const active = value === cat
+          return (
             <button
               key={cat}
               type="button"
               onClick={() => select(cat)}
               style={{
-                padding: '5px 12px',
-                borderRadius: 20,
-                border: value === cat ? '2px solid #000' : '1px solid #ccc',
-                background: value === cat ? '#000' : '#fff',
-                color: value === cat ? '#fff' : '#333',
-                fontSize: 13,
+                padding: '5px 14px',
+                borderRadius: '999px',
+                border: active ? '1.5px solid #111' : '1.5px solid #d0d0d0',
+                background: active ? '#111' : 'transparent',
+                color: active ? '#fff' : '#444',
+                fontSize: '13px',
+                fontWeight: active ? 500 : 400,
                 cursor: 'pointer',
-                fontWeight: value === cat ? 600 : 400,
+                transition: 'all 0.15s',
+                userSelect: 'none',
               }}
             >
               {cat}
             </button>
-          ))}
-        </div>
-      )}
+          )
+        })}
+      </div>
 
-      {/* Nieuwe categorie toevoegen */}
-      <div style={{ display: 'flex', gap: 6 }}>
+      {/* Add custom category */}
+      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
         <input
           type="text"
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && add()}
+          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); add() } }}
           placeholder="Nieuwe categorie..."
           style={{
             flex: 1,
-            padding: '7px 10px',
-            border: '1px solid #ccc',
-            borderRadius: 4,
-            fontSize: 14,
+            padding: '6px 10px',
+            border: '1px solid #d0d0d0',
+            borderRadius: '4px',
+            fontSize: '13px',
+            outline: 'none',
           }}
         />
         <button
@@ -161,13 +173,15 @@ export function CategoryInput(props: StringInputProps) {
           onClick={add}
           disabled={!draft.trim()}
           style={{
-            padding: '7px 14px',
-            background: draft.trim() ? '#000' : '#e0e0e0',
-            color: draft.trim() ? '#fff' : '#999',
-            border: 'none',
-            borderRadius: 4,
-            fontSize: 18,
+            width: '32px',
+            height: '32px',
+            borderRadius: '4px',
+            border: '1px solid #d0d0d0',
+            background: '#f5f5f5',
             cursor: draft.trim() ? 'pointer' : 'default',
+            fontSize: '18px',
+            lineHeight: 1,
+            color: '#666',
           }}
         >
           +
@@ -175,16 +189,17 @@ export function CategoryInput(props: StringInputProps) {
       </div>
 
       {value && (
-        <p style={{ margin: 0, fontSize: 12, color: '#666' }}>
-          Geselecteerd: <strong>{value}</strong>
+        <span style={{ fontSize: '12px', color: '#888' }}>
+          Geselecteerd: <strong style={{ color: '#111' }}>{value}</strong>
+          &nbsp;
           <button
             type="button"
-            onClick={() => select('')}
-            style={{ marginLeft: 8, background: 'none', border: 'none', color: '#999', cursor: 'pointer', fontSize: 12 }}
+            onClick={() => onChange(unset())}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888', fontSize: '12px' }}
           >
-            ✕ wissen
+            × wissen
           </button>
-        </p>
+        </span>
       )}
     </div>
   )
