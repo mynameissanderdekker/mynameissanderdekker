@@ -70,10 +70,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 interface LinkedArtwork {
   _id: string
   title: string
+  year?: number
+  medium?: string
+  dimensions?: { widthCm?: number; heightCm?: number }
   slug?: { current: string }
   mainImage?: { asset?: { _ref?: string }; hotspot?: unknown; crop?: unknown }
   priceExclVAT?: number
-  vatRate?: number
+  vatRate?: number | string
   status?: string
 }
 
@@ -110,8 +113,8 @@ async function getProject(slug: string) {
       "coverImageHeight": coverImage.asset->metadata.dimensions.height,
       pageBuilder,
       "artworks": [
-        ...coalesce(artworkSeries[]->artworks[]->{ _id, title, slug, "mainImage": images[0]{ asset, hotspot, crop }, priceExclVAT, vatRate, status }, []),
-        ...coalesce(artworks[]->{ _id, title, slug, "mainImage": images[0]{ asset, hotspot, crop }, priceExclVAT, vatRate, status }, [])
+        ...coalesce(artworkSeries[]->artworks[]->{ _id, title, year, medium, dimensions, slug, "mainImage": images[0]{ asset, hotspot, crop }, "priceExclVAT": select(defined(priceIncVat) => round(priceIncVat / (1 + select(vatRate == "21" => 21, vatRate == "0" => 0, 9) / 100) * 100) / 100, priceExclVAT), vatRate, status }, []),
+        ...coalesce(artworks[]->{ _id, title, year, medium, dimensions, slug, "mainImage": images[0]{ asset, hotspot, crop }, "priceExclVAT": select(defined(priceIncVat) => round(priceIncVat / (1 + select(vatRate == "21" => 21, vatRate == "0" => 0, 9) / 100) * 100) / 100, priceExclVAT), vatRate, status }, [])
       ],
       "exhibitions": [
         ...*[_type == "exhibition" && cvProject._ref == ^._id]{ _id, _type, slug, hasPage, title, gallery, location, startDate, exhibitionType, isSolo, websiteUrl },
@@ -132,8 +135,8 @@ async function getZines() {
   )
 }
 
-function formatPrice(excl: number, vatRate = 9) {
-  const incl = excl * (1 + vatRate / 100)
+function formatPrice(excl: number, vatRate: number | string = 9) {
+  const incl = excl * (1 + Number(vatRate) / 100)
   return new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(incl)
 }
 
@@ -165,6 +168,17 @@ function ArtworksGrid({ artworks, label = 'Artworks' }: { artworks: LinkedArtwor
                 {soldOut && <span className="works-badge works-badge-sold">SOLD OUT</span>}
               </div>
               <h3 className="works-grid-title">{a.title}</h3>
+              {a.medium && <p className="works-grid-medium">{a.medium}</p>}
+              {(a.year || a.dimensions) && (
+                <p className="works-grid-meta">
+                  {[
+                    a.year,
+                    a.dimensions?.widthCm && a.dimensions?.heightCm
+                      ? `${a.dimensions.widthCm} × ${a.dimensions.heightCm} cm`
+                      : null,
+                  ].filter(Boolean).join(' · ')}
+                </p>
+              )}
               {price && <p className="works-price">{price}</p>}
             </>
           )
