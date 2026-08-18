@@ -65,15 +65,6 @@ export const artwork = defineType({
       initialValue: 'unique',
     }),
     defineField({
-      name: 'editionNumber',
-      title: 'Edition number',
-      description: 'E.g. "3/7" — the specific copy',
-      type: 'string',
-      group: 'info',
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      hidden: ({ document }: any) => document?.editionType !== 'edition',
-    }),
-    defineField({
       name: 'category',
       title: 'Category',
       type: 'string',
@@ -188,6 +179,8 @@ export const artwork = defineType({
       group: 'edition',
       fieldset: 'editionNums',
       description: 'E.g. 7 (for an edition of 7 + 2 AP)',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      hidden: ({ document }: any) => document?.editionType !== 'edition',
     }),
     defineField({
       name: 'editionAP',
@@ -197,6 +190,8 @@ export const artwork = defineType({
       fieldset: 'editionNums',
       description: 'E.g. 2',
       initialValue: 0,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      hidden: ({ document }: any) => document?.editionType !== 'edition',
     }),
     defineField({
       name: 'priceIncVat',
