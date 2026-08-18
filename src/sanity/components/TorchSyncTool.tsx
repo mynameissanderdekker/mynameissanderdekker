@@ -137,6 +137,17 @@ export function TorchSyncTool() {
         },
         body: JSON.stringify({ artworkIds: ids }),
       })
+
+      if (res.status === 401) {
+        const err: Record<string, SyncState> = {}
+        ids.forEach(id => { err[id] = 'error' })
+        setSyncState(prev => ({ ...prev, ...err }))
+        alert('Sync mislukt: niet ingelogd (401). Log in op Sanity Studio en probeer opnieuw. Als het probleem aanhoudt: ga naar /admin op deze site en log in.')
+        setIsSyncing(false)
+        setSelected(new Set())
+        return
+      }
+
       const data = await res.json()
 
       if (data.success) {
