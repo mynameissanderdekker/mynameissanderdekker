@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
 
     const mnsdkWriteToken = process.env.SANITY_WRITE_TOKEN ?? process.env.SANITY_API_WRITE_TOKEN
     const torchSyncKey    = process.env.TORCH_SYNC_KEY ?? 'torch-sync-mnsdk-2024'
-    const torchBaseUrl    = 'https://torcheditions.com'
+    const torchBaseUrl    = process.env.TORCH_BASE_URL ?? 'https://torch-gallery.vercel.app'
 
     // MNSDK dataset is public — reads work without a token.
     const mnsdkReadClient = createClient({
