@@ -10,7 +10,8 @@ interface ArtworkCard {
   slug: { current: string }
   mainImage?: { url?: string }
   priceExclVAT?: number
-  vatRate?: number
+  priceIncVat?: number
+  vatRate?: number | string
   status?: string
   category?: string
   featured?: boolean
@@ -18,8 +19,8 @@ interface ArtworkCard {
   dimensions?: { widthCm?: number; heightCm?: number }
 }
 
-function formatPrice(excl: number, vatRate = 9) {
-  const incl = excl * (1 + vatRate / 100)
+function formatPrice(excl: number, vatRate: number | string = 9) {
+  const incl = excl * (1 + Number(vatRate) / 100)
   return new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(incl)
 }
 

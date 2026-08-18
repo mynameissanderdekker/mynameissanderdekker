@@ -46,7 +46,8 @@ export default async function PrivateSalePage({ params }: Props) {
           year,
           medium,
           dimensions,
-          priceExclVAT,
+          "priceExclVAT": select(defined(priceIncVat) => round(priceIncVat / (1 + select(vatRate == "21" => 21, vatRate == "0" => 0, 9) / 100) * 100) / 100, priceExclVAT),
+          priceIncVat,
           vatRate,
           images,
         }

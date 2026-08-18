@@ -67,7 +67,8 @@ interface ArtworkCard {
   slug: { current: string }
   mainImage?: { url?: string }
   priceExclVAT?: number
-  vatRate?: number
+  priceIncVat?: number
+  vatRate?: number | string
   status?: string
   category?: string
   featured?: boolean
@@ -105,7 +106,8 @@ async function getWorksData(): Promise<{ config: WorksPageConfig | null; works: 
       `*[_type == "artwork" && defined(slug.current) && showInWebshop == true] | order(featured desc, order asc, year desc){
         _id, _type, title, year, slug, order,
         "mainImage": { "url": coalesce(images[0].asset->url, coverImageUrl) },
-        priceExclVAT, vatRate, status, category, featured, buyUrl,
+        "priceExclVAT": select(defined(priceIncVat) => round(priceIncVat / (1 + select(vatRate == "21" => 21, vatRate == "0" => 0, 9) / 100) * 100) / 100, priceExclVAT),
+        priceIncVat, vatRate, status, category, featured, buyUrl,
         medium, dimensions
       }`,
       {},
@@ -135,8 +137,8 @@ async function getWorksData(): Promise<{ config: WorksPageConfig | null; works: 
   return { config, works }
 }
 
-function formatPrice(excl: number, vatRate = 9) {
-  const incl = excl * (1 + vatRate / 100)
+function formatPrice(excl: number, vatRate: number | string = 9) {
+  const incl = excl * (1 + Number(vatRate) / 100)
   return new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(incl)
 }
 

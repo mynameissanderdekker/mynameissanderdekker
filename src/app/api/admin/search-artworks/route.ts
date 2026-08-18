@@ -20,7 +20,9 @@ export async function GET(req: NextRequest) {
 
   const results = await client.fetch(
     `*[_type == "artwork" && title match $q][0...15]{
-      _id, title, year, medium, editionTotal, editionAP, priceExclVAT, vatRate, status
+      _id, title, year, medium, editionTotal, editionAP,
+      "priceExclVAT": select(defined(priceIncVat) => round(priceIncVat / (1 + select(vatRate == "21" => 21, vatRate == "0" => 0, 9) / 100) * 100) / 100, priceExclVAT),
+      priceIncVat, vatRate, status
     } | order(year desc)`,
     { q: `${q}*` }
   )

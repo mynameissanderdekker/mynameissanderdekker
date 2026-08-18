@@ -22,7 +22,8 @@ export interface ArtworkData {
   showViewInRoom?: boolean
   framedDimensions?: { widthCm?: number }
   priceExclVAT?: number
-  vatRate?: number
+  priceIncVat?: number
+  vatRate?: number | string
   options?: Array<{ label: string; sku?: string; priceExclVAT: number; buyUrl?: string }>
   status?: string
   showInWebshop?: boolean
@@ -46,8 +47,8 @@ function formatDimensions(d?: { widthCm?: number; heightCm?: number; depthCm?: n
   return d.depthCm ? `${base} × ${d.depthCm} cm` : base
 }
 
-function formatPrice(excl: number, vatRate = 9) {
-  const incl = excl * (1 + vatRate / 100)
+function formatPrice(excl: number, vatRate: number | string = 9) {
+  const incl = excl * (1 + Number(vatRate) / 100)
   return new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(incl)
 }
 
@@ -250,7 +251,7 @@ export default function ArtworkDetail({ artwork }: { artwork: ArtworkData }) {
                     slug: artwork.slug?.current ?? '',
                     title: artwork.title,
                     priceIncl: effectivePriceExclVAT
-                      ? effectivePriceExclVAT * (1 + (artwork.vatRate ?? 9) / 100)
+                      ? effectivePriceExclVAT * (1 + Number(artwork.vatRate ?? 9) / 100)
                       : 0,
                     imageUrl: thumbMain ?? undefined,
                     variantLabel: selectedOption?.label,
