@@ -12,6 +12,8 @@ import { StudioLayout } from './src/sanity/components/StudioLayout'
 import { AnalyticsTool, AnalyticsIcon } from './src/sanity/components/AnalyticsTool'
 import { withShippedNotification, withStatusHistory } from './src/sanity/actions/orderActions'
 import { PressReleasePreviewAction, SendPressReleaseAction } from './src/sanity/actions/pressReleaseActions'
+import { SyncToTorchAction } from './src/sanity/actions/SyncToTorchAction'
+import { PullFromTorchAction } from './src/sanity/actions/PullFromTorchAction'
 
 export default defineConfig({
   basePath: '/studio',
@@ -32,6 +34,9 @@ export default defineConfig({
       }
       if (ctx.schemaType === 'pressRelease') {
         return [...prev, PressReleasePreviewAction, SendPressReleaseAction]
+      }
+      if (ctx.schemaType === 'artwork') {
+        return [...prev, SyncToTorchAction, PullFromTorchAction]
       }
       return prev
     },

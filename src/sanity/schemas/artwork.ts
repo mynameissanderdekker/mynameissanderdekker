@@ -273,6 +273,15 @@ export const artwork = defineType({
       group: 'details',
       hidden: true,
     }),
+    defineField({
+      name: 'torchId',
+      title: 'Torch Gallery ID',
+      type: 'string',
+      group: 'details',
+      hidden: true,
+      description: 'Set automatically after syncing to Torch Gallery (do not edit manually)',
+      readOnly: true,
+    }),
 
     // ── Gallery ───────────────────────────────────────────────────────────────
     defineField({
