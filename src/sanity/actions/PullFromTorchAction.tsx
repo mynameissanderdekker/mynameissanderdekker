@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useToast, Stack, Text, Box, Flex, Badge, Card, Spinner } from '@sanity/ui'
 import type { DocumentActionProps } from 'sanity'
-import { useClient, useFormValue } from 'sanity'
+import { useClient } from 'sanity'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -73,7 +73,8 @@ const STATUS_TONE: Record<string, 'positive' | 'caution' | 'critical' | 'default
 
 export function PullFromTorchAction(props: DocumentActionProps) {
   const { id, type, published } = props
-  const torchId = useFormValue(['torchId']) as string | undefined
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const torchId = (published as any)?.torchId as string | undefined
   const client = useClient({ apiVersion: '2024-01-01' })
 
   const [open, setOpen]       = useState(false)

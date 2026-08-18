@@ -10,6 +10,7 @@ import { schema } from './src/sanity/schemaTypes'
 import { structure } from './src/sanity/structure'
 import { StudioLayout } from './src/sanity/components/StudioLayout'
 import { AnalyticsTool, AnalyticsIcon } from './src/sanity/components/AnalyticsTool'
+import { TorchSyncTool, TorchSyncIcon } from './src/sanity/components/TorchSyncTool'
 import { withShippedNotification, withStatusHistory } from './src/sanity/actions/orderActions'
 import { PressReleasePreviewAction, SendPressReleaseAction } from './src/sanity/actions/pressReleaseActions'
 import { SyncToTorchAction } from './src/sanity/actions/SyncToTorchAction'
@@ -53,6 +54,17 @@ export default defineConfig({
           title: 'Analytics',
           icon: AnalyticsIcon,
           component: AnalyticsTool,
+        },
+      ],
+    },
+    {
+      name: 'torch-sync',
+      tools: [
+        {
+          name: 'torch-sync',
+          title: 'Torch Sync',
+          icon: TorchSyncIcon,
+          component: TorchSyncTool,
         },
       ],
     },

@@ -25,6 +25,7 @@ async function isAuthorized(req: NextRequest): Promise<boolean> {
 }
 
 export async function POST(req: NextRequest) {
+  try {
   if (!(await isAuthorized(req))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
@@ -156,6 +157,10 @@ export async function POST(req: NextRequest) {
   }
 
   return NextResponse.json({ success: true, torchId })
+  } catch (err: unknown) {
+    console.error('[sync-to-torch POST]', err)
+    return NextResponse.json({ error: err instanceof Error ? err.message : 'Internal error' }, { status: 500 })
+  }
 }
 
 // ── PATCH: write the status field back to MNSDK (used by Pull action) ─────────
