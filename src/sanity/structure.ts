@@ -55,16 +55,6 @@ function artworkListItem(S: StructureBuilder, categories: string[]) {
           ...(categoryItems.length > 0 ? [S.divider(), ...categoryItems] : []),
           S.divider(),
           S.listItem()
-            .title('No category')
-            .id('artwork-no-category')
-            .child(
-              S.documentTypeList('artwork')
-                .title('No category')
-                .filter('_type == "artwork" && (!defined(category) || category == "")')
-                .defaultOrdering([{ field: 'year', direction: 'desc' }])
-            ),
-          S.divider(),
-          S.listItem()
             .title('Sold works')
             .id('artwork-sold')
             .child(
@@ -73,7 +63,6 @@ function artworkListItem(S: StructureBuilder, categories: string[]) {
                 .filter('_type == "artwork" && count(*[_type == "contact" && ^._id in purchases[].artwork._ref]) > 0')
                 .defaultOrdering([{ field: 'year', direction: 'desc' }])
             ),
-          S.divider(),
           S.listItem()
             .title('↔ Synced with Torch')
             .id('artwork-synced-torch')
@@ -93,16 +82,6 @@ function artworkListItem(S: StructureBuilder, categories: string[]) {
                 .filter('_type == "artwork" && showInWebshop == true && !(category in $pubCats)')
                 .params({ pubCats: PUBLICATION_CATEGORIES })
                 .defaultOrdering([{ field: 'featured', direction: 'desc' }, { field: 'order', direction: 'asc' }])
-            ),
-          S.listItem()
-            .title('Not in webshop')
-            .id('artwork-not-in-webshop')
-            .child(
-              S.documentTypeList('artwork')
-                .title('Not in webshop')
-                .filter('_type == "artwork" && (showInWebshop != true) && !(category in $pubCats)')
-                .params({ pubCats: PUBLICATION_CATEGORIES })
-                .defaultOrdering([{ field: 'year', direction: 'desc' }])
             ),
         ])
     )
@@ -362,21 +341,35 @@ export const structure: StructureResolver = async (S, { getClient }) => {
       S.divider().title('LOGISTICS'),
 
       S.listItem()
-        .title('Artwork Locations')
-        .id('artwork-locations')
+        .title('Where is my work?')
+        .id('where-is-my-work')
         .child(
-          S.documentTypeList('artwork')
-            .title('Artwork Locations')
-            .defaultOrdering([{ field: 'title', direction: 'asc' }])
+          S.list()
+            .id('logistics-list')
+            .title('Where is my work?')
+            .items([
+              S.listItem()
+                .title('Active loans (Bruikleen)')
+                .id('loans-active')
+                .child(
+                  S.documentTypeList('loan')
+                    .title('Active loans')
+                    .filter('_type == "loan" && (!defined(endDate) || endDate >= $today)')
+                    .params({ today: new Date().toISOString().slice(0, 10) })
+                    .defaultOrdering([{ field: 'startDate', direction: 'desc' }])
+                ),
+              S.listItem()
+                .title('All loans')
+                .id('loans-all')
+                .child(
+                  S.documentTypeList('loan')
+                    .title('All loans')
+                    .defaultOrdering([{ field: 'startDate', direction: 'desc' }])
+                ),
+              S.divider(),
+              S.documentTypeListItem('location').title('Manage locations'),
+            ])
         ),
-      S.documentTypeListItem('loan')
-        .title('Loans / Bruikleen')
-        .child(
-          S.documentTypeList('loan')
-            .title('Loans / Bruikleen')
-            .defaultOrdering([{ field: 'startDate', direction: 'desc' }])
-        ),
-      S.documentTypeListItem('location').title('Locations'),
 
       // ── TRADE ────────────────────────────────────────────────────────────
       S.divider().title('TRADE'),
