@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
     }
 
     const torchToken = process.env.TORCH_WRITE_TOKEN
-    const mnsdkToken = process.env.SANITY_API_WRITE_TOKEN
+    const mnsdkToken = process.env.SANITY_WRITE_TOKEN ?? process.env.SANITY_API_WRITE_TOKEN
     if (!torchToken) {
       return NextResponse.json({ error: 'TORCH_WRITE_TOKEN not configured' }, { status: 500 })
     }

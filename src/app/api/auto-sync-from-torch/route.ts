@@ -38,7 +38,7 @@ async function run(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const mnsdkToken = process.env.SANITY_API_WRITE_TOKEN
+  const mnsdkToken = process.env.SANITY_WRITE_TOKEN ?? process.env.SANITY_API_WRITE_TOKEN
   const torchToken = process.env.TORCH_WRITE_TOKEN
   if (!torchToken) {
     return NextResponse.json({ error: 'TORCH_WRITE_TOKEN not configured' }, { status: 500 })
