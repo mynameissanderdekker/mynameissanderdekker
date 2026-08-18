@@ -12,70 +12,32 @@ export const artwork = defineType({
   title: 'Artwork',
   type: 'document',
   groups: [
-    { name: 'info',       title: 'Info',            default: true },
-    { name: 'edition',    title: 'Edition & Sales' },
-    { name: 'context',    title: 'Context' },
-    { name: 'logistics',  title: 'Logistics' },
-    { name: 'visibility', title: 'Webshop' },
+    { name: 'basis',     title: 'Basis',     default: true },
+    { name: 'details',   title: 'Details'                  },
+    { name: 'gallery',   title: 'Gallery'                  },
+    { name: 'logistics', title: 'Logistics'                },
+    { name: 'webshop',   title: 'Webshop'                  },
   ],
   fieldsets: [
-    { name: 'titleYear',   title: 'Title & year',   options: { columns: 2 } },
-    { name: 'editionNums', title: 'Edition numbers', options: { columns: 2 } },
-    { name: 'priceLine',   title: 'Price in Euro',   options: { columns: 2 } },
+    { name: 'titleYear',   title: 'Title & year',     options: { columns: 2 } },
+    { name: 'editionNums', title: 'Edition numbers',  options: { columns: 2 } },
+    { name: 'priceLine',   title: 'Price in Euro',    options: { columns: 2 } },
   ],
   fields: [
-    // ── Info ──────────────────────────────────────────────────────────────────
+    // ── Basis ─────────────────────────────────────────────────────────────────
     defineField({
       name: 'title',
       title: 'Title',
       type: 'string',
-      group: 'info',
+      group: 'basis',
       fieldset: 'titleYear',
       validation: (r) => r.required(),
-    }),
-    defineField({
-      name: 'slug',
-      title: 'Slug (URL)',
-      type: 'slug',
-      group: 'info',
-      options: { source: 'title' },
-      validation: (r) => r.required(),
-    }),
-    // ── Artist & edition type ─────────────────────────────────────────────────
-    defineField({
-      name: 'artist',
-      title: 'Artist',
-      type: 'string',
-      group: 'info',
-      initialValue: 'Sander Dekker',
-      description: 'Creator of this work — used for export to galleries',
-    }),
-    defineField({
-      name: 'editionType',
-      title: 'Edition type',
-      type: 'string',
-      group: 'info',
-      options: {
-        list: [
-          { title: 'Unique', value: 'unique' },
-          { title: 'Edition', value: 'edition' },
-        ],
-        layout: 'radio',
-      },
-      initialValue: 'unique',
-    }),
-    defineField({
-      name: 'category',
-      title: 'Category',
-      type: 'string',
-      group: 'info',
-      components: { input: CategoryInput },
     }),
     defineField({
       name: 'year',
       title: 'Year',
       type: 'number',
-      group: 'info',
+      group: 'basis',
       fieldset: 'titleYear',
       validation: (r) => r.required().min(1900).max(2100),
     }),
@@ -83,14 +45,14 @@ export const artwork = defineType({
       name: 'medium',
       title: 'Medium',
       type: 'string',
-      group: 'info',
+      group: 'basis',
       description: 'E.g. "Lambda print on dibond, framed"',
     }),
     defineField({
       name: 'dimensions',
       title: 'Dimensions (cm)',
       type: 'object',
-      group: 'info',
+      group: 'basis',
       components: { input: CompactDimensions },
       fields: [
         defineField({ name: 'widthCm',  title: 'Width',  type: 'number' }),
@@ -102,81 +64,36 @@ export const artwork = defineType({
       name: 'dimensionsExclFrame',
       title: 'Excl. frame',
       type: 'boolean',
-      group: 'info',
+      group: 'basis',
       description: 'Show "excl. frame" after the dimensions on the product page.',
       initialValue: false,
     }),
     defineField({
-      name: 'qrCode',
-      title: 'QR Code',
+      name: 'category',
+      title: 'Category',
       type: 'string',
-      group: 'info',
-      readOnly: true,
-      components: { field: ArtworkQRCode },
+      group: 'basis',
+      components: { input: CategoryInput },
     }),
     defineField({
-      name: 'isbn',
-      title: 'ISBN',
+      name: 'editionType',
+      title: 'Edition type',
       type: 'string',
-      group: 'info',
-      description: 'For books/publications only — e.g. 978-90-123456-7-8',
-      hidden: ({ document }) => {
-        const cat = ((document?.category as string) ?? '').toLowerCase()
-        return !cat.includes('book') && !cat.includes('publicat')
+      group: 'basis',
+      options: {
+        list: [
+          { title: 'Unique', value: 'unique' },
+          { title: 'Edition', value: 'edition' },
+        ],
+        layout: 'radio',
       },
+      initialValue: 'unique',
     }),
-    defineField({
-      name: 'weightKg',
-      title: 'Weight (kg)',
-      type: 'number',
-      group: 'info',
-      description: 'Used for shipping cost calculation',
-    }),
-    defineField({
-      name: 'coaPanel',
-      title: 'Certificate of Authenticity',
-      type: 'string',
-      group: 'info',
-      readOnly: true,
-      components: { field: ArtworkCoA },
-    }),
-    defineField({
-      name: 'description',
-      title: 'Description',
-      type: 'array',
-      group: 'info',
-      of: [{ type: 'block' }],
-    }),
-    defineField({
-      name: 'images',
-      title: 'Images',
-      type: 'array',
-      group: 'info',
-      of: [{ type: 'image', options: { hotspot: true } }],
-      description: 'First image = main photo',
-    }),
-    defineField({
-      name: 'coverImageUrl',
-      title: 'Cover image URL (fallback)',
-      type: 'url',
-      group: 'info',
-      description: 'External URL — used as cover when no Sanity image is uploaded yet',
-    }),
-    defineField({
-      name: 'metaDescription',
-      title: 'Meta description',
-      type: 'string',
-      group: 'info',
-      description: 'Short description for Google and social sharing (max. 160 characters).',
-      validation: (r) => r.max(160),
-    }),
-
-    // ── Edition & Sales ───────────────────────────────────────────────────────
     defineField({
       name: 'editionTotal',
       title: 'Edition total',
       type: 'number',
-      group: 'edition',
+      group: 'basis',
       fieldset: 'editionNums',
       description: 'E.g. 7 (for an edition of 7 + 2 AP)',
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -186,7 +103,7 @@ export const artwork = defineType({
       name: 'editionAP',
       title: 'Artist Proofs (AP)',
       type: 'number',
-      group: 'edition',
+      group: 'basis',
       fieldset: 'editionNums',
       description: 'E.g. 2',
       initialValue: 0,
@@ -194,17 +111,34 @@ export const artwork = defineType({
       hidden: ({ document }: any) => document?.editionType !== 'edition',
     }),
     defineField({
+      name: 'editionNumber',
+      title: 'Edition number',
+      type: 'string',
+      group: 'basis',
+      description: 'Specific copy — e.g. "3/7"',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      hidden: ({ document }: any) => document?.editionType !== 'edition',
+    }),
+    defineField({
+      name: 'images',
+      title: 'Images',
+      type: 'array',
+      group: 'basis',
+      of: [{ type: 'image', options: { hotspot: true } }],
+      description: 'First image = main photo',
+    }),
+    defineField({
       name: 'priceIncVat',
       title: 'Price (incl. BTW)',
       type: 'number',
-      group: 'edition',
+      group: 'basis',
       fieldset: 'priceLine',
     }),
     defineField({
       name: 'vatRate',
       title: 'BTW rate',
       type: 'string',
-      group: 'edition',
+      group: 'basis',
       fieldset: 'priceLine',
       options: {
         list: [
@@ -216,17 +150,77 @@ export const artwork = defineType({
       initialValue: '9',
     }),
     defineField({
-      name: 'priceExclVAT',
-      title: 'Price excl. BTW [legacy — do not use]',
+      name: 'description',
+      title: 'Description',
+      type: 'array',
+      group: 'basis',
+      of: [{ type: 'block' }],
+    }),
+    defineField({
+      name: 'status',
+      title: 'Status',
+      type: 'string',
+      group: 'basis',
+      options: {
+        list: [
+          { title: 'Available', value: 'available' },
+          { title: 'Sold Out', value: 'sold_out' },
+          { title: 'On Loan', value: 'on_loan' },
+          { title: 'Not for Sale', value: 'not_for_sale' },
+          { title: 'Enquire', value: 'enquire' },
+        ],
+        layout: 'radio',
+      },
+      initialValue: 'enquire',
+    }),
+
+    // ── Details ───────────────────────────────────────────────────────────────
+    defineField({
+      name: 'slug',
+      title: 'Slug (URL)',
+      type: 'slug',
+      group: 'details',
+      options: { source: 'title' },
+      validation: (r) => r.required(),
+    }),
+    defineField({
+      name: 'weightKg',
+      title: 'Weight (kg)',
       type: 'number',
-      group: 'edition',
-      hidden: true,
+      group: 'details',
+      description: 'Used for shipping cost calculation',
+    }),
+    defineField({
+      name: 'isbn',
+      title: 'ISBN',
+      type: 'string',
+      group: 'details',
+      description: 'For books/publications only — e.g. 978-90-123456-7-8',
+      hidden: ({ document }) => {
+        const cat = ((document?.category as string) ?? '').toLowerCase()
+        return !cat.includes('book') && !cat.includes('publicat')
+      },
+    }),
+    defineField({
+      name: 'coverImageUrl',
+      title: 'Cover image URL (fallback)',
+      type: 'url',
+      group: 'details',
+      description: 'External URL — used as cover when no Sanity image is uploaded yet',
+    }),
+    defineField({
+      name: 'metaDescription',
+      title: 'Meta description',
+      type: 'string',
+      group: 'details',
+      description: 'Short description for Google and social sharing (max. 160 characters).',
+      validation: (r) => r.max(160),
     }),
     defineField({
       name: 'options',
       title: 'Purchase options (variants)',
       type: 'array',
-      group: 'edition',
+      group: 'details',
       description: 'Optional — use when this artwork is sold in multiple variants (e.g. "1 roll" vs "2 rolls"), each with its own price. When set, these replace the single price above on the site and the buyer picks one before buying.',
       of: [
         defineField({
@@ -273,51 +267,42 @@ export const artwork = defineType({
       ],
     }),
     defineField({
-      name: 'status',
-      title: 'Status',
-      type: 'string',
-      group: 'edition',
-      options: {
-        list: [
-          { title: 'Available', value: 'available' },
-          { title: 'Sold Out', value: 'sold_out' },
-          { title: 'On Loan', value: 'on_loan' },
-          { title: 'Not for Sale', value: 'not_for_sale' },
-          { title: 'Enquire', value: 'enquire' },
-        ],
-        layout: 'radio',
-      },
-      initialValue: 'enquire',
-    }),
-    defineField({
-      name: 'additionalStatusInfo',
-      title: 'Additional status info (private)',
-      type: 'string',
-      group: 'edition',
-      description: 'E.g. "Sold to museum X" — never visible on the site',
-    }),
-    defineField({
-      name: 'buyers',
-      title: 'Buyers',
-      type: 'string',
-      group: 'edition',
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      components: { input: ArtworkBuyers as any },
+      name: 'priceExclVAT',
+      title: 'Price excl. BTW [legacy — do not use]',
+      type: 'number',
+      group: 'details',
+      hidden: true,
     }),
 
-    // ── Context ───────────────────────────────────────────────────────────────
+    // ── Gallery ───────────────────────────────────────────────────────────────
+    defineField({
+      name: 'coaPanel',
+      title: 'Certificate of Authenticity',
+      type: 'string',
+      group: 'gallery',
+      readOnly: true,
+      components: { field: ArtworkCoA },
+    }),
+    defineField({
+      name: 'qrCode',
+      title: 'QR Code',
+      type: 'string',
+      group: 'gallery',
+      readOnly: true,
+      components: { field: ArtworkQRCode },
+    }),
     defineField({
       name: 'exhibitions',
       title: 'Exhibitions',
       type: 'array',
-      group: 'context',
+      group: 'gallery',
       of: [{ type: 'reference', to: [{ type: 'exhibition' }] }],
     }),
     defineField({
       name: 'artFairs',
       title: 'Art Fairs',
       type: 'array',
-      group: 'context',
+      group: 'gallery',
       of: [{ type: 'reference', to: [{ type: 'artFair' }] }],
     }),
 
@@ -343,13 +328,28 @@ export const artwork = defineType({
       group: 'logistics',
       description: 'Optional detail, e.g. "Room 3, east wall" or "Crate B-12"',
     }),
+    defineField({
+      name: 'additionalStatusInfo',
+      title: 'Additional status info (private)',
+      type: 'string',
+      group: 'logistics',
+      description: 'E.g. "Sold to museum X" — never visible on the site',
+    }),
+    defineField({
+      name: 'buyers',
+      title: 'Buyers',
+      type: 'string',
+      group: 'logistics',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      components: { input: ArtworkBuyers as any },
+    }),
 
     // ── Webshop ───────────────────────────────────────────────────────────────
     defineField({
       name: 'showInWebshop',
       title: 'Sell in webshop',
       type: 'boolean',
-      group: 'visibility',
+      group: 'webshop',
       description: 'On = "Buy" button (shopping cart). Off = "Enquire" button (contact form).',
       initialValue: false,
     }),
@@ -357,29 +357,15 @@ export const artwork = defineType({
       name: 'showViewInRoom',
       title: 'View on wall',
       type: 'boolean',
-      group: 'visibility',
+      group: 'webshop',
       description: 'Show the "View on wall" button on the artwork page.',
       initialValue: false,
-    }),
-    defineField({
-      name: 'featured',
-      title: 'Featured (in webshop)',
-      type: 'boolean',
-      group: 'visibility',
-      initialValue: false,
-    }),
-    defineField({
-      name: 'order',
-      title: 'Sort order (in webshop)',
-      type: 'number',
-      group: 'visibility',
-      description: 'Lower number = higher in the section. Leave empty to fall back to year.',
     }),
     defineField({
       name: 'roomImage',
       title: 'View on wall — cutout',
       type: 'image',
-      group: 'visibility',
+      group: 'webshop',
       description: 'Upload a PNG (transparent background) or JPG (tightly cropped, no empty space outside the edges) of the work incl. frame and passe-partout.',
       options: { accept: 'image/png,image/jpeg' },
     }),
@@ -387,7 +373,7 @@ export const artwork = defineType({
       name: 'framedDimensions',
       title: 'Framed dimensions (cm)',
       type: 'object',
-      group: 'visibility',
+      group: 'webshop',
       description: 'For "View on wall" — outer size incl. frame and passe-partout.',
       components: { input: CompactDimensions },
       fields: [
@@ -395,10 +381,24 @@ export const artwork = defineType({
       ],
     }),
     defineField({
+      name: 'featured',
+      title: 'Featured (in webshop)',
+      type: 'boolean',
+      group: 'webshop',
+      initialValue: false,
+    }),
+    defineField({
+      name: 'order',
+      title: 'Sort order (in webshop)',
+      type: 'number',
+      group: 'webshop',
+      description: 'Lower number = higher in the section. Leave empty to fall back to year.',
+    }),
+    defineField({
       name: 'buyUrl',
       title: 'Buy link',
       type: 'url',
-      group: 'visibility',
+      group: 'webshop',
       description: 'Direct payment link (Mollie, Stripe, etc.) — shown as "Buy" button when status is "Available"',
     }),
   ],
@@ -428,14 +428,12 @@ export const artwork = defineType({
       }
       const edition = editionTotal ? ` — Ed. ${editionTotal}` : ''
 
-      // Pick first image's asset ref from array (guaranteed to work — no array path resolution)
       const assetRef: string | undefined = Array.isArray(images) && images.length > 0
         ? images[0]?.asset?._ref
         : undefined
 
       let imageUrl: string | undefined
       if (assetRef) {
-        // Convert "image-{hash}-{dims}-{ext}" → "{hash}-{dims}.{ext}"
         const filename = assetRef.replace(/^image-/, '').replace(/-([a-z0-9]+)$/i, '.$1')
         imageUrl = `https://cdn.sanity.io/images/u11u127q/production/${filename}?w=80&h=80&fit=crop`
       } else if (coverImageUrl) {
