@@ -75,6 +75,26 @@ function artworkListItem(S: StructureBuilder, categories: string[]) {
             ),
           S.divider(),
           S.listItem()
+            .title('↔ Synced with Torch')
+            .id('artwork-synced-torch')
+            .child(
+              S.documentTypeList('artwork')
+                .title('↔ Synced with Torch')
+                .filter('_type == "artwork" && defined(torchId)')
+                .defaultOrdering([{ field: 'year', direction: 'desc' }])
+            ),
+          S.listItem()
+            .title('○ Not in Torch')
+            .id('artwork-not-in-torch')
+            .child(
+              S.documentTypeList('artwork')
+                .title('○ Not in Torch')
+                .filter('_type == "artwork" && !defined(torchId) && !(category in $pubCats)')
+                .params({ pubCats: PUBLICATION_CATEGORIES })
+                .defaultOrdering([{ field: 'year', direction: 'desc' }])
+            ),
+          S.divider(),
+          S.listItem()
             .title('In webshop')
             .id('artwork-in-webshop')
             .child(

@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
       token: torchToken,
     })
 
-    // ── Fetch artworks from MNSDK ──────────────────────────────────────────────
+    // ── Fetch artworks from MNSDK (incl. sold count from buyer contacts) ─────────
     const artworks = await mnsdkClient.fetch(
       `*[_type == "artwork" && _id in $ids] {
         _id, title, year, medium,
@@ -82,6 +82,7 @@ export async function POST(req: NextRequest) {
         editionType, editionTotal, editionAP, editionNumber,
         "images": images[] { "url": asset->url },
         priceIncVat, vatRate,
+        "mnsdkSoldCount": count(*[_type == "contact" && ^._id in purchases[].artwork._ref][].purchases[artwork._ref == ^._id]),
         description,
         status
       }`,
@@ -140,8 +141,12 @@ export async function POST(req: NextRequest) {
         priceExVat:  artwork.priceIncVat, // MNSDK stores incl. VAT; gallery can adjust
         vatRate:     artwork.vatRate,
         description: artwork.description,
+        mnsdkSoldCount: (artwork as { mnsdkSoldCount?: number }).mnsdkSoldCount ?? 0,
         notes: [
           artwork.status ? `Status op MNSDK: ${artwork.status}` : null,
+          (artwork as { mnsdkSoldCount?: number }).mnsdkSoldCount
+            ? `Al verkocht door kunstenaar: ${(artwork as { mnsdkSoldCount?: number }).mnsdkSoldCount} ex.`
+            : null,
           `MNSDK ID: ${artwork._id}`,
         ].filter(Boolean).join('\n'),
         images: images.length > 0 ? images : undefined,
@@ -157,10 +162,13 @@ export async function POST(req: NextRequest) {
       ? `Sander Dekker — ${works[0].title ?? 'Artwork'} (${dateStr})`
       : `Sander Dekker — ${works.length} werken (${dateStr})`
 
+    const submissionToken = crypto.randomUUID().replace(/-/g, '')
+
     const submission = await torchClient.create({
       _type: 'artistSubmission',
       title: submissionTitle,
       status: 'submitted',
+      token: submissionToken,
       ...(torchArtist?._id ? { artist: { _type: 'reference', _ref: torchArtist._id } } : {}),
       works,
     })

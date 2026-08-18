@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/auto-sync-from-torch",
+      "schedule": "0 3 * * *"
+    }
+  ]
+}

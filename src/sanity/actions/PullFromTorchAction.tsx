@@ -105,7 +105,10 @@ export function PullFromTorchAction(props: DocumentActionProps) {
       const sanityToken = (client as any).config?.()?.token ?? ''
       const res  = await fetch('/api/pull-from-torch', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-sanity-token': sanityToken },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-sanity-token': sanityToken,
+        },
         body: JSON.stringify({ torchId }),
       })
       const json = await res.json()
@@ -125,7 +128,10 @@ export function PullFromTorchAction(props: DocumentActionProps) {
       const sanityToken = (client as any).config?.()?.token ?? ''
       const res = await fetch('/api/sync-to-torch', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'x-sanity-token': sanityToken },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-sanity-token': sanityToken,
+        },
         body: JSON.stringify({ artworkId: id, patch: { status: data.artwork.status } }),
       })
       const json = await res.json()

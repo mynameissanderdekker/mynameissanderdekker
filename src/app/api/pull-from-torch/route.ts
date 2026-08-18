@@ -108,7 +108,7 @@ export async function POST(req: NextRequest) {
         buyers: result.buyers,
         soldCount,
         available: result.artwork?.editionTotal != null
-          ? Math.max(0, result.artwork.editionTotal - soldCount)
+          ? Math.max(0, result.artwork.editionTotal - soldCount - (result.artwork.mnsdkSoldCount ?? 0))
           : null,
       })
     }
@@ -134,7 +134,7 @@ export async function POST(req: NextRequest) {
   const result = await torchClient.fetch(
     `{
       "artwork": *[_type == "artwork" && _id == $id][0]{
-        _id, title, status, editionType, editionTotal, editionAP, priceIncVat, vatRate
+        _id, title, status, editionType, editionTotal, editionAP, mnsdkSoldCount, priceIncVat, vatRate
       },
       "buyers": *[_type == "contact" && $id in purchases[].artwork._ref]{
         firstName, lastName, email,
@@ -159,7 +159,7 @@ export async function POST(req: NextRequest) {
     buyers: result.buyers,
     soldCount,
     available: result.artwork.editionTotal != null
-      ? Math.max(0, result.artwork.editionTotal - soldCount)
+      ? Math.max(0, result.artwork.editionTotal - soldCount - (result.artwork.mnsdkSoldCount ?? 0))
       : null,
   })
 }

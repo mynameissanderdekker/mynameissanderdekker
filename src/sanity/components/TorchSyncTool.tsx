@@ -134,7 +134,6 @@ export function TorchSyncTool() {
         headers: {
           'Content-Type': 'application/json',
           'x-sanity-token': sanityToken,
-          'x-studio-key': process.env.NEXT_PUBLIC_STUDIO_SYNC_KEY ?? '',
         },
         body: JSON.stringify({ artworkIds: ids }),
       })

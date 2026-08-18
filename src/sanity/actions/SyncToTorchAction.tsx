@@ -30,8 +30,11 @@ export function SyncToTorchAction(props: DocumentActionProps) {
         const sanityToken = (client as any).config?.()?.token ?? ''
         const res = await fetch('/api/sync-to-torch', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'x-sanity-token': sanityToken },
-          body: JSON.stringify({ artworkId: id }),
+          headers: {
+            'Content-Type': 'application/json',
+            'x-sanity-token': sanityToken,
+          },
+          body: JSON.stringify({ artworkIds: [id] }),
         })
         const data = await res.json()
         if (data.success) {

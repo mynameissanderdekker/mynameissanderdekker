@@ -282,6 +282,15 @@ export const artwork = defineType({
       description: 'Set automatically after syncing to Torch Gallery (do not edit manually)',
       readOnly: true,
     }),
+    defineField({
+      name: 'torchSoldCount',
+      title: 'Verkocht via Torch',
+      type: 'number',
+      group: 'details',
+      hidden: true,
+      description: 'Automatisch bijgewerkt — aantal via de gallery verkochte exemplaren',
+      readOnly: true,
+    }),
 
     // ── Gallery ───────────────────────────────────────────────────────────────
     defineField({
