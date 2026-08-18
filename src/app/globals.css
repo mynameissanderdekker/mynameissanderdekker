@@ -949,6 +949,21 @@ strong { font-weight: var(--weight-bold); }
   margin: 10px 0 2px;
 }
 
+.works-grid-medium {
+  font-size: 12px;
+  color: #666;
+  margin: 2px 0 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.works-grid-meta {
+  font-size: 12px;
+  color: #999;
+  margin: 1px 0 0;
+}
+
 .works-grid-year {
   font-size: 13px;
   color: #999;

@@ -74,6 +74,8 @@ interface ArtworkCard {
   order?: number
   _type?: string
   buyUrl?: string
+  medium?: string
+  dimensions?: { widthCm?: number; heightCm?: number }
 }
 
 interface SectionConfig {
@@ -103,7 +105,8 @@ async function getWorksData(): Promise<{ config: WorksPageConfig | null; works: 
       `*[_type == "artwork" && defined(slug.current) && showInWebshop == true] | order(featured desc, order asc, year desc){
         _id, _type, title, year, slug, order,
         "mainImage": { "url": coalesce(images[0].asset->url, coverImageUrl) },
-        priceExclVAT, vatRate, status, category, featured, buyUrl
+        priceExclVAT, vatRate, status, category, featured, buyUrl,
+        medium, dimensions
       }`,
       {},
       { next: { revalidate: 0 } },
@@ -197,6 +200,19 @@ function WorkCard({ w }: { w: ArtworkCard }) {
       <h3 className="works-grid-title">
         {w.title}{isZine && <span style={{ color: '#999', fontStyle: 'normal' }}> (click to read)</span>}
       </h3>
+      {w.medium && (
+        <p className="works-grid-medium">{w.medium}</p>
+      )}
+      {(w.year || w.dimensions) && (
+        <p className="works-grid-meta">
+          {[
+            w.year,
+            w.dimensions?.widthCm && w.dimensions?.heightCm
+              ? `${w.dimensions.widthCm} × ${w.dimensions.heightCm} cm`
+              : null,
+          ].filter(Boolean).join(' · ')}
+        </p>
+      )}
       {price && <p className="works-price">{price}</p>}
     </Link>
   )

@@ -14,6 +14,8 @@ interface ArtworkCard {
   status?: string
   category?: string
   featured?: boolean
+  medium?: string
+  dimensions?: { widthCm?: number; heightCm?: number }
 }
 
 function formatPrice(excl: number, vatRate = 9) {
@@ -38,6 +40,19 @@ function WorkCard({ w, columns }: { w: ArtworkCard; columns: number }) {
         {soldOut && <span className="works-badge works-badge-sold">SOLD OUT</span>}
       </div>
       <h3 className="works-grid-title">{w.title}</h3>
+      {w.medium && (
+        <p className="works-grid-medium">{w.medium}</p>
+      )}
+      {(w.year || w.dimensions) && (
+        <p className="works-grid-meta">
+          {[
+            w.year,
+            w.dimensions?.widthCm && w.dimensions?.heightCm
+              ? `${w.dimensions.widthCm} × ${w.dimensions.heightCm} cm`
+              : null,
+          ].filter(Boolean).join(' · ')}
+        </p>
+      )}
       {price && <p className="works-price">{price}</p>}
     </>
   )
