@@ -113,7 +113,7 @@ export function TorchSyncTool() {
     setSelected(new Set(visible.filter(a => !a.torchId).map(a => a._id)))
   }
 
-  // ── Sync ──────────────────────────────────────────────────────────────────
+  // ── Sync — one batch POST → one artistSubmission in Torch ────────────────
 
   async function syncSelected() {
     if (selected.size === 0 || isSyncing) return
@@ -123,27 +123,43 @@ export function TorchSyncTool() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const sanityToken = (client as any).config?.()?.token ?? ''
 
-    for (const artworkId of ids) {
-      setSyncState(prev => ({ ...prev, [artworkId]: 'sending' }))
-      try {
-        const res = await fetch('/api/sync-to-torch', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'x-sanity-token': sanityToken },
-          body: JSON.stringify({ artworkId }),
-        })
-        const data = await res.json()
-        if (data.success) {
-          setSyncState(prev => ({ ...prev, [artworkId]: 'ok' }))
-          // Update local list with new torchId
-          setArtworks(prev => prev.map(a =>
-            a._id === artworkId ? { ...a, torchId: data.torchId } : a
-          ))
-        } else {
-          setSyncState(prev => ({ ...prev, [artworkId]: 'error' }))
+    // Mark all as sending
+    const sending: Record<string, SyncState> = {}
+    ids.forEach(id => { sending[id] = 'sending' })
+    setSyncState(prev => ({ ...prev, ...sending }))
+
+    try {
+      const res = await fetch('/api/sync-to-torch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-sanity-token': sanityToken },
+        body: JSON.stringify({ artworkIds: ids }),
+      })
+      const data = await res.json()
+
+      if (data.success) {
+        // Mark all as ok and update torchId in local state
+        const ok: Record<string, SyncState> = {}
+        ids.forEach(id => { ok[id] = 'ok' })
+        setSyncState(prev => ({ ...prev, ...ok }))
+
+        // Update torchId for each artwork from the response mapping
+        if (data.artworks) {
+          setArtworks(prev => prev.map(a => {
+            const match = (data.artworks as Array<{ mnsdkId: string; workKey: string }>)
+              .find(w => w.mnsdkId === a._id)
+            if (match) return { ...a, torchId: `sub:${data.submissionId}:${match.workKey}` }
+            return a
+          }))
         }
-      } catch {
-        setSyncState(prev => ({ ...prev, [artworkId]: 'error' }))
+      } else {
+        const err: Record<string, SyncState> = {}
+        ids.forEach(id => { err[id] = 'error' })
+        setSyncState(prev => ({ ...prev, ...err }))
       }
+    } catch {
+      const err: Record<string, SyncState> = {}
+      ids.forEach(id => { err[id] = 'error' })
+      setSyncState(prev => ({ ...prev, ...err }))
     }
 
     setIsSyncing(false)

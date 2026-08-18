@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@sanity/client'
 
-const TORCH_PROJECT_ID = '53tz2hh0'
-const TORCH_DATASET   = 'production'
-const MNSDK_PROJECT_ID = 'u11u127q'
-const MNSDK_DATASET    = 'production'
+const TORCH_PROJECT_ID  = '53tz2hh0'
+const TORCH_DATASET     = 'production'
+const MNSDK_PROJECT_ID  = 'u11u127q'
+const MNSDK_DATASET     = 'production'
 
-// Auth check — admin cookie or a valid Sanity Studio session token
+// ── Auth ───────────────────────────────────────────────────────────────────────
+
 async function isAuthorized(req: NextRequest): Promise<boolean> {
   const session     = req.cookies.get('admin_session')?.value
   const sanityToken = req.headers.get('x-sanity-token')
@@ -24,146 +25,175 @@ async function isAuthorized(req: NextRequest): Promise<boolean> {
   return false
 }
 
+// ── POST: sync one or more artworks → creates an artistSubmission in Torch ─────
+//
+// Body: { artworkIds: string[] }  (also accepts legacy { artworkId: string })
+//
+// Instead of creating artwork documents directly, this route creates an
+// artistSubmission document. This shows up in Torch's dashboard "Work Submitted
+// by Artists" section so the gallery can review, approve, and link to an expo.
+//
+// torchId stored on MNSDK: "sub:{submissionDocId}:{workKey}"
+// After Torch approves, artworkId is set on the submittedWork and can be pulled.
+
 export async function POST(req: NextRequest) {
   try {
-  if (!(await isAuthorized(req))) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
-  const { artworkId } = await req.json()
-  if (!artworkId) {
-    return NextResponse.json({ error: 'artworkId required' }, { status: 400 })
-  }
-
-  const torchToken = process.env.TORCH_WRITE_TOKEN
-  const mnsdkToken = process.env.SANITY_API_WRITE_TOKEN
-  if (!torchToken) {
-    return NextResponse.json({ error: 'TORCH_WRITE_TOKEN not configured' }, { status: 500 })
-  }
-
-  const mnsdkClient = createClient({
-    projectId: MNSDK_PROJECT_ID,
-    dataset:   MNSDK_DATASET,
-    apiVersion: '2024-01-01',
-    useCdn: false,
-    token: mnsdkToken,
-  })
-
-  const torchClient = createClient({
-    projectId: TORCH_PROJECT_ID,
-    dataset:   TORCH_DATASET,
-    apiVersion: '2024-01-01',
-    useCdn: false,
-    token: torchToken,
-  })
-
-  // ── Fetch artwork from MNSDK ───────────────────────────────────────────────
-  const artwork = await mnsdkClient.fetch(
-    `*[_type == "artwork" && _id == $id][0] {
-      _id, title, year, medium,
-      dimensions { widthCm, heightCm, depthCm },
-      category,
-      editionType, editionTotal, editionAP, editionNumber,
-      "images": images[] { "url": asset->url, "mimeType": asset->mimeType },
-      priceIncVat, vatRate,
-      description,
-      status,
-      showInWebshop,
-      featured,
-      "slugCurrent": slug.current,
-      torchId
-    }`,
-    { id: artworkId }
-  )
-
-  if (!artwork) {
-    return NextResponse.json({ error: 'Artwork not found in MNSDK' }, { status: 404 })
-  }
-
-  // ── Find Sander Dekker artist in Torch ─────────────────────────────────────
-  const torchArtist = await torchClient.fetch<{ _id: string } | null>(
-    `*[_type == "artist" && lower(name) match "sander*"][0] { _id }`
-  )
-
-  // ── Copy images to Torch ───────────────────────────────────────────────────
-  const torchImages: Array<{ _type: string; _key: string; asset: { _type: string; _ref: string } }> = []
-
-  for (const img of (artwork.images ?? [])) {
-    if (!img.url) continue
-    try {
-      const res = await fetch(img.url)
-      if (!res.ok) continue
-      const buffer = Buffer.from(await res.arrayBuffer())
-      const contentType = img.mimeType || res.headers.get('content-type') || 'image/jpeg'
-      const uploaded = await torchClient.assets.upload('image', buffer, { contentType })
-      torchImages.push({
-        _type: 'image',
-        _key:  crypto.randomUUID().replace(/-/g, '').slice(0, 12),
-        asset: { _type: 'reference', _ref: uploaded._id },
-      })
-    } catch (err) {
-      console.error('Failed to copy image:', err)
+    if (!(await isAuthorized(req))) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-  }
 
-  // ── Build Torch artwork payload ────────────────────────────────────────────
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const payload: { _type: string; [key: string]: any } = {
-    _type: 'artwork',
-    title:       artwork.title,
-    year:        artwork.year != null ? String(artwork.year) : undefined,
-    medium:      artwork.medium,
-    widthCm:     artwork.dimensions?.widthCm,
-    heightCm:    artwork.dimensions?.heightCm,
-    depthCm:     artwork.dimensions?.depthCm,
-    category:    artwork.category,
-    editionType:   artwork.editionType,
-    editionTotal:  artwork.editionTotal,
-    editionAP:     artwork.editionAP,
-    editionNumber: artwork.editionNumber,
-    images:        torchImages.length > 0 ? torchImages : undefined,
-    priceIncVat:   artwork.priceIncVat,
-    vatRate:       artwork.vatRate,
-    description:   artwork.description,
-    status:        artwork.status,
-    availableInShop: artwork.showInWebshop ?? false,
-    shopFeatured:    artwork.featured ?? false,
-  }
+    const body = await req.json()
+    // Support single artworkId (legacy) and array of artworkIds (bulk)
+    const artworkIds: string[] = body.artworkIds
+      ?? (body.artworkId ? [body.artworkId] : [])
 
-  if (artwork.slugCurrent) {
-    payload.slug = { _type: 'slug', current: artwork.slugCurrent }
-  }
-  if (torchArtist?._id) {
-    payload.artist = { _type: 'reference', _ref: torchArtist._id }
-  }
+    if (artworkIds.length === 0) {
+      return NextResponse.json({ error: 'artworkIds required' }, { status: 400 })
+    }
 
-  // Remove undefined fields
-  for (const key of Object.keys(payload)) {
-    if (payload[key] === undefined) delete payload[key]
-  }
+    const torchToken = process.env.TORCH_WRITE_TOKEN
+    const mnsdkToken = process.env.SANITY_API_WRITE_TOKEN
+    if (!torchToken) {
+      return NextResponse.json({ error: 'TORCH_WRITE_TOKEN not configured' }, { status: 500 })
+    }
 
-  // ── Create or update in Torch ──────────────────────────────────────────────
-  let torchId = artwork.torchId as string | undefined
-  let result
+    const mnsdkClient = createClient({
+      projectId: MNSDK_PROJECT_ID,
+      dataset:   MNSDK_DATASET,
+      apiVersion: '2024-01-01',
+      useCdn: false,
+      token: mnsdkToken,
+    })
 
-  if (torchId) {
-    result = await torchClient.patch(torchId).set(payload).commit()
-  } else {
-    result = await torchClient.create(payload)
-    torchId = result._id
+    const torchClient = createClient({
+      projectId: TORCH_PROJECT_ID,
+      dataset:   TORCH_DATASET,
+      apiVersion: '2024-01-01',
+      useCdn: false,
+      token: torchToken,
+    })
 
-    // Write torchId back into MNSDK so future syncs update instead of duplicate
-    await mnsdkClient.patch(artworkId).set({ torchId }).commit()
-  }
+    // ── Fetch artworks from MNSDK ──────────────────────────────────────────────
+    const artworks = await mnsdkClient.fetch(
+      `*[_type == "artwork" && _id in $ids] {
+        _id, title, year, medium,
+        dimensions { widthCm, heightCm, depthCm },
+        category,
+        editionType, editionTotal, editionAP, editionNumber,
+        "images": images[] { "url": asset->url },
+        priceIncVat, vatRate,
+        description,
+        status
+      }`,
+      { ids: artworkIds }
+    )
 
-  return NextResponse.json({ success: true, torchId })
+    if (!artworks || artworks.length === 0) {
+      return NextResponse.json({ error: 'No artworks found in MNSDK' }, { status: 404 })
+    }
+
+    // ── Find Sander Dekker in Torch ────────────────────────────────────────────
+    const torchArtist = await torchClient.fetch<{ _id: string } | null>(
+      `*[_type == "artist" && lower(name) match "sander*"][0] { _id }`
+    )
+
+    // ── Build submittedWork entries ────────────────────────────────────────────
+    type WorkEntry = {
+      _type: string
+      _key: string
+      mnsdkId: string
+      [key: string]: unknown
+    }
+
+    const works: WorkEntry[] = artworks.map((artwork: {
+      _id: string; title?: string; year?: number; medium?: string;
+      dimensions?: { widthCm?: number; heightCm?: number; depthCm?: number };
+      category?: string; editionType?: string; editionTotal?: number;
+      editionAP?: number; priceIncVat?: number; vatRate?: string;
+      description?: string; status?: string;
+      images?: Array<{ url?: string }>;
+    }) => {
+      const key = crypto.randomUUID().replace(/-/g, '').slice(0, 12)
+      const images = (artwork.images ?? [])
+        .filter(img => img.url)
+        .map((img, i) => ({
+          _type: 'submittedImage',
+          _key: `img${i}`,
+          url: img.url,
+          filename: (img.url ?? '').split('/').pop() ?? `image-${i}`,
+        }))
+
+      return {
+        _type: 'submittedWork',
+        _key: key,
+        mnsdkId: artwork._id,
+        title:       artwork.title,
+        year:        artwork.year != null ? String(artwork.year) : undefined,
+        medium:      artwork.medium,
+        widthCm:     artwork.dimensions?.widthCm,
+        heightCm:    artwork.dimensions?.heightCm,
+        depthCm:     artwork.dimensions?.depthCm,
+        category:    artwork.category,
+        editionType: artwork.editionType,
+        editionTotal: artwork.editionTotal,
+        editionAP:   artwork.editionAP,
+        priceExVat:  artwork.priceIncVat, // MNSDK stores incl. VAT; gallery can adjust
+        vatRate:     artwork.vatRate,
+        description: artwork.description,
+        notes: [
+          artwork.status ? `Status op MNSDK: ${artwork.status}` : null,
+          `MNSDK ID: ${artwork._id}`,
+        ].filter(Boolean).join('\n'),
+        images: images.length > 0 ? images : undefined,
+        status: 'pending',
+      }
+    })
+
+    // ── Create artistSubmission in Torch ───────────────────────────────────────
+    const dateStr = new Date().toLocaleDateString('nl-NL', {
+      day: 'numeric', month: 'long', year: 'numeric'
+    })
+    const submissionTitle = works.length === 1
+      ? `Sander Dekker — ${works[0].title ?? 'Artwork'} (${dateStr})`
+      : `Sander Dekker — ${works.length} werken (${dateStr})`
+
+    const submission = await torchClient.create({
+      _type: 'artistSubmission',
+      title: submissionTitle,
+      status: 'submitted',
+      ...(torchArtist?._id ? { artist: { _type: 'reference', _ref: torchArtist._id } } : {}),
+      works,
+    })
+
+    // ── Write torchId back to each MNSDK artwork ───────────────────────────────
+    // Format: "sub:{submissionDocId}:{workKey}" — allows pull-from-torch to
+    // locate this specific work within the submission.
+    for (const work of works) {
+      await mnsdkClient
+        .patch(work.mnsdkId as string)
+        .set({ torchId: `sub:${submission._id}:${work._key}` })
+        .commit()
+    }
+
+    return NextResponse.json({
+      success: true,
+      submissionId: submission._id,
+      count: works.length,
+      // Return per-artwork mapping so the UI can update local state
+      artworks: works.map(w => ({ mnsdkId: w.mnsdkId, workKey: w._key })),
+    })
+
   } catch (err: unknown) {
     console.error('[sync-to-torch POST]', err)
-    return NextResponse.json({ error: err instanceof Error ? err.message : 'Internal error' }, { status: 500 })
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : 'Internal error' },
+      { status: 500 }
+    )
   }
 }
 
-// ── PATCH: write the status field back to MNSDK (used by Pull action) ─────────
+// ── PATCH: write status back to MNSDK (used by PullFromTorchAction) ───────────
+
 const ARTWORK_STATUS_VALUES = ['available', 'sold_out', 'on_loan', 'not_for_sale', 'enquire']
 
 export async function PATCH(req: NextRequest) {
@@ -176,8 +206,6 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: 'artworkId and patch required' }, { status: 400 })
   }
 
-  // Only the status field may be written back this way — keeps this endpoint
-  // from being usable to overwrite arbitrary fields on arbitrary documents.
   if (!patch.status || !ARTWORK_STATUS_VALUES.includes(patch.status) || Object.keys(patch).length !== 1) {
     return NextResponse.json({ error: 'Only a valid { status } patch is allowed' }, { status: 400 })
   }
@@ -190,7 +218,10 @@ export async function PATCH(req: NextRequest) {
     token: process.env.SANITY_API_WRITE_TOKEN,
   })
 
-  const doc = await mnsdkClient.fetch(`*[_type == "artwork" && _id == $id][0]{ _id }`, { id: artworkId })
+  const doc = await mnsdkClient.fetch(
+    `*[_type == "artwork" && _id == $id][0]{ _id }`,
+    { id: artworkId }
+  )
   if (!doc) {
     return NextResponse.json({ error: 'Artwork not found' }, { status: 404 })
   }

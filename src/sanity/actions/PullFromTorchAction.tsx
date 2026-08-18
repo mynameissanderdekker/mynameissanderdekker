@@ -20,7 +20,15 @@ interface TorchBuyer {
 }
 
 interface TorchResult {
-  artwork: {
+  mode: 'submission' | 'artwork'
+  // submission mode
+  submissionId?: string
+  submissionTitle?: string
+  submissionStatus?: string  // open / submitted / reviewed
+  workStatus?: string        // pending / approved / rejected
+  work?: { title?: string; year?: string; editionType?: string; editionTotal?: number; editionAP?: number }
+  // artwork mode
+  artwork?: {
     _id: string
     title: string
     status: string
@@ -30,9 +38,9 @@ interface TorchResult {
     priceIncVat?: number
     vatRate?: string
   }
-  buyers: TorchBuyer[]
-  soldCount: number
-  available: number | null
+  buyers?: TorchBuyer[]
+  soldCount?: number
+  available?: number | null
 }
 
 // ── Icon ──────────────────────────────────────────────────────────────────────
@@ -111,7 +119,7 @@ export function PullFromTorchAction(props: DocumentActionProps) {
   }
 
   async function applyStatus() {
-    if (!data) return
+    if (!data?.artwork?.status) return
     setApplying(true)
     try {
       const sanityToken = (client as any).config?.()?.token ?? ''
@@ -151,99 +159,136 @@ export function PullFromTorchAction(props: DocumentActionProps) {
       {data && !loading && (
         <Stack space={4}>
 
-          {/* Edition status bar */}
-          {data.artwork.editionType === 'edition' && data.artwork.editionTotal != null && (
-            <Card padding={3} radius={2} tone={data.available === 0 ? 'critical' : 'positive'}>
-              <Flex gap={3} align="center" wrap="wrap">
-                <Text size={2} weight="semibold">
-                  {data.available}/{data.artwork.editionTotal} available in Torch
-                </Text>
-                {data.artwork.editionAP != null && data.artwork.editionAP > 0 && (
-                  <Text muted size={1}>+ {data.artwork.editionAP} AP</Text>
-                )}
-                {data.soldCount > 0 && (
-                  <Badge tone="critical" fontSize={0} padding={2}>
-                    {data.soldCount} sold
-                  </Badge>
-                )}
+          {/* ── Submission pending ──────────────────────────────────────────── */}
+          {data.mode === 'submission' && (
+            <>
+              <Card tone="caution" padding={3} radius={2}>
+                <Stack space={2}>
+                  <Text size={1} weight="semibold">In afwachting van goedkeuring bij Torch</Text>
+                  <Text size={1} muted>
+                    Ingediend als: <em>{data.submissionTitle}</em>
+                  </Text>
+                </Stack>
+              </Card>
+              <Flex align="center" gap={3}>
+                <Text size={1} muted style={{ minWidth: 100 }}>Submission</Text>
+                <Badge tone={data.submissionStatus === 'reviewed' ? 'positive' : 'caution'} fontSize={0} padding={2}>
+                  {data.submissionStatus ?? 'submitted'}
+                </Badge>
               </Flex>
-            </Card>
-          )}
-
-          {/* Status */}
-          <Flex align="center" gap={3}>
-            <Text size={1} muted style={{ minWidth: 80 }}>Status</Text>
-            <Badge tone={STATUS_TONE[data.artwork.status] ?? 'default'} fontSize={0} padding={2}>
-              {STATUS_LABEL[data.artwork.status] ?? data.artwork.status}
-            </Badge>
-          </Flex>
-
-          {/* Buyers table */}
-          {data.buyers.length > 0 ? (
-            <Stack space={2}>
-              <Text size={0} weight="semibold" muted style={{ textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                Buyers at Torch
+              <Flex align="center" gap={3}>
+                <Text size={1} muted style={{ minWidth: 100 }}>Werk status</Text>
+                <Badge
+                  tone={data.workStatus === 'approved' ? 'positive' : data.workStatus === 'rejected' ? 'critical' : 'caution'}
+                  fontSize={0} padding={2}
+                >
+                  {data.workStatus ?? 'pending'}
+                </Badge>
+              </Flex>
+              <Text size={1} muted>
+                Zodra Torch het werk goedkeurt wordt hier de verkoop- en voorraadstatus zichtbaar.
               </Text>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-                <thead>
-                  <tr style={{ borderBottom: '1px solid #e5e5e5', textAlign: 'left' }}>
-                    <th style={{ padding: '4px 8px 6px 0', fontWeight: 600, color: '#555', fontSize: 12 }}>Name</th>
-                    <th style={{ padding: '4px 8px 6px', fontWeight: 600, color: '#555', fontSize: 12 }}>Copy</th>
-                    <th style={{ padding: '4px 8px 6px', fontWeight: 600, color: '#555', fontSize: 12 }}>Via</th>
-                    <th style={{ padding: '4px 0 6px 8px', fontWeight: 600, color: '#555', fontSize: 12, textAlign: 'right' }}>Price</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.buyers.map((b, i) =>
-                    b.purchases.map((p, j) => (
-                      <tr key={`${i}-${j}`} style={{ borderBottom: '1px solid #f4f4f4' }}>
-                        <td style={{ padding: '5px 8px 5px 0', color: '#222', fontSize: 13 }}>
-                          {[b.firstName, b.lastName].filter(Boolean).join(' ') || b.email}
-                        </td>
-                        <td style={{ padding: '5px 8px', color: '#555', fontSize: 13 }}>
-                          {p.copyNumber ?? p.editionNumber ?? '—'}
-                        </td>
-                        <td style={{ padding: '5px 8px', color: '#777', fontSize: 12 }}>
-                          {p.soldVia ? (CHANNEL[p.soldVia] ?? p.soldVia) : '—'}
-                        </td>
-                        <td style={{ padding: '5px 0 5px 8px', color: '#444', fontSize: 13, textAlign: 'right' }}>
-                          {p.price != null
-                            ? `€${p.price.toLocaleString('nl-NL', { minimumFractionDigits: 2 })}`
-                            : '—'}
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </Stack>
-          ) : (
-            <Text muted size={1}>No buyers recorded in Torch yet.</Text>
+            </>
           )}
 
-          {/* Apply status button */}
-          <Box style={{ borderTop: '1px solid #e5e5e5', paddingTop: 16 }}>
-            <Text size={1} muted style={{ marginBottom: 10 }}>
-              Apply Torch status to this artwork on MNSDK:
-            </Text>
-            <button
-              onClick={applyStatus}
-              disabled={applying}
-              style={{
-                padding: '8px 16px',
-                background: '#111',
-                color: '#fff',
-                border: 'none',
-                borderRadius: 4,
-                fontSize: 13,
-                fontWeight: 500,
-                cursor: applying ? 'default' : 'pointer',
-                opacity: applying ? 0.6 : 1,
-              }}
-            >
-              {applying ? 'Applying…' : `Apply "${STATUS_LABEL[data.artwork.status] ?? data.artwork.status}"`}
-            </button>
-          </Box>
+          {/* ── Artwork approved ────────────────────────────────────────────── */}
+          {data.mode === 'artwork' && data.artwork && (
+            <>
+              {/* Edition status bar */}
+              {data.artwork.editionType === 'edition' && data.artwork.editionTotal != null && (
+                <Card padding={3} radius={2} tone={data.available === 0 ? 'critical' : 'positive'}>
+                  <Flex gap={3} align="center" wrap="wrap">
+                    <Text size={2} weight="semibold">
+                      {data.available}/{data.artwork.editionTotal} available in Torch
+                    </Text>
+                    {data.artwork.editionAP != null && data.artwork.editionAP > 0 && (
+                      <Text muted size={1}>+ {data.artwork.editionAP} AP</Text>
+                    )}
+                    {(data.soldCount ?? 0) > 0 && (
+                      <Badge tone="critical" fontSize={0} padding={2}>
+                        {data.soldCount} sold
+                      </Badge>
+                    )}
+                  </Flex>
+                </Card>
+              )}
+
+              {/* Status */}
+              <Flex align="center" gap={3}>
+                <Text size={1} muted style={{ minWidth: 80 }}>Status</Text>
+                <Badge tone={STATUS_TONE[data.artwork.status] ?? 'default'} fontSize={0} padding={2}>
+                  {STATUS_LABEL[data.artwork.status] ?? data.artwork.status}
+                </Badge>
+              </Flex>
+
+              {/* Buyers table */}
+              {(data.buyers?.length ?? 0) > 0 ? (
+                <Stack space={2}>
+                  <Text size={0} weight="semibold" muted style={{ textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                    Buyers at Torch
+                  </Text>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                    <thead>
+                      <tr style={{ borderBottom: '1px solid #e5e5e5', textAlign: 'left' }}>
+                        <th style={{ padding: '4px 8px 6px 0', fontWeight: 600, color: '#555', fontSize: 12 }}>Name</th>
+                        <th style={{ padding: '4px 8px 6px', fontWeight: 600, color: '#555', fontSize: 12 }}>Copy</th>
+                        <th style={{ padding: '4px 8px 6px', fontWeight: 600, color: '#555', fontSize: 12 }}>Via</th>
+                        <th style={{ padding: '4px 0 6px 8px', fontWeight: 600, color: '#555', fontSize: 12, textAlign: 'right' }}>Price</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {data.buyers?.map((b, i) =>
+                        b.purchases.map((p, j) => (
+                          <tr key={`${i}-${j}`} style={{ borderBottom: '1px solid #f4f4f4' }}>
+                            <td style={{ padding: '5px 8px 5px 0', color: '#222', fontSize: 13 }}>
+                              {[b.firstName, b.lastName].filter(Boolean).join(' ') || b.email}
+                            </td>
+                            <td style={{ padding: '5px 8px', color: '#555', fontSize: 13 }}>
+                              {p.copyNumber ?? p.editionNumber ?? '—'}
+                            </td>
+                            <td style={{ padding: '5px 8px', color: '#777', fontSize: 12 }}>
+                              {p.soldVia ? (CHANNEL[p.soldVia] ?? p.soldVia) : '—'}
+                            </td>
+                            <td style={{ padding: '5px 0 5px 8px', color: '#444', fontSize: 13, textAlign: 'right' }}>
+                              {p.price != null
+                                ? `€${p.price.toLocaleString('nl-NL', { minimumFractionDigits: 2 })}`
+                                : '—'}
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </Stack>
+              ) : (
+                <Text muted size={1}>No buyers recorded in Torch yet.</Text>
+              )}
+
+              {/* Apply status button */}
+              <Box style={{ borderTop: '1px solid #e5e5e5', paddingTop: 16 }}>
+                <Text size={1} muted style={{ marginBottom: 10 }}>
+                  Apply Torch status to this artwork on MNSDK:
+                </Text>
+                <button
+                  onClick={applyStatus}
+                  disabled={applying}
+                  style={{
+                    padding: '8px 16px',
+                    background: '#111',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 4,
+                    fontSize: 13,
+                    fontWeight: 500,
+                    cursor: applying ? 'default' : 'pointer',
+                    opacity: applying ? 0.6 : 1,
+                  }}
+                >
+                  {applying ? 'Applying…' : `Apply "${STATUS_LABEL[data.artwork.status] ?? data.artwork.status}"`}
+                </button>
+              </Box>
+            </>
+          )}
 
         </Stack>
       )}
@@ -258,7 +303,7 @@ export function PullFromTorchAction(props: DocumentActionProps) {
     dialog: open ? {
       type: 'dialog' as const,
       id: 'pull-from-torch-dialog',
-      header: `Torch: ${data?.artwork.title ?? 'Loading…'}`,
+      header: `Torch: ${data?.artwork?.title ?? data?.work?.title ?? 'Loading…'}`,
       onClose: () => { setOpen(false); setData(null); setError(null) },
       content: dialogContent,
     } : undefined,
