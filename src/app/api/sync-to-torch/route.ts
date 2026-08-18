@@ -11,8 +11,10 @@ const MNSDK_DATASET     = 'production'
 async function isAuthorized(req: NextRequest): Promise<boolean> {
   const session     = req.cookies.get('admin_session')?.value
   const sanityToken = req.headers.get('x-sanity-token')
+  const studioKey   = req.headers.get('x-studio-key')
 
   if (session === process.env.ADMIN_PASSWORD) return true
+  if (studioKey && studioKey === process.env.STUDIO_SYNC_KEY) return true
 
   if (sanityToken) {
     try {
