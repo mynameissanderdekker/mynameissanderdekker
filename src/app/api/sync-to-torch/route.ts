@@ -90,12 +90,27 @@ export async function POST(req: NextRequest) {
     }
 
     // ── Build payload for Torch endpoint ──────────────────────────────────────
+
+    // MNSDK stores description as Portable Text (array of blocks).
+    // Convert to plain string so Torch's string field doesn't choke on it.
+    function ptToPlainText(pt: unknown): string | undefined {
+      if (!pt) return undefined
+      if (typeof pt === 'string') return pt
+      if (!Array.isArray(pt)) return undefined
+      return pt
+        .map((block: { children?: Array<{ text?: string }> }) =>
+          (block.children ?? []).map(s => s.text ?? '').join('')
+        )
+        .filter(Boolean)
+        .join('\n') || undefined
+    }
+
     type ArtworkRaw = {
       _id: string; title?: string; year?: number; medium?: string;
       dimensions?: { widthCm?: number; heightCm?: number; depthCm?: number };
       category?: string; editionType?: string; editionTotal?: number;
       editionAP?: number; priceIncVat?: number; vatRate?: string;
-      description?: string; status?: string; mnsdkSoldCount?: number;
+      description?: unknown; status?: string; mnsdkSoldCount?: number;
       images?: Array<{ url?: string }>;
     }
 
@@ -113,7 +128,7 @@ export async function POST(req: NextRequest) {
       editionAP:   artwork.editionAP,
       priceExVat:  artwork.priceIncVat,
       vatRate:     artwork.vatRate,
-      description: artwork.description,
+      description: ptToPlainText(artwork.description),
       mnsdkSoldCount: artwork.mnsdkSoldCount ?? 0,
       notes: [
         artwork.status ? `Status op MNSDK: ${artwork.status}` : null,
