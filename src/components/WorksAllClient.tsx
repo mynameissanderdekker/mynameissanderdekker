@@ -4,8 +4,8 @@ import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import type { ArtworkItem } from '@/app/(site)/works/all/page'
 
-function formatPrice(excl: number, vatRate: number | string = 9) {
-  const incl = excl * (1 + Number(vatRate) / 100)
+function formatPrice(excl: number, vatRate: number | string | null | undefined = 9) {
+  const incl = excl * (1 + Number(vatRate ?? 9) / 100)
   return new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(incl)
 }
 

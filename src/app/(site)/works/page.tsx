@@ -66,7 +66,6 @@ interface ArtworkCard {
   year?: number
   slug: { current: string }
   mainImage?: { url?: string }
-  priceExclVAT?: number
   priceIncVat?: number
   vatRate?: number | string
   status?: string
@@ -106,7 +105,6 @@ async function getWorksData(): Promise<{ config: WorksPageConfig | null; works: 
       `*[_type == "artwork" && defined(slug.current) && showInWebshop == true] | order(featured desc, order asc, year desc){
         _id, _type, title, year, slug, order,
         "mainImage": { "url": coalesce(images[0].asset->url, coverImageUrl) },
-        "priceExclVAT": select(defined(priceIncVat) => round(priceIncVat / (1 + select(vatRate == "21" => 21, vatRate == "0" => 0, 9) / 100) * 100) / 100, priceExclVAT),
         priceIncVat, vatRate, status, category, featured, buyUrl,
         medium, dimensions
       }`,
@@ -115,7 +113,7 @@ async function getWorksData(): Promise<{ config: WorksPageConfig | null; works: 
     ),
     client.fetch<ArtworkCard[]>(
       `*[_type == "zine" && defined(category)] | order(featured desc, order asc){
-        _id, _type, title, category, status, priceExclVAT, vatRate, featured, order,
+        _id, _type, title, category, status, priceIncVat, priceExclVAT, vatRate, featured, order,
         "year": null,
         "slug": { "current": coalesce(slug.current, projectSlug) },
         "mainImage": { "url": coalesce(coverImage.asset->url, coverImageUrl) }
@@ -137,9 +135,8 @@ async function getWorksData(): Promise<{ config: WorksPageConfig | null; works: 
   return { config, works }
 }
 
-function formatPrice(excl: number, vatRate: number | string = 9) {
-  const incl = excl * (1 + Number(vatRate) / 100)
-  return new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(incl)
+function formatPrice(inclVat: number) {
+  return new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(inclVat)
 }
 
 function CartIcon() {
@@ -167,7 +164,7 @@ function WorkCard({ w }: { w: ArtworkCard }) {
       : rawUrl
     : null
   const soldOut = w.status === 'sold'
-  const price = w.priceExclVAT ? formatPrice(w.priceExclVAT, w.vatRate) : null
+  const price = w.priceIncVat ? formatPrice(w.priceIncVat) : null
 
   const zineProjectHref = ZINE_PROJECT_LINKS[w.slug.current]
   const isZine = w._type === 'zine' || !!zineProjectHref
