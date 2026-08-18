@@ -52,17 +52,28 @@ export async function POST(req: NextRequest) {
     }
 
     const torchToken = process.env.TORCH_WRITE_TOKEN
-    const mnsdkToken = process.env.SANITY_WRITE_TOKEN ?? process.env.SANITY_API_WRITE_TOKEN
+    const mnsdkWriteToken = process.env.SANITY_WRITE_TOKEN ?? process.env.SANITY_API_WRITE_TOKEN
     if (!torchToken) {
       return NextResponse.json({ error: 'TORCH_WRITE_TOKEN not configured' }, { status: 500 })
     }
 
-    const mnsdkClient = createClient({
+    // MNSDK dataset is public — reads work without a token.
+    // An invalid token would block even public reads, so we use separate clients:
+    // mnsdkReadClient  — no token, for all fetch() calls
+    // mnsdkWriteClient — write token, only for patch().commit()
+    const mnsdkReadClient = createClient({
       projectId: MNSDK_PROJECT_ID,
       dataset:   MNSDK_DATASET,
       apiVersion: '2024-01-01',
       useCdn: false,
-      token: mnsdkToken,
+    })
+
+    const mnsdkWriteClient = createClient({
+      projectId: MNSDK_PROJECT_ID,
+      dataset:   MNSDK_DATASET,
+      apiVersion: '2024-01-01',
+      useCdn: false,
+      token: mnsdkWriteToken,
     })
 
     const torchClient = createClient({
@@ -74,8 +85,7 @@ export async function POST(req: NextRequest) {
     })
 
     // ── Fetch artworks from MNSDK (incl. sold count from buyer contacts) ─────────
-    console.log('[sync] tokens present:', { mnsdk: !!mnsdkToken, torch: !!torchToken, mnsdkLen: mnsdkToken?.length, torchLen: torchToken?.length })
-    const artworks = await mnsdkClient.fetch(
+    const artworks = await mnsdkReadClient.fetch(
       `*[_type == "artwork" && _id in $ids] {
         _id, title, year, medium,
         dimensions { widthCm, heightCm, depthCm },
@@ -90,13 +100,11 @@ export async function POST(req: NextRequest) {
       { ids: artworkIds }
     )
 
-    console.log('[sync] MNSDK fetch done, count:', artworks?.length)
     if (!artworks || artworks.length === 0) {
       return NextResponse.json({ error: 'No artworks found in MNSDK' }, { status: 404 })
     }
 
     // ── Find Sander Dekker in Torch ────────────────────────────────────────────
-    console.log('[sync] querying Torch artist...')
     const torchArtist = await torchClient.fetch<{ _id: string } | null>(
       `*[_type == "artist" && lower(name) match "sander*"][0] { _id }`
     )
@@ -179,11 +187,16 @@ export async function POST(req: NextRequest) {
     // ── Write torchId back to each MNSDK artwork ───────────────────────────────
     // Format: "sub:{submissionDocId}:{workKey}" — allows pull-from-torch to
     // locate this specific work within the submission.
+    // Non-fatal: if write token is misconfigured the submission still succeeded.
     for (const work of works) {
-      await mnsdkClient
-        .patch(work.mnsdkId as string)
-        .set({ torchId: `sub:${submission._id}:${work._key}` })
-        .commit()
+      try {
+        await mnsdkWriteClient
+          .patch(work.mnsdkId as string)
+          .set({ torchId: `sub:${submission._id}:${work._key}` })
+          .commit()
+      } catch (writeErr) {
+        console.warn('[sync] torchId writeback failed for', work.mnsdkId, writeErr instanceof Error ? writeErr.message : writeErr)
+      }
     }
 
     return NextResponse.json({
@@ -221,15 +234,22 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: 'Only a valid { status } patch is allowed' }, { status: 400 })
   }
 
-  const mnsdkClient = createClient({
+  const patchReadClient = createClient({
     projectId: MNSDK_PROJECT_ID,
     dataset:   MNSDK_DATASET,
     apiVersion: '2024-01-01',
     useCdn: false,
-    token: process.env.SANITY_API_WRITE_TOKEN,
   })
 
-  const doc = await mnsdkClient.fetch(
+  const patchWriteClient = createClient({
+    projectId: MNSDK_PROJECT_ID,
+    dataset:   MNSDK_DATASET,
+    apiVersion: '2024-01-01',
+    useCdn: false,
+    token: process.env.SANITY_WRITE_TOKEN ?? process.env.SANITY_API_WRITE_TOKEN,
+  })
+
+  const doc = await patchReadClient.fetch(
     `*[_type == "artwork" && _id == $id][0]{ _id }`,
     { id: artworkId }
   )
@@ -237,6 +257,6 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: 'Artwork not found' }, { status: 404 })
   }
 
-  await mnsdkClient.patch(artworkId).set({ status: patch.status }).commit()
+  await patchWriteClient.patch(artworkId).set({ status: patch.status }).commit()
   return NextResponse.json({ success: true })
 }
