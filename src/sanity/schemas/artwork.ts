@@ -17,6 +17,11 @@ export const artwork = defineType({
     { name: 'logistics',  title: 'Logistics' },
     { name: 'visibility', title: 'Webshop' },
   ],
+  fieldsets: [
+    { name: 'titleYear',   title: 'Title & year',   options: { columns: 2 } },
+    { name: 'editionNums', title: 'Edition numbers', options: { columns: 2 } },
+    { name: 'priceLine',   title: 'Price in Euro',   options: { columns: 2 } },
+  ],
   fields: [
     // ── Info ──────────────────────────────────────────────────────────────────
     defineField({
@@ -24,6 +29,7 @@ export const artwork = defineType({
       title: 'Title',
       type: 'string',
       group: 'info',
+      fieldset: 'titleYear',
       validation: (r) => r.required(),
     }),
     defineField({
@@ -33,6 +39,38 @@ export const artwork = defineType({
       group: 'info',
       options: { source: 'title' },
       validation: (r) => r.required(),
+    }),
+    // ── Artist & edition type ─────────────────────────────────────────────────
+    defineField({
+      name: 'artist',
+      title: 'Artist',
+      type: 'string',
+      group: 'info',
+      initialValue: 'Sander Dekker',
+      description: 'Creator of this work — used for export to galleries',
+    }),
+    defineField({
+      name: 'editionType',
+      title: 'Edition type',
+      type: 'string',
+      group: 'info',
+      options: {
+        list: [
+          { title: 'Unique', value: 'unique' },
+          { title: 'Edition', value: 'edition' },
+        ],
+        layout: 'radio',
+      },
+      initialValue: 'unique',
+    }),
+    defineField({
+      name: 'editionNumber',
+      title: 'Edition number',
+      description: 'E.g. "3/7" — the specific copy',
+      type: 'string',
+      group: 'info',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      hidden: ({ document }: any) => document?.editionType !== 'edition',
     }),
     defineField({
       name: 'category',
@@ -46,6 +84,7 @@ export const artwork = defineType({
       title: 'Year',
       type: 'number',
       group: 'info',
+      fieldset: 'titleYear',
       validation: (r) => r.required().min(1900).max(2100),
     }),
     defineField({
@@ -138,6 +177,7 @@ export const artwork = defineType({
       title: 'Edition total',
       type: 'number',
       group: 'edition',
+      fieldset: 'editionNums',
       description: 'E.g. 7 (for an edition of 7 + 2 AP)',
     }),
     defineField({
@@ -145,6 +185,7 @@ export const artwork = defineType({
       title: 'Artist Proofs (AP)',
       type: 'number',
       group: 'edition',
+      fieldset: 'editionNums',
       description: 'E.g. 2',
       initialValue: 0,
     }),
@@ -153,12 +194,14 @@ export const artwork = defineType({
       title: 'Price (incl. BTW)',
       type: 'number',
       group: 'edition',
+      fieldset: 'priceLine',
     }),
     defineField({
       name: 'vatRate',
       title: 'BTW rate',
       type: 'string',
       group: 'edition',
+      fieldset: 'priceLine',
       options: {
         list: [
           { title: '9%', value: '9' },
