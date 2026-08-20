@@ -159,8 +159,16 @@ function run() {
 
 img.onload=function(){
   run();
-  let t;
-  window.addEventListener('resize',()=>{clearTimeout(t);t=setTimeout(run,200);});
+  let t, lastW=window.innerWidth, lastH=window.innerHeight;
+  window.addEventListener('resize',()=>{
+    clearTimeout(t);
+    t=setTimeout(()=>{
+      // Only restart on real size changes (ignore Safari address bar show/hide)
+      if(Math.abs(window.innerWidth-lastW)>20||Math.abs(window.innerHeight-lastH)>80){
+        lastW=window.innerWidth;lastH=window.innerHeight;run();
+      }
+    },400);
+  });
 };
 img.src=SRC;
 </script>
