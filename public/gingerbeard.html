@@ -50,8 +50,8 @@ function run() {
   let empty=TOTAL;
 
   const drops=Array.from({length:COLS},()=>([
-    {y:-(Math.random()*ROWS*0.4),       speed:0.5+Math.random()*0.625},
-    {y:-(Math.random()*ROWS*0.4+ROWS*0.5),speed:0.5+Math.random()*0.625},
+    {y:-(Math.random()*ROWS*0.4),       speed:0.625+Math.random()*0.78},
+    {y:-(Math.random()*ROWS*0.4+ROWS*0.5),speed:0.625+Math.random()*0.78},
   ]));
 
   const ox=Math.floor((VW-COLS*STEP)/2);
@@ -95,7 +95,7 @@ function run() {
 
     if(sweepMode){
       // Activate 60 cells per frame
-      const batch=Math.min(60,sweepQueue.length-sweepIdx);
+      const batch=Math.min(75,sweepQueue.length-sweepIdx);
       for(let i=0;i<batch;i++) activate(sweepQueue[sweepIdx+i],NEON_HOLD);
       sweepIdx+=batch;
     } else {
@@ -111,7 +111,7 @@ function run() {
           if(d.y>ROWS+2){
             let fe=-1;
             for(let r=0;r<ROWS;r++){if(state[r*COLS+col]===0){fe=r;break;}}
-            if(fe>=0){d.y=fe-2-Math.random()*3;d.speed=0.75+Math.random()*0.625;}
+            if(fe>=0){d.y=fe-2-Math.random()*3;d.speed=0.94+Math.random()*0.78;}
             else d.y=ROWS+99;
           }
         }
