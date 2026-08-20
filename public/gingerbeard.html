@@ -129,11 +129,11 @@ function run() {
   function glitch(ex,ey){
     const col=Math.floor((ex-ox)/STEP);
     const row=Math.floor((ey-oy)/STEP);
-    const radius=6;
+    const radius=3;
     for(let dc=-radius;dc<=radius;dc++){
       for(let dr=-radius;dr<=radius;dr++){
         if(dc*dc+dr*dr>radius*radius)continue;
-        if(Math.random()>0.25)continue;
+        if(Math.random()>0.05)continue;
         const c=col+dc,r=row+dr;
         if(c<0||c>=COLS||r<0||r>=ROWS)continue;
         const idx=r*COLS+c;
@@ -147,12 +147,12 @@ function run() {
   }
 
   canvas.addEventListener('mousemove',e=>{
-    if(Math.random()>0.3)return;
+    if(Math.random()>0.06)return;
     glitch(e.clientX,e.clientY);
   });
   canvas.addEventListener('touchmove',e=>{
     e.preventDefault();
-    if(Math.random()>0.5)return;
+    if(Math.random()>0.1)return;
     const t=e.touches[0];
     glitch(t.clientX,t.clientY);
   },{passive:false});
