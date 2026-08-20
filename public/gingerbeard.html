@@ -119,9 +119,43 @@ function run() {
       }
     }
 
-    if(settled<TOTAL) animId=requestAnimationFrame(render);
+    if(settled<TOTAL||glitchActive) animId=requestAnimationFrame(render);
     else animId=null;
   }
+
+  // Glitch on mouse/touch
+  let glitchActive=false;
+  let glitchTimeout=null;
+  function glitch(ex,ey){
+    const col=Math.floor((ex-ox)/STEP);
+    const row=Math.floor((ey-oy)/STEP);
+    const radius=6;
+    for(let dc=-radius;dc<=radius;dc++){
+      for(let dr=-radius;dr<=radius;dr++){
+        if(dc*dc+dr*dr>radius*radius)continue;
+        if(Math.random()>0.25)continue;
+        const c=col+dc,r=row+dr;
+        if(c<0||c>=COLS||r<0||r>=ROWS)continue;
+        const idx=r*COLS+c;
+        if(state[idx]===2){state[idx]=1;timer[idx]=8+Math.random()*8;}
+      }
+    }
+    glitchActive=true;
+    if(!animId) animId=requestAnimationFrame(render);
+    clearTimeout(glitchTimeout);
+    glitchTimeout=setTimeout(()=>{glitchActive=false;},500);
+  }
+
+  canvas.addEventListener('mousemove',e=>{
+    if(Math.random()>0.3)return;
+    glitch(e.clientX,e.clientY);
+  });
+  canvas.addEventListener('touchmove',e=>{
+    e.preventDefault();
+    if(Math.random()>0.5)return;
+    const t=e.touches[0];
+    glitch(t.clientX,t.clientY);
+  },{passive:false});
 
   render();
 }
