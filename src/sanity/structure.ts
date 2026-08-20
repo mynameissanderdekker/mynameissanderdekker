@@ -18,7 +18,9 @@ function HardcodedPage({ title, url }: { title: string; url: string }) {
 // Artwork list with category browsing (excludes 'book' category → see Publications)
 const PUBLICATION_CATEGORIES = ['book', 'Zine']
 
-function artworkListItem(S: StructureBuilder, categories: string[]) {
+type CustomFilter = { _id: string; title: string; status?: string; category?: string; inWebshop?: boolean }
+
+function artworkListItem(S: StructureBuilder, categories: string[], customFilters: CustomFilter[] = []) {
   const artworkCategories = categories.filter(c => !PUBLICATION_CATEGORIES.includes(c))
 
   const categoryItems = artworkCategories.map((cat) =>
@@ -83,6 +85,27 @@ function artworkListItem(S: StructureBuilder, categories: string[]) {
                 .params({ pubCats: PUBLICATION_CATEGORIES })
                 .defaultOrdering([{ field: 'featured', direction: 'desc' }, { field: 'order', direction: 'asc' }])
             ),
+          ...(customFilters.length > 0 ? [S.divider()] : []),
+          ...customFilters.map(f => {
+            const parts: string[] = ['_type == "artwork"']
+            if (f.status) parts.push(`status == "${f.status}"`)
+            if (f.category) parts.push(`category == "${f.category}"`)
+            if (f.inWebshop) parts.push('showInWebshop == true')
+            return S.listItem()
+              .title(`★ ${f.title}`)
+              .id(f._id)
+              .child(
+                S.documentTypeList('artwork')
+                  .title(f.title)
+                  .filter(parts.join(' && '))
+                  .defaultOrdering([{ field: 'year', direction: 'desc' }])
+              )
+          }),
+          S.divider(),
+          S.listItem()
+            .title('+ Manage custom filters')
+            .id('manage-filters')
+            .child(S.documentTypeList('artworkFilter').title('Custom filters')),
         ])
     )
 }
@@ -249,7 +272,7 @@ function shopSettingsListItem(S: StructureBuilder) {
 export const structure: StructureResolver = async (S, { getClient }) => {
   const client = getClient({ apiVersion: '2024-01-01' })
 
-  const [categories, cvProjects] = await Promise.all([
+  const [categories, cvProjects, customFilters] = await Promise.all([
     client.fetch<string[]>(
       `array::unique(*[_type == "artwork" && defined(category) && category != ""].category) | order(@)`
     ).catch(() => [] as string[]),
@@ -262,6 +285,9 @@ export const structure: StructureResolver = async (S, { getClient }) => {
         )
       })
       .catch(() => [] as { _id: string; title: string }[]),
+    client.fetch<{ _id: string; title: string; status?: string; category?: string; inWebshop?: boolean }[]>(
+      `*[_type == "artworkFilter"] | order(order asc, title asc) { _id, title, status, category, inWebshop }`
+    ).catch(() => [] as { _id: string; title: string; status?: string; category?: string; inWebshop?: boolean }[]),
   ])
 
   return S.list()
@@ -334,7 +360,7 @@ export const structure: StructureResolver = async (S, { getClient }) => {
       // ── WORKS ─────────────────────────────────────────────────────────────
       S.divider().title('WORKS'),
 
-      artworkListItem(S, categories ?? []),
+      artworkListItem(S, categories ?? [], customFilters),
       publicationsListItem(S),
       S.documentTypeListItem('projectSeries').title('Project Series'),
       // ── LOGISTICS ────────────────────────────────────────────────────────

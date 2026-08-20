@@ -22,6 +22,7 @@ import { pressRelease } from '../schemas/pressRelease'
 import { press } from '../schemas/press'
 import { location } from '../schemas/location'
 import { loan } from '../schemas/loan'
+import { artworkFilter } from '../schemas/artworkFilter'
 
 export const schema: { types: SchemaTypeDefinition[] } = {
   types: [
@@ -57,5 +58,6 @@ export const schema: { types: SchemaTypeDefinition[] } = {
     pressRelease,
     press,
     siteSettings,
+    artworkFilter,
   ],
 }

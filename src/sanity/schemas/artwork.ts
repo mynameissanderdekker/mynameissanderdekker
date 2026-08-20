@@ -5,6 +5,7 @@ import { CategoryInput } from '../components/CategoryInput'
 import { ArtworkQRCode } from '../components/ArtworkQRCode'
 import { ArtworkBuyers } from '../components/ArtworkBuyers'
 import { ArtworkCoA } from '../components/ArtworkCoA'
+import { StorageCodeInput } from '../components/StorageCodeInput'
 
 // ── Main artwork schema ───────────────────────────────────────────────────────
 export const artwork = defineType({
@@ -181,6 +182,15 @@ export const artwork = defineType({
       },
       initialValue: 'available',
     }),
+    defineField({
+      name: 'storageCode',
+      title: 'Storage code',
+      description: 'Automatisch opgebouwd uit SDK + jaar. Vul de laatste 3 cijfers in.',
+      type: 'string',
+      group: 'logistics',
+      components: { input: StorageCodeInput },
+    }),
+
     // ── Details ───────────────────────────────────────────────────────────────
     defineField({
       name: 'slug',
