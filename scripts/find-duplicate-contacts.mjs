@@ -1,62 +1,67 @@
 /**
  * find-duplicate-contacts.mjs
- *
- * Zoekt contacten in Sanity die waarschijnlijk dezelfde persoon zijn
- * (zelfde naam maar ander emailadres, of erg vergelijkbare namen).
- *
- * Gebruik: node scripts/find-duplicate-contacts.mjs
+ * Reports all duplicate contacts grouped by name or email.
+ * Run: node scripts/find-duplicate-contacts.mjs
  */
 
 import { createClient } from '@sanity/client'
-import { fileURLToPath } from 'url'
-import { dirname, join } from 'path'
-import dotenv from 'dotenv'
+import * as dotenv from 'dotenv'
+import { resolve } from 'path'
 
-const __dirname = dirname(fileURLToPath(import.meta.url))
-dotenv.config({ path: join(__dirname, '../.env.local') })
+dotenv.config({ path: resolve(process.cwd(), '.env.local') })
 
-const sanity = createClient({
+const client = createClient({
   projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID,
-  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET,
-  apiVersion: '2026-07-25',
-  token: process.env.SANITY_WRITE_TOKEN,
-  useCdn: false,
+  dataset:   process.env.NEXT_PUBLIC_SANITY_DATASET ?? 'production',
+  apiVersion: '2024-01-01',
+  token:     process.env.SANITY_WRITE_TOKEN,
+  useCdn:    false,
 })
 
-function normalize(str = '') {
-  return str.toLowerCase().replace(/[^a-z]/g, '')
+const all = await client.fetch(
+  `*[_type == "contact"] | order(lastName asc, firstName asc) {
+    _id, firstName, lastName, email, city, country, type, purchases
+  }`
+)
+
+console.log(`Total contacts: ${all.length}\n`)
+
+// Group by normalised "firstname lastname" (lowercase, trimmed)
+const byName = {}
+for (const c of all) {
+  const key = `${(c.firstName ?? '').trim().toLowerCase()} ${(c.lastName ?? '').trim().toLowerCase()}`.trim()
+  if (!key || key === ' ') continue
+  if (!byName[key]) byName[key] = []
+  byName[key].push(c)
 }
 
-async function main() {
-  console.log('👥  Contacten ophalen…')
-  const contacts = await sanity.fetch(
-    `*[_type == "contact"]{ _id, firstName, lastName, email, "purchaseCount": count(purchases) } | order(lastName asc)`
-  )
-  console.log(`   ${contacts.length} contacten geladen\n`)
+// Group by email
+const byEmail = {}
+for (const c of all) {
+  if (!c.email) continue
+  const key = c.email.trim().toLowerCase()
+  if (!byEmail[key]) byEmail[key] = []
+  byEmail[key].push(c)
+}
 
-  // ── Groepeer op genormaliseerde naam ────────────────────────────────────────
-  const byName = new Map()
+const nameDupes  = Object.entries(byName).filter(([, v]) => v.length > 1)
+const emailDupes = Object.entries(byEmail).filter(([, v]) => v.length > 1)
+
+console.log(`=== DUPLICATES BY NAME (${nameDupes.length} groups) ===\n`)
+for (const [name, contacts] of nameDupes) {
+  console.log(`"${name}" — ${contacts.length}x`)
   for (const c of contacts) {
-    const key = normalize(c.firstName) + normalize(c.lastName)
-    if (!byName.has(key)) byName.set(key, [])
-    byName.get(key).push(c)
+    const loc = [c.city, c.country].filter(Boolean).join(', ')
+    console.log(`  ${c._id}  email=${c.email ?? '—'}  ${loc ? loc : ''}  purchases=${c.purchases?.length ?? 0}  type=${c.type ?? '—'}`)
   }
-
-  const dupes = [...byName.values()].filter(group => group.length > 1)
-
-  if (!dupes.length) {
-    console.log('✅  Geen duplicaten gevonden.')
-    return
-  }
-
-  console.log(`⚠️   ${dupes.length} mogelijke duplicaten:\n`)
-  for (const group of dupes) {
-    console.log(`  ${group[0].firstName} ${group[0].lastName}`)
-    for (const c of group) {
-      console.log(`    • ${c.email ?? '(geen email)'}  [${c.purchaseCount ?? 0} aankopen]  id: ${c._id}`)
-    }
-    console.log()
-  }
+  console.log()
 }
 
-main().catch(console.error)
+console.log(`=== DUPLICATES BY EMAIL (${emailDupes.length} groups) ===\n`)
+for (const [email, contacts] of emailDupes) {
+  console.log(`${email} — ${contacts.length}x`)
+  for (const c of contacts) {
+    console.log(`  ${c._id}  name="${c.firstName ?? ''} ${c.lastName ?? ''}"  purchases=${c.purchases?.length ?? 0}`)
+  }
+  console.log()
+}

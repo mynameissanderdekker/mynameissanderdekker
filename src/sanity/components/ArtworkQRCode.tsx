@@ -17,20 +17,11 @@ export function ArtworkQRCode(props: FieldProps) {
       <img src={qrSrc} alt="QR code" width={80} height={80} style={{ borderRadius: 4, border: '1px solid #e5e5e5' }} />
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         <span style={{ fontSize: 12, color: '#666' }}>{url}</span>
-        <a
-          href={qrSrc.replace('size=160x160', 'size=600x600')}
-          download={`qr-${slug}.png`}
-          style={{
-            fontSize: 12,
-            color: '#2276fc',
-            textDecoration: 'none',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 4,
-          }}
-        >
-          ↓ Download QR code
-        </a>
+        <span style={{ fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+          <a href={url} target="_blank" rel="noopener noreferrer" style={{ color: '#2276fc', textDecoration: 'none' }}>Open page ↗</a>
+          <span style={{ color: '#ccc' }}>·</span>
+          <a href={qrSrc.replace('size=160x160', 'size=600x600')} download={`qr-${slug}.png`} style={{ color: '#2276fc', textDecoration: 'none' }}>Download QR ↓</a>
+        </span>
       </div>
     </div>
   )

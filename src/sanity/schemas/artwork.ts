@@ -20,9 +20,9 @@ export const artwork = defineType({
     { name: 'webshop',   title: 'Webshop'                  },
   ],
   fieldsets: [
-    { name: 'titleYear',   title: 'Title & year',     options: { columns: 2 } },
-    { name: 'editionNums', title: 'Edition numbers',  options: { columns: 2 } },
-    { name: 'priceLine',   title: 'Price in Euro',    options: { columns: 2 } },
+    { name: 'titleYear',      title: 'Title & year',     options: { columns: 2 } },
+    { name: 'editionNums',    title: 'Edition numbers',  options: { columns: 2 } },
+    { name: 'priceLine',      title: 'Price in Euro',    options: { columns: 2 } },
   ],
   fields: [
     // ── Basis ─────────────────────────────────────────────────────────────────
@@ -112,29 +112,12 @@ export const artwork = defineType({
       hidden: ({ document }: any) => document?.editionType !== 'edition',
     }),
     defineField({
-      name: 'editionNumber',
-      title: 'Edition number',
-      type: 'string',
-      group: 'basis',
-      description: 'Specific copy — e.g. "3/7"',
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      hidden: ({ document }: any) => document?.editionType !== 'edition',
-    }),
-    defineField({
       name: 'images',
       title: 'Images',
       type: 'array',
       group: 'basis',
       of: [{ type: 'image', options: { hotspot: true } }],
       description: 'First image = main photo',
-    }),
-    defineField({
-      name: 'priceOnRequest',
-      title: 'Price on request',
-      type: 'boolean',
-      group: 'basis',
-      description: 'Hide the price publicly — visitors see an enquiry button instead.',
-      initialValue: false,
     }),
     defineField({
       name: 'priceIncVat',
@@ -159,6 +142,14 @@ export const artwork = defineType({
       initialValue: '9',
     }),
     defineField({
+      name: 'priceOnRequest',
+      title: 'Price on request',
+      type: 'boolean',
+      group: 'basis',
+      description: 'Hide the price publicly — visitors see an enquiry button instead.',
+      initialValue: false,
+    }),
+    defineField({
       name: 'description',
       title: 'Description',
       type: 'array',
@@ -178,20 +169,18 @@ export const artwork = defineType({
           { title: 'On loan', value: 'on-loan' },
           { title: 'Not for sale', value: 'not-for-sale' },
         ],
-        layout: 'radio',
       },
       initialValue: 'available',
     }),
-    defineField({
-      name: 'storageCode',
-      title: 'Storage code',
-      description: 'Automatisch opgebouwd uit SDK + jaar. Vul de laatste 3 cijfers in.',
-      type: 'string',
-      group: 'logistics',
-      components: { input: StorageCodeInput },
-    }),
 
     // ── Details ───────────────────────────────────────────────────────────────
+    defineField({
+      name: 'commissionPct',
+      title: 'Gallery commission (%)',
+      description: 'E.g. 50 = gallery keeps 50%, artist receives 50%',
+      type: 'number',
+      group: 'details',
+    }),
     defineField({
       name: 'slug',
       title: 'Slug (URL)',
@@ -217,21 +206,6 @@ export const artwork = defineType({
         const cat = ((document?.category as string) ?? '').toLowerCase()
         return !cat.includes('book') && !cat.includes('publicat')
       },
-    }),
-    defineField({
-      name: 'coverImageUrl',
-      title: 'Cover image URL (fallback)',
-      type: 'url',
-      group: 'details',
-      description: 'External URL — used as cover when no Sanity image is uploaded yet',
-    }),
-    defineField({
-      name: 'metaDescription',
-      title: 'Meta description',
-      type: 'string',
-      group: 'details',
-      description: 'Short description for Google and social sharing (max. 160 characters).',
-      validation: (r) => r.max(160),
     }),
     defineField({
       name: 'options',
@@ -311,6 +285,33 @@ export const artwork = defineType({
 
     // ── Gallery ───────────────────────────────────────────────────────────────
     defineField({
+      name: 'framedDimensions',
+      title: 'Framed dimensions (cm)',
+      type: 'object',
+      group: 'gallery',
+      description: 'For "View on wall" — outer width incl. frame and passe-partout.',
+      components: { input: CompactDimensions },
+      fields: [
+        defineField({ name: 'widthCm', title: 'Width', type: 'number' }),
+      ],
+    }),
+    defineField({
+      name: 'showViewInRoom',
+      title: 'View on wall',
+      type: 'boolean',
+      group: 'gallery',
+      description: 'Show the "View on wall" button on the artwork page. Requires width to be filled in.',
+      initialValue: false,
+    }),
+    defineField({
+      name: 'roomImage',
+      title: 'Room photo (optional)',
+      type: 'image',
+      group: 'gallery',
+      description: "Optional: photo of artwork for option 'View on wall'. If left empty, the first artwork photo is used. Use JPG (tightly cropped, no empty space outside the edges).",
+      options: { accept: 'image/png,image/jpeg' },
+    }),
+    defineField({
       name: 'coaPanel',
       title: 'Certificate of Authenticity',
       type: 'string',
@@ -343,25 +344,20 @@ export const artwork = defineType({
 
     // ── Logistics ─────────────────────────────────────────────────────────────
     defineField({
+      name: 'storageCode',
+      title: 'Artwork code',
+      description: 'Automatisch opgebouwd uit SDK + jaar. Vul de laatste 3 cijfers in.',
+      type: 'string',
+      group: 'logistics',
+      components: { input: StorageCodeInput },
+    }),
+    defineField({
       name: 'currentLocation',
-      title: 'Current location',
+      title: 'Current location, dates & insurance',
+      description: 'Link to a location record. All details (since, received, insurance, note) are stored on the location.',
       type: 'reference',
       to: [{ type: 'location' }],
       group: 'logistics',
-      description: 'Where is this work right now?',
-    }),
-    defineField({
-      name: 'locationSince',
-      title: 'At this location since',
-      type: 'date',
-      group: 'logistics',
-    }),
-    defineField({
-      name: 'locationNote',
-      title: 'Location note',
-      type: 'string',
-      group: 'logistics',
-      description: 'Optional detail, e.g. "Room 3, east wall" or "Crate B-12"',
     }),
     defineField({
       name: 'additionalStatusInfo',
@@ -382,59 +378,75 @@ export const artwork = defineType({
     // ── Webshop ───────────────────────────────────────────────────────────────
     defineField({
       name: 'showInWebshop',
-      title: 'Sell in webshop',
+      title: 'Show in webshop',
       type: 'boolean',
       group: 'webshop',
-      description: 'On = "Buy" button (shopping cart). Off = "Enquire" button (contact form).',
       initialValue: false,
-    }),
-    defineField({
-      name: 'showViewInRoom',
-      title: 'View on wall',
-      type: 'boolean',
-      group: 'gallery',
-      description: 'Show the "View on wall" button on the artwork page.',
-      initialValue: false,
-    }),
-    defineField({
-      name: 'roomImage',
-      title: 'View on wall — cutout',
-      type: 'image',
-      group: 'gallery',
-      description: 'Upload a PNG (transparent background) or JPG (tightly cropped, no empty space outside the edges) of the work incl. frame and passe-partout.',
-      options: { accept: 'image/png,image/jpeg' },
-    }),
-    defineField({
-      name: 'framedDimensions',
-      title: 'Framed dimensions (cm)',
-      type: 'object',
-      group: 'webshop',
-      description: 'For "View on wall" — outer size incl. frame and passe-partout.',
-      components: { input: CompactDimensions },
-      fields: [
-        defineField({ name: 'widthCm', title: 'Width', type: 'number' }),
-      ],
     }),
     defineField({
       name: 'featured',
-      title: 'Featured (in webshop)',
+      title: 'Highlighted in shop',
+      description: 'Highlighted products appear in their own section at the top of the shop',
       type: 'boolean',
       group: 'webshop',
       initialValue: false,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      hidden: ({ document }: any) => !document?.showInWebshop,
+    }),
+    defineField({
+      name: 'onSale',
+      title: 'On sale',
+      type: 'boolean',
+      group: 'webshop',
+      initialValue: false,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      hidden: ({ document }: any) => !document?.showInWebshop,
+    }),
+    defineField({
+      name: 'salePrice',
+      title: 'Sale price',
+      type: 'number',
+      group: 'webshop',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      hidden: ({ document }: any) => !document?.showInWebshop || !document?.onSale,
+    }),
+    defineField({
+      name: 'stock',
+      title: 'Stock',
+      description: 'Quantity available for purchase in the webshop',
+      type: 'number',
+      group: 'webshop',
+      initialValue: 1,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      hidden: ({ document }: any) => !document?.showInWebshop,
+    }),
+    defineField({
+      name: 'shippingNote',
+      title: 'Shipping note',
+      description: 'E.g. "Ships within 5 business days"',
+      type: 'string',
+      group: 'webshop',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      hidden: ({ document }: any) => !document?.showInWebshop,
+    }),
+    defineField({
+      name: 'shippingClass',
+      title: 'Shipping class',
+      description: 'Determines the shipping rate for this item in the webshop',
+      type: 'reference',
+      to: [{ type: 'shippingClass' }],
+      group: 'webshop',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      hidden: ({ document }: any) => !document?.showInWebshop,
     }),
     defineField({
       name: 'order',
-      title: 'Sort order (in webshop)',
+      title: 'Sort order',
+      description: 'Lower number = higher in the section. Leave empty to fall back to year.',
       type: 'number',
       group: 'webshop',
-      description: 'Lower number = higher in the section. Leave empty to fall back to year.',
-    }),
-    defineField({
-      name: 'buyUrl',
-      title: 'Buy link',
-      type: 'url',
-      group: 'webshop',
-      description: 'Direct payment link (Mollie, Stripe, etc.) — shown as "Buy" button when status is "Available"',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      hidden: ({ document }: any) => !document?.showInWebshop,
     }),
   ],
 

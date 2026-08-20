@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CMS Overzicht — mynameissanderdekker.com</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    font-size: 11pt;
+    color: #111;
+    background: #fff;
+    padding: 20mm 18mm;
+    max-width: 210mm;
+    margin: 0 auto;
+  }
+
+  /* HEADER */
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-bottom: 2px solid #111;
+    padding-bottom: 8px;
+    margin-bottom: 20px;
+  }
+  header h1 { font-size: 18pt; font-weight: 700; letter-spacing: -.3px; }
+  header p  { font-size: 9pt; color: #666; text-align: right; }
+
+  /* SECTION */
+  section { margin-bottom: 22px; }
+  section h2 {
+    font-size: 8pt;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: #9ca3af;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 4px;
+    margin-bottom: 12px;
+  }
+
+  /* GRID */
+  .grid { display: grid; gap: 10px; }
+  .grid-2 { grid-template-columns: 1fr 1fr; }
+  .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .grid-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+
+  /* CARD */
+  .card {
+    border: 1.5px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 10px 12px;
+    background: #fafafa;
+  }
+  .card.purple  { border-color: #6B5CE7; background: #f5f3ff; }
+  .card.blue    { border-color: #3b82f6; background: #eff6ff; }
+  .card.green   { border-color: #22a06b; background: #f0fdf4; }
+  .card.amber   { border-color: #d97706; background: #fffbeb; }
+  .card.dashed  { border-style: dashed; border-color: #d1d5db; background: #fafafa; }
+
+  .card-title {
+    font-size: 11pt;
+    font-weight: 700;
+    margin-bottom: 5px;
+  }
+  .card.purple .card-title { color: #6B5CE7; }
+  .card.blue   .card-title { color: #3b82f6; }
+  .card.green  .card-title { color: #22a06b; }
+  .card.amber  .card-title { color: #92400e; }
+  .card.dashed .card-title { color: #6b7280; }
+
+  .card ul {
+    list-style: none;
+    font-size: 9.5pt;
+    color: #444;
+    line-height: 1.7;
+  }
+  .card ul li::before { content: '— '; color: #9ca3af; }
+  .card .note {
+    margin-top: 6px;
+    font-size: 8.5pt;
+    color: #6b7280;
+    font-style: italic;
+  }
+  .card .badge {
+    display: inline-block;
+    font-size: 8pt;
+    font-weight: 600;
+    padding: 1px 6px;
+    border-radius: 4px;
+    margin-bottom: 5px;
+  }
+  .badge.green  { background: #dcfce7; color: #15803d; }
+  .badge.amber  { background: #fef3c7; color: #92400e; }
+  .badge.purple { background: #ede9fe; color: #6B5CE7; }
+  .badge.gray   { background: #f3f4f6; color: #6b7280; }
+
+  /* FLOW TABLE */
+  .flow {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9.5pt;
+  }
+  .flow th {
+    text-align: left;
+    font-size: 8pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: #9ca3af;
+    padding: 0 8px 6px 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .flow td {
+    vertical-align: top;
+    padding: 6px 8px 6px 0;
+    border-bottom: 1px solid #f3f4f6;
+    line-height: 1.55;
+  }
+  .flow td:first-child { font-weight: 600; white-space: nowrap; }
+  .flow td .sub { font-size: 8.5pt; color: #6b7280; font-style: italic; }
+  .flow td code {
+    font-family: 'SF Mono', Menlo, monospace;
+    font-size: 8pt;
+    background: #f3f4f6;
+    padding: 1px 4px;
+    border-radius: 3px;
+    color: #374151;
+  }
+
+  /* RULE BLOCK */
+  .rules { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .rule {
+    border-left: 3px solid #e5e7eb;
+    padding: 6px 10px;
+    font-size: 9.5pt;
+    color: #374151;
+    line-height: 1.55;
+  }
+  .rule strong { display: block; font-size: 8.5pt; color: #111; margin-bottom: 2px; }
+  .rule.green  { border-color: #22a06b; }
+  .rule.amber  { border-color: #d97706; }
+  .rule.purple { border-color: #6B5CE7; }
+  .rule.red    { border-color: #ef4444; }
+
+  /* FOOTER */
+  footer {
+    margin-top: 24px;
+    padding-top: 10px;
+    border-top: 1px solid #e5e7eb;
+    font-size: 8.5pt;
+    color: #9ca3af;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  /* PRINT */
+  @media print {
+    body { padding: 12mm 14mm; }
+    .page-break { page-break-before: always; }
+    a { text-decoration: none; color: inherit; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>CMS Overzicht</h1>
+  <p>mynameissanderdekker.com<br>Studio → sanity.io · augustus 2026</p>
+</header>
+
+<!-- ═══════════════════════════════════
+     SECTIE 1 — DOCUMENT TYPES
+════════════════════════════════════ -->
+<section>
+  <h2>Document types</h2>
+  <div class="grid grid-3">
+
+    <div class="card purple">
+      <div class="card-title">Artwork</div>
+      <ul>
+        <li>Titel, jaar, medium, afmetingen</li>
+        <li>Foto's (meerdere)</li>
+        <li>Editiegrootte &amp; prijs excl. BTW</li>
+        <li>Beschikbaar-toggle (webshop)</li>
+        <li>Slug (URL-identifier)</li>
+      </ul>
+      <p class="note">Alles begint hier. Verplichte velden: titel, slug, jaar.</p>
+    </div>
+
+    <div class="card blue">
+      <div class="card-title">Publicatie</div>
+      <ul>
+        <li>Boek, zine, catalogus</li>
+        <li>Cover-afbeelding, PDF-upload</li>
+        <li>Editiegrootte &amp; prijs</li>
+        <li>Beschikbaar-toggle (webshop)</li>
+      </ul>
+      <p class="note">Los van Artwork — een apart document type.</p>
+    </div>
+
+    <div class="card dashed">
+      <div class="card-title">Serie</div>
+      <span class="badge gray">Optioneel</span>
+      <ul>
+        <li>Groepeert artworks én publicaties</li>
+        <li>Cover-afbeelding, beschrijving</li>
+        <li><code>artworks[]</code> + <code>publications[]</code></li>
+      </ul>
+      <p class="note">Optioneel voor Tentoonst./Fair, verplicht voor Pagina.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Pagina</div>
+      <ul>
+        <li>Eigen URL: <code>/projects/[slug]</code></li>
+        <li>Page builder met blokken</li>
+        <li>Serie-koppeling (<code>artworkSeries[]</code>)</li>
+        <li>Tentoonst./Fairs automatisch via cvProject</li>
+        <li>Cover-afbeelding, meta-beschrijving</li>
+      </ul>
+      <p class="note">Werken koppel je altijd via een Serie — geen directe artworks[].</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Tentoonstelling</div>
+      <ul>
+        <li>Galerie, locatie, datum</li>
+        <li>Type: solo / duo / groep / permanent</li>
+        <li>Serie <em>of</em> losse artworks (direct)</li>
+        <li>Press-artikelen</li>
+        <li>cvProject → koppelt aan Pagina</li>
+        <li>Tonen in CV-pagina (toggle)</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Art Fair / Beurs</div>
+      <ul>
+        <li>Naam fair, stand, locatie, datum</li>
+        <li>Serie <em>of</em> losse artworks (direct)</li>
+        <li>Press-artikelen</li>
+        <li>cvProject → koppelt aan Pagina</li>
+        <li>Tonen in CV-pagina (toggle)</li>
+      </ul>
+      <p class="note">Identieke velden als Tentoonstelling.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Press</div>
+      <ul>
+        <li>Artikel, interview, publicatie</li>
+        <li>URL, datum, publicatienaam</li>
+        <li>Koppeling aan Pagina (optioneel)</li>
+        <li>Koppeling aan Tentoonst./Fair</li>
+      </ul>
+      <p class="note">Bron van waarheid: altijd vanuit het Press-document beheren.</p>
+    </div>
+
+    <div class="card green">
+      <div class="card-title">Contact</div>
+      <ul>
+        <li>Naam, e-mail, type collector</li>
+        <li>Nieuwsbrief-voorkeur</li>
+        <li>Aankopen: artwork · prijs · datum · kanaal</li>
+        <li>Ontvangt Viewing Rooms</li>
+        <li>Ontvangt Private Selecties</li>
+      </ul>
+      <p class="note">Centrale collector hub. Koppel altijd aan een Contact.</p>
+    </div>
+
+    <div class="card green">
+      <div class="card-title">Beschikbaar (webshop)</div>
+      <ul>
+        <li>Webshop-pagina: <code>/available</code></li>
+        <li>Artwork of Publicatie</li>
+        <li>Prijs, editie-info</li>
+        <li>Beschikbaarheid-toggle</li>
+      </ul>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════
+     SECTIE 2 — VERKOOP TOOLS
+════════════════════════════════════ -->
+<section>
+  <h2>Verkoop &amp; collector tools</h2>
+  <div class="grid grid-2">
+
+    <div class="card green">
+      <div class="card-title">Viewing Room</div>
+      <span class="badge green">Deelbare link</span>
+      <ul>
+        <li>URL: <code>/room/[slug]</code></li>
+        <li>Optioneel wachtwoord + verloopdatum</li>
+        <li>Selectie werken met contextnotitie</li>
+        <li>Prijzen tonen: aan/uit</li>
+        <li><code>contact</code> → koppelt aan collector</li>
+        <li><code>recipientName</code> / <code>recipientEmail</code> als override</li>
+      </ul>
+      <p class="note">Browsing-ervaring. Nooit zichtbaar op de publieke site.</p>
+    </div>
+
+    <div class="card green">
+      <div class="card-title">Private Selectie</div>
+      <span class="badge green">Token-link</span>
+      <ul>
+        <li>URL: <code>/private-sales/[token]</code></li>
+        <li>Optioneel wachtwoord + verloopdatum</li>
+        <li>Selectie met prijzen + noot per werk</li>
+        <li>Intro-tekst &amp; footer-tekst</li>
+        <li><code>contact</code> → koppelt aan collector</li>
+        <li><code>recipientName</code> / <code>recipientEmail</code> als override</li>
+      </ul>
+      <p class="note">Verkoopvoorstel. Formeler dan een Viewing Room.</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════
+     SECTIE 3 — CONTENT FLOW
+════════════════════════════════════ -->
+<section>
+  <h2>Content flow — van werk naar pagina</h2>
+  <table class="flow">
+    <thead>
+      <tr>
+        <th style="width:22%">Stap</th>
+        <th style="width:40%">Wat je doet</th>
+        <th>Resultaat</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1. Artwork aanmaken</td>
+        <td>Studio → Artworks → Nieuw<br>
+          <span class="sub">Titel, jaar, medium, foto's, prijs, editiegrootte invullen</span></td>
+        <td>Werk staat in het systeem. Nog niet zichtbaar op de site.</td>
+      </tr>
+      <tr>
+        <td>2. Serie (optioneel)</td>
+        <td>Studio → Project Series → Nieuw<br>
+          <span class="sub">Artworks toevoegen aan artworks[]</span></td>
+        <td>Werken zijn gegroepeerd. Serie kan aan Pagina/Tentoonst./Fair hangen.</td>
+      </tr>
+      <tr>
+        <td>3. Pagina</td>
+        <td>Studio → Projects → Nieuw of bestaande<br>
+          <span class="sub">Serie koppelen via artworkSeries[], page builder opbouwen</span></td>
+        <td>Pagina verschijnt op <code>/projects/[slug]</code>.</td>
+      </tr>
+      <tr>
+        <td>4. Tentoonstelling</td>
+        <td>Studio → Exhibitions → Nieuw<br>
+          <span class="sub">Serie of losse artworks, cvProject koppelen aan Pagina</span></td>
+        <td>Tentoonst. verschijnt automatisch op de Pagina. Optioneel eigen pagina.</td>
+      </tr>
+      <tr>
+        <td>5. Press</td>
+        <td>Studio → Press → Nieuw<br>
+          <span class="sub">Koppel aan Pagina of Tentoonst. vanuit het Press-document</span></td>
+        <td>Press-artikel verschijnt gekoppeld. Één bron, geen duplicaten.</td>
+      </tr>
+      <tr>
+        <td>6. Webshop</td>
+        <td>Artwork → beschikbaar-toggle aan<br>
+          <span class="sub">Prijs ingesteld? Dan verschijnt het werk op /available</span></td>
+        <td>Werk is koopbaar via de webshop (Stripe checkout).</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════
+     SECTIE 4 — REGELS
+════════════════════════════════════ -->
+<section>
+  <h2>Regels &amp; afspraken</h2>
+  <div class="rules">
+
+    <div class="rule purple">
+      <strong>Serie is optioneel voor Tentoonst./Fair</strong>
+      Je kunt losse artworks direct koppelen via <code>artworks[]</code>. Serie is alleen verplicht als de werken ook op een Pagina moeten verschijnen.
+    </div>
+
+    <div class="rule green">
+      <strong>Press: altijd vanuit het Press-document</strong>
+      Beheer koppelingen vanuit Studio → Press. Niet vanuit Artwork, Pagina of Serie. Zo staat alles op één plek.
+    </div>
+
+    <div class="rule green">
+      <strong>Contact koppelen bij Viewing Room &amp; Private Selectie</strong>
+      Koppel altijd een Contact via het <code>contact</code>-veld. Gebruik <code>recipientName</code> / <code>recipientEmail</code> alleen als override (bijv. een eenmalige ontvanger).
+    </div>
+
+    <div class="rule amber">
+      <strong>Publicatie ≠ Artwork</strong>
+      Boeken, zines en catalogi zijn Publicaties — geen Artworks met categorie "book". Ze staan in een eigen veld (<code>publications[]</code>) op de Serie.
+    </div>
+
+    <div class="rule amber">
+      <strong>cvProject = koppeling aan Pagina</strong>
+      Vul op een Tentoonstelling of Art Fair het veld "CV — Project" in. De tentoonst. verschijnt dan automatisch op die Pagina — je hoeft hem niet handmatig toe te voegen.
+    </div>
+
+    <div class="rule purple">
+      <strong>Alle teksten in het Engels</strong>
+      Titels, beschrijvingen, meta-teksten: altijd Engels. De Studio-labels zijn NL, de content is EN.
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════
+     SECTIE 5 — VERKOOP KANALEN
+════════════════════════════════════ -->
+<section>
+  <h2>Verkoop kanalen (<code>soldVia</code>)</h2>
+  <div class="grid grid-4">
+    <div class="card"><div class="card-title" style="font-size:10pt">webshop</div><p style="font-size:9pt;color:#555;margin-top:4px">Via Stripe checkout op de website</p></div>
+    <div class="card"><div class="card-title" style="font-size:10pt">direct</div><p style="font-size:9pt;color:#555;margin-top:4px">Persoonlijk / cash / bankoverschrijving</p></div>
+    <div class="card"><div class="card-title" style="font-size:10pt">gallery</div><p style="font-size:9pt;color:#555;margin-top:4px">Via een galerie (Torch e.d.)</p></div>
+    <div class="card"><div class="card-title" style="font-size:10pt">artfair</div><p style="font-size:9pt;color:#555;margin-top:4px">Verkoop op een beurs/fair</p></div>
+  </div>
+</section>
+
+<footer>
+  <span>mynameissanderdekker.com · CMS documentatie</span>
+  <span>Gegenereerd augustus 2026</span>
+</footer>
+
+</body>
+</html>

@@ -13,8 +13,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 
 const PROJECT_ID = 'u11u127q'
 const DATASET    = 'production'
-const TOKEN      = process.env.SANITY_WRITE_TOKEN ||
-  'skINPqVfUPzXY4u1KFvzAWlGmvZWRJ9nQX07WGdw3e3lneZNkAsxQfEg8ZCgHCkBU3k9xWZCibx9E4wJC18kXNGpTSBSk6rk4uks3jQXKK40r3dyhG6moYCG07JCLICuSKbPYBD8o16kFFuoFgFegZJhevYCAVfqQA6wdILQJK4rhJGeCYAE'
+const TOKEN      = process.env.SANITY_WRITE_TOKEN
 
 // ── Adjust these paths if your images are elsewhere ──────────────────────────
 const IMAGES = [

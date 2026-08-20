@@ -15,6 +15,7 @@ import { campaign } from '../schemas/campaign'
 import { campaignSegment } from '../schemas/campaignSegment'
 import { order } from '../schemas/order'
 import { shippingZone } from '../schemas/shippingZone'
+import { shippingClass } from '../schemas/shippingClass'
 import { coupon } from '../schemas/coupon'
 import { shopSettings } from '../schemas/shopSettings'
 import { privateSale } from '../schemas/privateSale'
@@ -40,6 +41,7 @@ export const schema: { types: SchemaTypeDefinition[] } = {
     // Webshop
     order,
     shippingZone,
+    shippingClass,
     coupon,
     shopSettings,
     // Sales

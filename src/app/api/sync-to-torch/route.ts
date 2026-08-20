@@ -80,7 +80,8 @@ export async function POST(req: NextRequest) {
         priceIncVat, vatRate,
         "mnsdkSoldCount": count(*[_type == "contact" && ^._id in purchases[].artwork._ref][].purchases[artwork._ref == ^._id]),
         description,
-        status
+        status,
+        storageCode
       }`,
       { ids: artworkIds }
     )
@@ -111,6 +112,7 @@ export async function POST(req: NextRequest) {
       category?: string; editionType?: string; editionTotal?: number;
       editionAP?: number; priceIncVat?: number; vatRate?: string;
       description?: unknown; status?: string; mnsdkSoldCount?: number;
+      storageCode?: string;
       images?: Array<{ url?: string }>;
     }
 
@@ -130,6 +132,7 @@ export async function POST(req: NextRequest) {
       priceExVat:  artwork.priceIncVat,
       vatRate:     artwork.vatRate,
       description: ptToPlainText(artwork.description),
+      storageCode: artwork.storageCode,
       mnsdkSoldCount: artwork.mnsdkSoldCount ?? 0,
       notes: [
         artwork.status ? `Status op MNSDK: ${artwork.status}` : null,

@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<title>CMS Flow — mynameissanderdekker.com</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  @page { size: A4 portrait; margin: 14mm 14mm 12mm 14mm; }
+
+  body {
+    font-family: -apple-system, 'Helvetica Neue', sans-serif;
+    background: #fff;
+    color: #111;
+    padding: 10mm 14mm;
+    max-width: 182mm;
+    margin: 0 auto;
+  }
+
+  /* ── Header ── */
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-bottom: 2.5px solid #111;
+    padding-bottom: 7px;
+    margin-bottom: 16px;
+  }
+  header h1 { font-size: 20pt; font-weight: 800; letter-spacing: -.5px; }
+  header aside { font-size: 8.5pt; color: #9ca3af; text-align: right; line-height: 1.6; }
+
+  /* ── Section titles ── */
+  .section-label {
+    font-size: 7.5pt;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: #9ca3af;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #e5e7eb;
+  }
+
+  /* ── SVG containers ── */
+  .diagram { width: 100%; margin-bottom: 10px; }
+  svg { width: 100%; height: auto; display: block; }
+
+  /* ── Legend ── */
+  .legend {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    font-size: 8pt;
+    color: #555;
+    margin-bottom: 14px;
+    padding: 7px 10px;
+    background: #f9fafb;
+    border-radius: 6px;
+    border: 1px solid #e5e7eb;
+  }
+  .legend-item { display: flex; align-items: center; gap: 5px; }
+  .legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 3px;
+    border: 1.5px solid;
+    flex-shrink: 0;
+  }
+
+  /* ── Rules grid ── */
+  .rules {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
+    margin-top: 4px;
+  }
+  .rule {
+    border-left: 3px solid #e5e7eb;
+    padding: 5px 9px;
+    font-size: 8.5pt;
+    color: #374151;
+    line-height: 1.5;
+    background: #fafafa;
+    border-radius: 0 5px 5px 0;
+  }
+  .rule.g { border-color: #22a06b; }
+  .rule.p { border-color: #6B5CE7; }
+  .rule.a { border-color: #f59e0b; }
+  .rule strong { display: block; font-size: 8pt; font-weight: 700; color: #111; margin-bottom: 2px; }
+
+  /* ── Footer ── */
+  footer {
+    margin-top: 14px;
+    padding-top: 8px;
+    border-top: 1px solid #e5e7eb;
+    font-size: 8pt;
+    color: #9ca3af;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  @media print {
+    body { padding: 0; }
+    .page-break { page-break-before: always; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>CMS Flow</h1>
+  <aside>mynameissanderdekker.com<br>Sanity Studio · augustus 2026</aside>
+</header>
+
+<!-- ════════════════════════════════
+     DIAGRAM 1 — INHOUD
+════════════════════════════════ -->
+<div class="section-label">Van werk naar website</div>
+
+<div class="diagram">
+<svg viewBox="0 0 700 310" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system,'Helvetica Neue',sans-serif">
+<defs>
+  <marker id="arr"  markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M1,1 L7,4 L1,7 Z" fill="#9ca3af"/></marker>
+  <marker id="arrP" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M1,1 L7,4 L1,7 Z" fill="#6B5CE7"/></marker>
+  <marker id="arrB" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M1,1 L7,4 L1,7 Z" fill="#3b82f6"/></marker>
+  <marker id="arrO" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M1,1 L7,4 L1,7 Z" fill="#f59e0b"/></marker>
+</defs>
+
+<!-- ─── Kolom labels ─── -->
+<text x="76"  y="12" text-anchor="middle" font-size="7.5" font-weight="700" fill="#c4b5fd" letter-spacing="1">WERKEN</text>
+<text x="252" y="12" text-anchor="middle" font-size="7.5" font-weight="700" fill="#d1d5db" letter-spacing="1">SERIE</text>
+<text x="418" y="12" text-anchor="middle" font-size="7.5" font-weight="700" fill="#d1d5db" letter-spacing="1">PAGINA</text>
+<text x="600" y="12" text-anchor="middle" font-size="7.5" font-weight="700" fill="#d1d5db" letter-spacing="1">GEKOPPELD AAN PAGINA</text>
+
+<!-- ─── ARTWORK ─── -->
+<rect x="12" y="22" width="128" height="90" rx="8" fill="#f5f3ff" stroke="#6B5CE7" stroke-width="2"/>
+<text x="76" y="45" text-anchor="middle" font-size="12" font-weight="700" fill="#6B5CE7">Artwork</text>
+<text x="76" y="62" text-anchor="middle" font-size="9" fill="#555">titel · jaar · medium</text>
+<text x="76" y="76" text-anchor="middle" font-size="9" fill="#555">afmetingen · foto's</text>
+<text x="76" y="90" text-anchor="middle" font-size="9" fill="#555">editiegrootte · prijs</text>
+<text x="76" y="104" text-anchor="middle" font-size="8.5" fill="#9ca3af" font-style="italic">beschikbaar toggle</text>
+
+<!-- ─── PUBLICATIE ─── -->
+<rect x="12" y="190" width="128" height="80" rx="8" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/>
+<text x="76" y="213" text-anchor="middle" font-size="12" font-weight="700" fill="#3b82f6">Publicatie</text>
+<text x="76" y="230" text-anchor="middle" font-size="9" fill="#555">boek · zine · catalogus</text>
+<text x="76" y="244" text-anchor="middle" font-size="9" fill="#555">cover · PDF · editie</text>
+<text x="76" y="258" text-anchor="middle" font-size="8.5" fill="#9ca3af" font-style="italic">los van Artwork</text>
+
+<!-- ─── Artwork → Serie ─── -->
+<line x1="140" y1="60" x2="188" y2="108" stroke="#6B5CE7" stroke-width="1.8" stroke-dasharray="5,3" marker-end="url(#arrP)"/>
+<text x="158" y="78" text-anchor="middle" font-size="7.5" fill="#a78bfa" transform="rotate(-40,158,78)">artworks[]</text>
+
+<!-- ─── Publicatie → Serie ─── -->
+<line x1="140" y1="228" x2="188" y2="166" stroke="#3b82f6" stroke-width="1.8" stroke-dasharray="5,3" marker-end="url(#arrB)"/>
+<text x="158" y="205" text-anchor="middle" font-size="7.5" fill="#93c5fd" transform="rotate(40,158,205)">publications[]</text>
+
+<!-- ─── SERIE (optioneel) ─── -->
+<rect x="192" y="96" width="120" height="80" rx="8" fill="#fafafa" stroke="#d1d5db" stroke-width="1.5" stroke-dasharray="6,3"/>
+<text x="252" y="116" text-anchor="middle" font-size="11" font-weight="700" fill="#6b7280">Serie</text>
+<text x="252" y="132" text-anchor="middle" font-size="8.5" fill="#9ca3af">groepeert werken</text>
+<text x="252" y="146" text-anchor="middle" font-size="8.5" fill="#9ca3af">en publicaties</text>
+<rect x="212" y="157" width="80" height="14" rx="3" fill="#f3f4f6"/>
+<text x="252" y="168" text-anchor="middle" font-size="7.5" fill="#6b7280" font-weight="600">OPTIONEEL</text>
+
+<!-- ─── Serie → Pagina ─── -->
+<line x1="312" y1="136" x2="358" y2="136" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arr)"/>
+<text x="335" y="128" text-anchor="middle" font-size="7.5" fill="#9ca3af">artworkSeries[]</text>
+
+<!-- ─── Artwork direct → Tentoonst./Fair ─── -->
+<path d="M140,45 Q430,20 512,55" stroke="#6B5CE7" stroke-width="1.2" fill="none" stroke-dasharray="3,3" marker-end="url(#arrP)"/>
+<text x="330" y="25" text-anchor="middle" font-size="7.5" fill="#c4b5fd">direct artworks[] (zonder serie)</text>
+
+<!-- ─── PAGINA ─── -->
+<rect x="362" y="96" width="130" height="80" rx="8" fill="#f9fafb" stroke="#374151" stroke-width="1.5"/>
+<text x="427" y="119" text-anchor="middle" font-size="12" font-weight="700" fill="#111">Pagina</text>
+<text x="427" y="136" text-anchor="middle" font-size="9" fill="#555">eigen URL /projects/</text>
+<text x="427" y="150" text-anchor="middle" font-size="9" fill="#555">page builder blokken</text>
+<text x="427" y="164" text-anchor="middle" font-size="9" fill="#555">serie(s) gekoppeld</text>
+
+<!-- ─── Auto badge ─── -->
+<rect x="380" y="186" width="95" height="20" rx="5" fill="#fefce8" stroke="#d97706" stroke-width="1"/>
+<text x="427" y="200" text-anchor="middle" font-size="8" fill="#92400e" font-weight="600">🔄 Tentoonst. auto</text>
+<line x1="427" y1="176" x2="427" y2="184" stroke="#d97706" stroke-width="1" marker-end="url(#arrO)"/>
+
+<!-- ─── TENTOONSTELLING ─── -->
+<rect x="516" y="22" width="172" height="100" rx="8" fill="#f9fafb" stroke="#d1d5db" stroke-width="1.5"/>
+<text x="602" y="44" text-anchor="middle" font-size="11" font-weight="700" fill="#111">Tentoonstelling</text>
+<text x="602" y="60" text-anchor="middle" font-size="9" fill="#555">galerie · locatie · datum</text>
+<text x="602" y="74" text-anchor="middle" font-size="9" fill="#555">artworkSeries[] of artworks[]</text>
+<text x="602" y="88" text-anchor="middle" font-size="9" fill="#555">press artikelen</text>
+<text x="602" y="102" text-anchor="middle" font-size="8.5" fill="#9ca3af" font-style="italic">cvProject → koppelt aan Pagina</text>
+<text x="602" y="114" text-anchor="middle" font-size="8.5" fill="#9ca3af" font-style="italic">optioneel eigen pagina</text>
+
+<!-- ─── Tentoonst → Pagina (via cvProject, auto) ─── -->
+<line x1="516" y1="80" x2="494" y2="136" stroke="#f59e0b" stroke-width="1" fill="none" stroke-dasharray="3,3" marker-end="url(#arrO)"/>
+
+<!-- ─── ART FAIR ─── -->
+<rect x="516" y="145" width="172" height="100" rx="8" fill="#f9fafb" stroke="#d1d5db" stroke-width="1.5"/>
+<text x="602" y="167" text-anchor="middle" font-size="11" font-weight="700" fill="#111">Art Fair / Beurs</text>
+<text x="602" y="183" text-anchor="middle" font-size="9" fill="#555">naam · stand · datum</text>
+<text x="602" y="197" text-anchor="middle" font-size="9" fill="#555">artworkSeries[] of artworks[]</text>
+<text x="602" y="211" text-anchor="middle" font-size="9" fill="#555">press artikelen</text>
+<text x="602" y="227" text-anchor="middle" font-size="8.5" fill="#9ca3af" font-style="italic">cvProject → koppelt aan Pagina</text>
+
+<!-- ─── Fair → Pagina (auto) ─── -->
+<line x1="516" y1="185" x2="494" y2="158" stroke="#f59e0b" stroke-width="1" fill="none" stroke-dasharray="3,3" marker-end="url(#arrO)"/>
+
+<!-- ─── PRESS ─── -->
+<rect x="516" y="262" width="172" height="80" rx="8" fill="#f9fafb" stroke="#d1d5db" stroke-width="1.5"/>
+<text x="602" y="284" text-anchor="middle" font-size="11" font-weight="700" fill="#111">Press</text>
+<text x="602" y="300" text-anchor="middle" font-size="9" fill="#555">artikel · interview · URL</text>
+<text x="602" y="314" text-anchor="middle" font-size="9" fill="#555">→ koppelt aan Pagina</text>
+<text x="602" y="328" text-anchor="middle" font-size="9" fill="#555">→ koppelt aan Tentoonst./Fair</text>
+
+<!-- Tentoonst → Press -->
+<line x1="602" y1="245" x2="602" y2="260" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arr)"/>
+<text x="590" y="255" font-size="7.5" fill="#9ca3af">press[]</text>
+
+<!-- Bron van waarheid badge -->
+<rect x="532" y="344" width="140" height="16" rx="4" fill="#dcfce7"/>
+<text x="602" y="355.5" text-anchor="middle" font-size="8" fill="#15803d" font-weight="600">✓ bron van waarheid</text>
+
+</svg>
+</div>
+
+<!-- Legend 1 -->
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#f5f3ff;border-color:#6B5CE7"></div> Artwork</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#eff6ff;border-color:#3b82f6"></div> Publicatie</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#fafafa;border-color:#d1d5db;border-style:dashed"></div> Serie (optioneel)</div>
+  <div class="legend-item"><svg width="28" height="10"><line x1="0" y1="5" x2="22" y2="5" stroke="#6B5CE7" stroke-width="1.5" stroke-dasharray="4,2"/><polygon points="22,2 28,5 22,8" fill="#6B5CE7"/></svg> optioneel / direct</div>
+  <div class="legend-item"><svg width="28" height="10"><line x1="0" y1="5" x2="22" y2="5" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="3,2"/><polygon points="22,2 28,5 22,8" fill="#f59e0b"/></svg> automatisch via cvProject</div>
+  <div class="legend-item"><svg width="28" height="10"><line x1="0" y1="5" x2="22" y2="5" stroke="#9ca3af" stroke-width="1.5"/><polygon points="22,2 28,5 22,8" fill="#9ca3af"/></svg> directe koppeling</div>
+</div>
+
+
+<!-- ════════════════════════════════
+     DIAGRAM 2 — COLLECTOR & VERKOOP
+════════════════════════════════ -->
+<div class="section-label">Collector tools &amp; verkoop</div>
+
+<div class="diagram">
+<svg viewBox="0 0 700 235" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system,'Helvetica Neue',sans-serif">
+<defs>
+  <marker id="arrG"  markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M1,1 L7,4 L1,7 Z" fill="#22a06b"/></marker>
+  <marker id="arrG2" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M1,1 L7,4 L1,7 Z" fill="#22a06b"/></marker>
+  <marker id="arr2"  markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M1,1 L7,4 L1,7 Z" fill="#9ca3af"/></marker>
+  <marker id="arrP2" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M1,1 L7,4 L1,7 Z" fill="#6B5CE7"/></marker>
+</defs>
+
+<!-- ─── ARTWORK anchor ─── -->
+<rect x="12" y="70" width="128" height="85" rx="8" fill="#f5f3ff" stroke="#6B5CE7" stroke-width="2"/>
+<text x="76" y="95" text-anchor="middle" font-size="12" font-weight="700" fill="#6B5CE7">Artwork</text>
+<text x="76" y="112" text-anchor="middle" font-size="9" fill="#555">prijs excl. BTW</text>
+<text x="76" y="126" text-anchor="middle" font-size="9" fill="#555">editiegrootte</text>
+<text x="76" y="140" text-anchor="middle" font-size="9" fill="#555">beschikbaar toggle</text>
+
+<!-- ─── Artwork → Beschikbaar ─── -->
+<path d="M76,155 Q76,205 198,205" stroke="#22a06b" stroke-width="1.8" fill="none" marker-end="url(#arrG)"/>
+<text x="122" y="200" font-size="7.5" fill="#22a06b">beschikbaar</text>
+
+<!-- ─── BESCHIKBAAR ─── -->
+<rect x="200" y="178" width="128" height="50" rx="8" fill="#f0fdf4" stroke="#22a06b" stroke-width="1.5"/>
+<text x="264" y="200" text-anchor="middle" font-size="11" font-weight="700" fill="#22a06b">Beschikbaar</text>
+<text x="264" y="215" text-anchor="middle" font-size="9" fill="#555">webshop /available</text>
+<text x="264" y="227" text-anchor="middle" font-size="8.5" fill="#9ca3af" font-style="italic">Stripe checkout</text>
+
+<!-- ─── Artwork → Contact ─── -->
+<line x1="140" y1="112" x2="196" y2="112" stroke="#22a06b" stroke-width="2" marker-end="url(#arrG)"/>
+
+<!-- ─── CONTACT ─── -->
+<rect x="200" y="62" width="128" height="105" rx="8" fill="#f0fdf4" stroke="#22a06b" stroke-width="2"/>
+<text x="264" y="85" text-anchor="middle" font-size="12" font-weight="700" fill="#22a06b">Contact</text>
+<text x="264" y="102" text-anchor="middle" font-size="9" fill="#555">naam · e-mail · type</text>
+<text x="264" y="116" text-anchor="middle" font-size="9" fill="#22a06b">↳ Aankopen</text>
+<text x="264" y="129" text-anchor="middle" font-size="8.5" fill="#555">artwork · datum · prijs · kanaal</text>
+<text x="264" y="143" text-anchor="middle" font-size="9" fill="#22a06b">↳ ontvangt VR &amp; PS</text>
+<text x="264" y="156" text-anchor="middle" font-size="8.5" fill="#9ca3af" font-style="italic">nieuwsbrief voorkeur</text>
+
+<!-- ─── Contact → Viewing Room ─── -->
+<line x1="328" y1="88" x2="384" y2="55" stroke="#22a06b" stroke-width="1.5" marker-end="url(#arrG2)"/>
+
+<!-- ─── VIEWING ROOM ─── -->
+<rect x="388" y="18" width="145" height="80" rx="8" fill="#f9fafb" stroke="#d1d5db" stroke-width="1.5"/>
+<text x="460" y="40" text-anchor="middle" font-size="11" font-weight="700" fill="#111">Viewing Room</text>
+<text x="460" y="57" text-anchor="middle" font-size="9" fill="#555">privé link /room/[slug]</text>
+<text x="460" y="71" text-anchor="middle" font-size="9" fill="#555">selectie · prijzen · verloopdatum</text>
+<text x="460" y="85" text-anchor="middle" font-size="8.5" fill="#9ca3af" font-style="italic">recipientName als override</text>
+
+<!-- ─── Contact → Private Selectie ─── -->
+<line x1="328" y1="114" x2="386" y2="124" stroke="#22a06b" stroke-width="1.5" marker-end="url(#arrG2)"/>
+
+<!-- ─── PRIVATE SELECTIE ─── -->
+<rect x="388" y="110" width="145" height="90" rx="8" fill="#f9fafb" stroke="#d1d5db" stroke-width="1.5"/>
+<text x="460" y="132" text-anchor="middle" font-size="11" font-weight="700" fill="#111">Private Selectie</text>
+<text x="460" y="149" text-anchor="middle" font-size="9" fill="#555">token-link /private-sales/</text>
+<text x="460" y="163" text-anchor="middle" font-size="9" fill="#555">selectie · prijzen · verloopdatum</text>
+<text x="460" y="177" text-anchor="middle" font-size="9" fill="#555">intro + footer tekst</text>
+<text x="460" y="191" text-anchor="middle" font-size="8.5" fill="#9ca3af" font-style="italic">recipientName als override</text>
+
+<!-- ─── Contact → Campagne ─── -->
+<line x1="328" y1="145" x2="386" y2="188" stroke="#9ca3af" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr2)"/>
+
+<!-- ─── CAMPAGNE ─── -->
+<rect x="388" y="210" width="145" height="50" rx="8" fill="#f9fafb" stroke="#d1d5db" stroke-width="1.5" stroke-dasharray="5,3"/>
+<text x="460" y="232" text-anchor="middle" font-size="11" font-weight="700" fill="#6b7280">Campagne</text>
+<text x="460" y="248" text-anchor="middle" font-size="9" fill="#9ca3af">e-mail · segment van contacten</text>
+
+<!-- ─── soldVia label ─── -->
+<rect x="560" y="62" width="130" height="76" rx="8" fill="#fafafa" stroke="#e5e7eb" stroke-width="1"/>
+<text x="625" y="80" text-anchor="middle" font-size="8.5" font-weight="700" fill="#6b7280">VERKOOP KANAAL</text>
+<text x="625" y="96" text-anchor="middle" font-size="8.5" fill="#555">webshop (Stripe)</text>
+<text x="625" y="109" text-anchor="middle" font-size="8.5" fill="#555">direct</text>
+<text x="625" y="122" text-anchor="middle" font-size="8.5" fill="#555">gallery</text>
+<text x="625" y="135" text-anchor="middle" font-size="8.5" fill="#555">artfair</text>
+
+</svg>
+</div>
+
+<!-- Legend 2 -->
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#f0fdf4;border-color:#22a06b"></div> Collector tools</div>
+  <div class="legend-item"><svg width="28" height="10"><line x1="0" y1="5" x2="22" y2="5" stroke="#22a06b" stroke-width="1.8"/><polygon points="22,2 28,5 22,8" fill="#22a06b"/></svg> verkoopkoppeling</div>
+  <div class="legend-item"><svg width="28" height="10"><line x1="0" y1="5" x2="22" y2="5" stroke="#9ca3af" stroke-width="1.5" stroke-dasharray="4,2"/><polygon points="22,2 28,5 22,8" fill="#9ca3af"/></svg> optioneel</div>
+  <div class="legend-item" style="font-style:italic;color:#9ca3af">recipientName/Email = override als er geen Contact gekoppeld is</div>
+</div>
+
+<!-- ════════════════════════════════
+     REGELS
+════════════════════════════════ -->
+<div class="section-label">Regels &amp; afspraken</div>
+<div class="rules">
+  <div class="rule p">
+    <strong>Serie is optioneel voor Tentoonst./Fair</strong>
+    Direct artworks[] koppelen mag. Serie is alleen verplicht als werken op een Pagina moeten verschijnen.
+  </div>
+  <div class="rule g">
+    <strong>Press: altijd vanuit het Press-document beheren</strong>
+    Koppel vanuit Studio → Press. Niet vanuit Artwork of Pagina. Zo staat alles op één plek.
+  </div>
+  <div class="rule g">
+    <strong>Tentoonstelling aan Pagina koppelen</strong>
+    Vul "CV — Project" in op de Tentoonst./Fair. De tentoonst. verschijnt dan automatisch op die Pagina.
+  </div>
+  <div class="rule a">
+    <strong>Publicatie ≠ Artwork</strong>
+    Boeken en zines zijn een apart document type. Ze hangen in publications[] op de Serie — niet in artworks[].
+  </div>
+</div>
+
+<footer>
+  <span>mynameissanderdekker.com · CMS documentatie</span>
+  <span>Gegenereerd augustus 2026</span>
+</footer>
+
+</body>
+</html>

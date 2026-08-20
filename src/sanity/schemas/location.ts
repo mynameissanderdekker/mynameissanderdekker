@@ -65,6 +65,12 @@ export const location = defineType({
       options: { disableNew: true },
     }),
     defineField({
+      name: 'since',
+      title: 'Since',
+      type: 'date',
+      description: 'Date since which this artwork is at this location.',
+    }),
+    defineField({
       name: 'notes',
       title: 'Notes',
       type: 'text',
