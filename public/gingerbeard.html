@@ -33,6 +33,13 @@ function run() {
   let sx=0,sy=0,sw=img.width,sh=img.height;
   if(iA>sA){sw=img.height*sA;sx=(img.width-sw)/2;}
   else{sh=img.width/sA;sy=(img.height-sh)/2;}
+  // On mobile: zoom in 1.4× and shift focus slightly down toward the figures
+  if(VW<600){
+    const zoom=0.72;
+    const cx=sx+sw/2, cy=sy+sh/2+sh*0.06;
+    sw*=zoom; sh*=zoom;
+    sx=cx-sw/2; sy=cy-sh/2;
+  }
 
   const off=document.createElement('canvas');
   off.width=COLS;off.height=ROWS;
