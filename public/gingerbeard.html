@@ -73,34 +73,10 @@ function run() {
     if(state[idx]===0){state[idx]=1;timer[idx]=tv;empty--;}
   }
 
-  // Collect remaining empty cells for sweep
-  let sweepMode=false;
-  let sweepQueue=[];
-  let sweepIdx=0;
-
   function render(){
     ctx.fillStyle='#000';ctx.fillRect(0,0,VW,VH);
 
-    // Switch to sweep mode when <12% left
-    if(!sweepMode && empty<TOTAL*0.12){
-      sweepMode=true;
-      sweepQueue=[];
-      for(let i=0;i<TOTAL;i++) if(state[i]===0) sweepQueue.push(i);
-      // Shuffle for random order
-      for(let i=sweepQueue.length-1;i>0;i--){
-        const j=Math.floor(Math.random()*(i+1));
-        [sweepQueue[i],sweepQueue[j]]=[sweepQueue[j],sweepQueue[i]];
-      }
-    }
-
-    if(sweepMode){
-      // Activate 60 cells per frame
-      const batch=Math.min(75,sweepQueue.length-sweepIdx);
-      for(let i=0;i<batch;i++) activate(sweepQueue[sweepIdx+i],NEON_HOLD);
-      sweepIdx+=batch;
-    } else {
-      // Normal drop mode
-      for(let col=0;col<COLS;col++){
+    for(let col=0;col<COLS;col++){
         for(const d of drops[col]){
           const h=Math.floor(d.y);
           for(let t=0;t<14;t++){
@@ -116,7 +92,6 @@ function run() {
           }
         }
       }
-    }
 
     let settled=0;
     for(let idx=0;idx<TOTAL;idx++){
