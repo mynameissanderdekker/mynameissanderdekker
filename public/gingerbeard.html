@@ -129,21 +129,18 @@ function run() {
   function glitch(ex,ey){
     const col=Math.floor((ex-ox)/STEP);
     const row=Math.floor((ey-oy)/STEP);
-    const radius=3;
-    for(let dc=-radius;dc<=radius;dc++){
-      for(let dr=-radius;dr<=radius;dr++){
-        if(dc*dc+dr*dr>radius*radius)continue;
-        if(Math.random()>0.05)continue;
-        const c=col+dc,r=row+dr;
-        if(c<0||c>=COLS||r<0||r>=ROWS)continue;
-        const idx=r*COLS+c;
-        if(state[idx]===2){state[idx]=1;timer[idx]=8+Math.random()*8;}
-      }
+    const count=2+Math.floor(Math.random()*3); // 2–4 cells
+    for(let i=0;i<count;i++){
+      const c=col+Math.floor(Math.random()*7)-3;
+      const r=row+Math.floor(Math.random()*7)-3;
+      if(c<0||c>=COLS||r<0||r>=ROWS)continue;
+      const idx=r*COLS+c;
+      if(state[idx]===2){state[idx]=1;timer[idx]=6+Math.random()*6;}
     }
     glitchActive=true;
     if(!animId) animId=requestAnimationFrame(render);
     clearTimeout(glitchTimeout);
-    glitchTimeout=setTimeout(()=>{glitchActive=false;},500);
+    glitchTimeout=setTimeout(()=>{glitchActive=false;},400);
   }
 
   canvas.addEventListener('mousemove',e=>{
