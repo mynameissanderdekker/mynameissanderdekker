@@ -23,7 +23,7 @@ function run() {
   if (animId) cancelAnimationFrame(animId);
 
   const VW = canvas.width  = window.innerWidth;
-  const VH = canvas.height = window.innerHeight;
+  const VH = canvas.height = window.screen?.height ?? window.innerHeight;
 
   const CELL=VW<600?4:VW<1000?5:7,GAP=1,STEP=CELL+GAP;
   const COLS=Math.floor(VW/STEP),ROWS=Math.floor(VH/STEP);
