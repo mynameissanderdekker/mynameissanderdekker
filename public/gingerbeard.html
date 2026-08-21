@@ -30,10 +30,10 @@ function run(){
   const VW=canvas.width=window.innerWidth;
   const VH=canvas.height=window.innerHeight;
 
-  const GAP=1;
+  const GAP=0;
   const MAXW=Math.min(VW,1600);
   const STEP=Math.max(3,Math.floor(MAXW/COLS));
-  const CELL=STEP-GAP;
+  const CELL=STEP;
   const TOTAL=COLS*ROWS;
 
   const ox=Math.floor((VW-COLS*STEP)/2);
@@ -45,6 +45,10 @@ function run(){
     const x=ox+col*STEP,y=oy+row*STEP;
     ctx.fillStyle='rgb('+r+','+g+','+b+')';
     ctx.fillRect(x,y,CELL,CELL);
+    // 1px grid line overlay
+    ctx.strokeStyle='rgba(0,0,0,0.15)';
+    ctx.lineWidth=1;
+    ctx.strokeRect(x+0.5,y+0.5,CELL-1,CELL-1);
     // 4 edge-midpoint triangles pointing inward — corners and center stay bright
     const hx=x+CELL/2, hy=y+CELL/2, d=CELL*0.22;
     ctx.fillStyle='rgba(0,0,0,0.28)';
