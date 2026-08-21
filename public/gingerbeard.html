@@ -164,21 +164,34 @@ function run(){
   };
   function drawPixelText(){
     function txt(str,startCol,startRow,r,g,b){
-      ctx.fillStyle='rgb('+r+','+g+','+b+')';
       let col=startCol;
       for(const ch of str.toUpperCase()){
         const rows=F[ch]||F[' '];
-        for(let ry=0;ry<7;ry++) for(let rx=0;rx<5;rx++)
-          if(rows[ry]&(1<<(4-rx))) ctx.fillRect(ox+(col+rx)*STEP,oy+(startRow+ry)*STEP,CELL,CELL);
+        for(let ry=0;ry<7;ry++) for(let rx=0;rx<5;rx++){
+          if(rows[ry]&(1<<(4-rx))){
+            const px=ox+(col+rx)*STEP, py=oy+(startRow+ry)*STEP;
+            // fill cell
+            ctx.fillStyle='rgb('+r+','+g+','+b+')';
+            ctx.fillRect(px,py,CELL,CELL);
+            // same diamond overlay as grid cells
+            const hx=px+CELL/2, hy=py+CELL/2, d=CELL*0.22;
+            ctx.fillStyle='rgba(0,0,0,0.28)';
+            ctx.beginPath(); ctx.moveTo(px,py); ctx.lineTo(px+CELL,py); ctx.lineTo(hx,py+d); ctx.closePath(); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(px,py+CELL); ctx.lineTo(px+CELL,py+CELL); ctx.lineTo(hx,py+CELL-d); ctx.closePath(); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(px,py); ctx.lineTo(px,py+CELL); ctx.lineTo(px+d,hy); ctx.closePath(); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(px+CELL,py); ctx.lineTo(px+CELL,py+CELL); ctx.lineTo(px+CELL-d,hy); ctx.closePath(); ctx.fill();
+          }
+        }
         col+=6;
       }
     }
-    // "GINGER BEARD" centered, row 3, orange
-    const t1='GINGER BEARD', w1=t1.length*6-1;
-    txt(t1,Math.round((COLS-w1)/2)-4,23,195,95,21);
-    // ".works" right of center, row 42, white
-    const t2='.works', w2=t2.length*6-1;
-    txt(t2,55,42,253,253,252);
+    const baseCol=Math.round((COLS-(12*6-1))/2)-4;
+    // "GINGER " at base position
+    txt('GINGER ',baseCol,23,195,95,21);
+    // "BEARD" 3 cols to the left
+    txt('BEARD',baseCol+7*6-3,23,195,95,21);
+    // ".works"
+    txt('.works',55,42,253,253,252);
   }
 
   render();
