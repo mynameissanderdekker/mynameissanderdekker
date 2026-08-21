@@ -20,6 +20,51 @@ const DATA="00000000000000000000000000000000000000000000000000000000000000000000
 const IDX=new Uint8Array(DATA.length);
 for(let i=0;i<DATA.length;i++) IDX[i]=parseInt(DATA[i],16);
 
+// 5×7 pixel font (global — used by writeTextToGrid)
+const F={
+  ' ':[0,0,0,0,0,0,0],
+  'G':[0b01110,0b10000,0b10000,0b10111,0b10001,0b10001,0b01111],
+  'I':[0b11111,0b00100,0b00100,0b00100,0b00100,0b00100,0b11111],
+  'N':[0b10001,0b11001,0b10101,0b10011,0b10001,0b10001,0b10001],
+  'E':[0b11111,0b10000,0b10000,0b11110,0b10000,0b10000,0b11111],
+  'R':[0b11110,0b10001,0b10001,0b11110,0b10100,0b10010,0b10001],
+  'B':[0b11110,0b10001,0b10001,0b11110,0b10001,0b10001,0b11110],
+  'A':[0b01110,0b10001,0b10001,0b11111,0b10001,0b10001,0b10001],
+  'D':[0b11110,0b10001,0b10001,0b10001,0b10001,0b10001,0b11110],
+  'W':[0b10001,0b10001,0b10001,0b10101,0b10101,0b11011,0b10001],
+  'O':[0b01110,0b10001,0b10001,0b10001,0b10001,0b10001,0b01110],
+  'K':[0b10001,0b10010,0b10100,0b11000,0b10100,0b10010,0b10001],
+  'S':[0b01110,0b10001,0b10000,0b01110,0b00001,0b10001,0b01110],
+  '.':[0,0,0,0,0,0b00100,0],
+};
+
+// Stamp letter pixels into IDX so they're revealed by the matrix animation
+function writeTextToGrid(){
+  function stamp(str,startCol,startRow,palIdx){
+    let col=startCol;
+    for(const ch of str.toUpperCase()){
+      const bits=F[ch]||F[' '];
+      for(let ry=0;ry<7;ry++) for(let rx=0;rx<5;rx++){
+        if(bits[ry]&(1<<(4-rx))){
+          const c=col+rx, r=startRow+ry;
+          if(c>=0&&c<COLS&&r>=0&&r<ROWS) IDX[r*COLS+c]=palIdx;
+        }
+      }
+      col+=6;
+    }
+  }
+  const baseCol=Math.round((COLS-(12*6-1))/2)-4;
+  stamp('GINGER ',baseCol,23,10);        // orange = palette index 10
+  stamp('BEARD',baseCol+7*6-3,23,10);
+  const wc=49;
+  stamp('w',wc,   37,9);                 // white = palette index 9
+  stamp('o',wc+6, 35,9);
+  stamp('r',wc+12,33,9);
+  stamp('k',wc+18,35,9);
+  stamp('s',wc+24,37,9);
+}
+writeTextToGrid();
+
 const canvas=document.getElementById('c');
 const ctx=canvas.getContext('2d');
 let animId=null;
@@ -138,65 +183,8 @@ function run(){
       }
     }
 
-    // Pixel text overlay
-    if(settled>0) drawPixelText();
-
     if(settled<TOTAL||glitchActive) animId=requestAnimationFrame(render);
     else animId=null;
-  }
-
-  // 5×7 pixel font
-  const F={
-    ' ':[0,0,0,0,0,0,0],
-    'G':[0b01110,0b10000,0b10000,0b10111,0b10001,0b10001,0b01111],
-    'I':[0b11111,0b00100,0b00100,0b00100,0b00100,0b00100,0b11111],
-    'N':[0b10001,0b11001,0b10101,0b10011,0b10001,0b10001,0b10001],
-    'E':[0b11111,0b10000,0b10000,0b11110,0b10000,0b10000,0b11111],
-    'R':[0b11110,0b10001,0b10001,0b11110,0b10100,0b10010,0b10001],
-    'B':[0b11110,0b10001,0b10001,0b11110,0b10001,0b10001,0b11110],
-    'A':[0b01110,0b10001,0b10001,0b11111,0b10001,0b10001,0b10001],
-    'D':[0b11110,0b10001,0b10001,0b10001,0b10001,0b10001,0b11110],
-    'W':[0b10001,0b10001,0b10001,0b10101,0b10101,0b11011,0b10001],
-    'O':[0b01110,0b10001,0b10001,0b10001,0b10001,0b10001,0b01110],
-    'K':[0b10001,0b10010,0b10100,0b11000,0b10100,0b10010,0b10001],
-    'S':[0b01110,0b10001,0b10000,0b01110,0b00001,0b10001,0b01110],
-    '.':[0,0,0,0,0,0b00100,0],
-  };
-  function drawPixelText(){
-    function txt(str,startCol,startRow,r,g,b){
-      let col=startCol;
-      for(const ch of str.toUpperCase()){
-        const rows=F[ch]||F[' '];
-        for(let ry=0;ry<7;ry++) for(let rx=0;rx<5;rx++){
-          if(rows[ry]&(1<<(4-rx))){
-            const px=ox+(col+rx)*STEP, py=oy+(startRow+ry)*STEP;
-            // fill cell
-            ctx.fillStyle='rgb('+r+','+g+','+b+')';
-            ctx.fillRect(px,py,CELL,CELL);
-            // same diamond overlay as grid cells
-            const hx=px+CELL/2, hy=py+CELL/2, d=CELL*0.22;
-            ctx.fillStyle='rgba(0,0,0,0.28)';
-            ctx.beginPath(); ctx.moveTo(px,py); ctx.lineTo(px+CELL,py); ctx.lineTo(hx,py+d); ctx.closePath(); ctx.fill();
-            ctx.beginPath(); ctx.moveTo(px,py+CELL); ctx.lineTo(px+CELL,py+CELL); ctx.lineTo(hx,py+CELL-d); ctx.closePath(); ctx.fill();
-            ctx.beginPath(); ctx.moveTo(px,py); ctx.lineTo(px,py+CELL); ctx.lineTo(px+d,hy); ctx.closePath(); ctx.fill();
-            ctx.beginPath(); ctx.moveTo(px+CELL,py); ctx.lineTo(px+CELL,py+CELL); ctx.lineTo(px+CELL-d,hy); ctx.closePath(); ctx.fill();
-          }
-        }
-        col+=6;
-      }
-    }
-    const baseCol=Math.round((COLS-(12*6-1))/2)-4;
-    // "GINGER " at base position
-    txt('GINGER ',baseCol,23,195,95,21);
-    // "BEARD" 3 cols to the left
-    txt('BEARD',baseCol+7*6-3,23,195,95,21);
-    // "works" — letters at different heights
-    const wc=49; // start col
-    txt('w',wc,   37,253,253,252);
-    txt('o',wc+6, 35,253,253,252);
-    txt('r',wc+12,33,253,253,252);
-    txt('k',wc+18,35,253,253,252);
-    txt('s',wc+24,37,253,253,252);
   }
 
   render();
