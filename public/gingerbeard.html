@@ -45,7 +45,7 @@ function run(){
     ctx.fillStyle='rgb('+r+','+g+','+b+')';
     ctx.fillRect(x,y,CELL,CELL);
     // 4 edge-midpoint triangles pointing inward — corners and center stay bright
-    const hx=x+CELL/2, hy=y+CELL/2, d=CELL*0.35;
+    const hx=x+CELL/2, hy=y+CELL/2, d=CELL*0.22;
     ctx.fillStyle='rgba(0,0,0,0.28)';
     // top (pointing down)
     ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x+CELL,y); ctx.lineTo(hx,y+d); ctx.closePath(); ctx.fill();
