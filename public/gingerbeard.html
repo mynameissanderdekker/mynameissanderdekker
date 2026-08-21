@@ -30,7 +30,7 @@ function run(){
   const VW=canvas.width=window.innerWidth;
   const VH=canvas.height=window.innerHeight;
 
-  const GRIDW=800;
+  const GRIDW=Math.max(800,Math.min(VW,2200));
   const STEP=GRIDW/COLS;
   const CELL=STEP;
   const TOTAL=COLS*ROWS;
