@@ -31,7 +31,7 @@ function run(){
   const VH=canvas.height=window.innerHeight;
 
   const GAP=1;
-  const CELL=Math.max(2,Math.min(Math.floor(VW/COLS),Math.floor(VH/ROWS))-GAP);
+  const CELL=Math.max(2,Math.floor(Math.min(VW,1600)/COLS)-GAP);
   const STEP=CELL+GAP;
   const TOTAL=COLS*ROWS;
 
