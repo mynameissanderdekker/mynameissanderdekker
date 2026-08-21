@@ -25,8 +25,9 @@ function run() {
   const VW = canvas.width  = window.innerWidth;
   const VH = canvas.height = window.screen?.height ?? window.innerHeight;
 
-  const CELL=VW<600?4:VW<1000?5:7,GAP=1,STEP=CELL+GAP;
-  const COLS=Math.floor(VW/STEP),ROWS=Math.floor(VH/STEP);
+  const COLS=80,GAP=1;
+  const CELL=Math.max(2,Math.floor(VW/COLS)-GAP),STEP=CELL+GAP;
+  const ROWS=Math.floor(VH/STEP);
   const TOTAL=COLS*ROWS;
 
   const iA=img.width/img.height,sA=VW/VH;
