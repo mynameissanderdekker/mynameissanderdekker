@@ -138,8 +138,47 @@ function run(){
       }
     }
 
+    // Pixel text overlay
+    if(settled>0) drawPixelText();
+
     if(settled<TOTAL||glitchActive) animId=requestAnimationFrame(render);
     else animId=null;
+  }
+
+  // 5×7 pixel font
+  const F={
+    ' ':[0,0,0,0,0,0,0],
+    'G':[0b01110,0b10000,0b10000,0b10111,0b10001,0b10001,0b01111],
+    'I':[0b11111,0b00100,0b00100,0b00100,0b00100,0b00100,0b11111],
+    'N':[0b10001,0b11001,0b10101,0b10011,0b10001,0b10001,0b10001],
+    'E':[0b11111,0b10000,0b10000,0b11110,0b10000,0b10000,0b11111],
+    'R':[0b11110,0b10001,0b10001,0b11110,0b10100,0b10010,0b10001],
+    'B':[0b11110,0b10001,0b10001,0b11110,0b10001,0b10001,0b11110],
+    'A':[0b01110,0b10001,0b10001,0b11111,0b10001,0b10001,0b10001],
+    'D':[0b11110,0b10001,0b10001,0b10001,0b10001,0b10001,0b11110],
+    'W':[0b10001,0b10001,0b10001,0b10101,0b10101,0b11011,0b10001],
+    'O':[0b01110,0b10001,0b10001,0b10001,0b10001,0b10001,0b01110],
+    'K':[0b10001,0b10010,0b10100,0b11000,0b10100,0b10010,0b10001],
+    'S':[0b01110,0b10001,0b10000,0b01110,0b00001,0b10001,0b01110],
+    '.':[0,0,0,0,0,0b00100,0],
+  };
+  function drawPixelText(){
+    function txt(str,startCol,startRow,r,g,b){
+      ctx.fillStyle='rgb('+r+','+g+','+b+')';
+      let col=startCol;
+      for(const ch of str.toUpperCase()){
+        const rows=F[ch]||F[' '];
+        for(let ry=0;ry<7;ry++) for(let rx=0;rx<5;rx++)
+          if(rows[ry]&(1<<(4-rx))) ctx.fillRect(ox+(col+rx)*STEP,oy+(startRow+ry)*STEP,CELL,CELL);
+        col+=6;
+      }
+    }
+    // "GINGER BEARD" centered, row 3, orange
+    const t1='GINGER BEARD', w1=t1.length*6-1;
+    txt(t1,Math.round((COLS-w1)/2),3,195,95,21);
+    // ".works" centered, row 109, white
+    const t2='.works', w2=t2.length*6-1;
+    txt(t2,Math.round((COLS-w2)/2),109,253,253,252);
   }
 
   render();
