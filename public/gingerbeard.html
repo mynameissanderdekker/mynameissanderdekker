@@ -190,8 +190,13 @@ function run(){
     txt('GINGER ',baseCol,23,195,95,21);
     // "BEARD" 3 cols to the left
     txt('BEARD',baseCol+7*6-3,23,195,95,21);
-    // "works"
-    txt('works',55-9+3,37,253,253,252);
+    // "works" — letters at different heights
+    const wc=49; // start col
+    txt('w',wc,   37,253,253,252);
+    txt('o',wc+6, 35,253,253,252);
+    txt('r',wc+12,33,253,253,252);
+    txt('k',wc+18,35,253,253,252);
+    txt('s',wc+24,37,253,253,252);
   }
 
   render();
