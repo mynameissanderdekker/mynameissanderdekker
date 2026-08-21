@@ -30,11 +30,12 @@ function run(){
   const VW=canvas.width=window.innerWidth;
   const VH=canvas.height=window.innerHeight;
 
-  const STEP=Math.min(VW,1600)/COLS; // fills width exactly, max 1600px
+  const GRIDW=800;
+  const STEP=GRIDW/COLS;
   const CELL=STEP;
   const TOTAL=COLS*ROWS;
 
-  const ox=VW>1600?Math.floor((VW-1600)/2):0; // only center when screen > 1600px
+  const ox=Math.floor((VW-GRIDW)/2);
   const oy=Math.floor((VH-ROWS*STEP)/2);
 
   function getCol(c,r){ return PAL[IDX[r*COLS+c]]; }
