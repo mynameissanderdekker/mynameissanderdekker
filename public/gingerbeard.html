@@ -75,7 +75,7 @@ function run(){
   const VW=canvas.width=window.innerWidth;
   const VH=canvas.height=window.innerHeight;
 
-  const mobileScale=VW<768?0.9:1;
+  const mobileScale=VW<768?0.85:1;
   const GRIDW=Math.max(800,Math.min(VW,2200))*mobileScale;
   const STEP=GRIDW/COLS;
   const CELL=STEP;
@@ -83,7 +83,8 @@ function run(){
 
   const mobileShift=VW<768?Math.round(7*STEP):0;
   const ox=Math.floor((VW-GRIDW)/2)+mobileShift;
-  const oy=Math.floor((VH-ROWS*STEP)/2);
+  const mobileOffsetY=VW<768?Math.round(VH*0.02):0;
+  const oy=Math.floor((VH-ROWS*STEP)/2)+mobileOffsetY;
 
   function getCol(c,r){ return PAL[IDX[r*COLS+c]]; }
 
