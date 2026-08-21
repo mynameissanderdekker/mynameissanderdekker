@@ -55,16 +55,10 @@ function run() {
   const ox=Math.floor((VW-COLS*STEP)/2);
   const oy=Math.floor((VH-ROWS*STEP)/2);
 
-  function drawCell(col,row,r,g,b,bg){
+  function drawCell(col,row,r,g,b){
     const x=ox+col*STEP,y=oy+row*STEP;
-    const da=bg?10:25,la=bg?7:15;
-    ctx.fillStyle='rgb('+Math.max(0,r-da)+','+Math.max(0,g-da)+','+Math.max(0,b-da)+')';
+    ctx.fillStyle='rgb('+r+','+g+','+b+')';
     ctx.fillRect(x,y,CELL,CELL);
-    ctx.lineWidth=1.5;ctx.lineCap='round';
-    ctx.strokeStyle='rgb('+Math.min(255,r+la)+','+Math.min(255,g+la)+','+Math.min(255,b+la)+')';
-    ctx.beginPath();ctx.moveTo(x+.5,y+CELL-.5);ctx.lineTo(x+CELL-.5,y+.5);ctx.stroke();
-    ctx.strokeStyle='rgb('+r+','+g+','+b+')';
-    ctx.beginPath();ctx.moveTo(x+.5,y+.5);ctx.lineTo(x+CELL-.5,y+CELL-.5);ctx.stroke();
   }
 
   function activate(idx,tv){
@@ -99,13 +93,13 @@ function run() {
       if(s===1){
         if(timer[idx]>0){
           const a=Math.min(1,timer[idx]/NEON_HOLD);
-          drawCell(col,row,0,Math.round(255*a),Math.round(65*a),false);
+          drawCell(col,row,0,Math.round(255*a),Math.round(65*a));
           timer[idx]--;
         }else{state[idx]=2;}
       }
       if(s===2){
         const[r,g,b]=getCol(col,row);
-        drawCell(col,row,r,g,b,isBg(r,g,b));
+        drawCell(col,row,r,g,b);
         settled++;
       }
     }
