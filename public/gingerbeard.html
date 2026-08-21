@@ -42,8 +42,19 @@ function run(){
 
   function drawCell(col,row,r,g,b){
     const x=ox+col*STEP,y=oy+row*STEP;
+    // Base fill
     ctx.fillStyle='rgb('+r+','+g+','+b+')';
     ctx.fillRect(x,y,CELL,CELL);
+    // Bevel: highlight top-left, shadow bottom-right
+    const s=Math.max(1,Math.floor(CELL/6));
+    // top highlight
+    ctx.fillStyle='rgba(255,255,255,0.22)';
+    ctx.fillRect(x,y,CELL,s);
+    ctx.fillRect(x,y,s,CELL);
+    // bottom shadow
+    ctx.fillStyle='rgba(0,0,0,0.28)';
+    ctx.fillRect(x,y+CELL-s,CELL,s);
+    ctx.fillRect(x+CELL-s,y,s,CELL);
   }
 
   const state=new Uint8Array(TOTAL);
