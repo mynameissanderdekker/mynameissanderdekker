@@ -69,17 +69,25 @@ const canvas=document.getElementById('c');
 const ctx=canvas.getContext('2d');
 let animId=null;
 
-// Contact button bounds (updated each render, used by click handler)
-let _btnBounds=null;
+// Contact button: stamped into IDX, revealed by matrix animation
+// Position: col 62, row 77 (8×8 cells)
+const BTN_COL=62,BTN_ROW=77,BTN_SZ=8;
+let _ox=0,_oy=0,_STEP=1;
+(function writeButtonToGrid(){
+  for(let ry=0;ry<8;ry++) for(let rx=0;rx<8;rx++){
+    if(Math.sqrt((rx+.5-4)**2+(ry+.5-4)**2)>=4) continue;
+    const isV=(rx===3||rx===4)&&ry>=1&&ry<=6;
+    const isH=(ry===3||ry===4)&&rx>=1&&rx<=6;
+    IDX[(BTN_ROW+ry)*COLS+(BTN_COL+rx)]=(isV||isH)?12:4; // 12=red,4=yellow
+  }
+})();
 canvas.addEventListener('click',e=>{
-  if(!_btnBounds) return;
-  const {bx,by,sz}=_btnBounds;
+  const bx=_ox+BTN_COL*_STEP,by=_oy+BTN_ROW*_STEP,sz=BTN_SZ*_STEP;
   if(e.clientX>=bx&&e.clientX<=bx+sz&&e.clientY>=by&&e.clientY<=by+sz)
     window.location.href="mailto:sander@gingerbeard.works?subject=I%20heard%20about%20your%20services%20and%20I'm%20intrigued";
 });
 canvas.addEventListener('mousemove',e=>{
-  if(!_btnBounds){canvas.style.cursor='default';return;}
-  const{bx,by,sz}=_btnBounds;
+  const bx=_ox+BTN_COL*_STEP,by=_oy+BTN_ROW*_STEP,sz=BTN_SZ*_STEP;
   canvas.style.cursor=(e.clientX>=bx&&e.clientX<=bx+sz&&e.clientY>=by&&e.clientY<=by+sz)?'pointer':'default';
 });
 
@@ -99,6 +107,7 @@ function run(){
   const ox=Math.floor((VW-GRIDW)/2)+mobileShift;
   const mobileOffsetY=VW<768?Math.round(VH*0.02):0;
   const oy=Math.floor((VH-ROWS*STEP)/2)+mobileOffsetY;
+  _ox=ox;_oy=oy;_STEP=STEP;
 
   function getCol(c,r){ return PAL[IDX[r*COLS+c]]; }
 
@@ -196,38 +205,6 @@ function run(){
         const [r,g,b]=getCol(col,row);
         drawCell(col,row,r,g,b);
         settled++;
-      }
-    }
-
-    // Draw contact button: 8×8 cell circle, yellow + red plus
-    {
-      const bx=ox+Math.round((COLS/2-4)*STEP);
-      const by=oy+ROWS*STEP+Math.round(-19*STEP);
-      const sz=8*STEP;
-      _btnBounds={bx,by,sz};
-      // circle mask: radius 4, center at (4,4)
-      const PLUS=[[3,1],[3,2],[3,3],[3,4],[3,5],[3,6],// vertical col 3
-                  [4,1],[4,2],[4,3],[4,4],[4,5],[4,6],// vertical col 4
-                  [1,3],[2,3],[5,3],[6,3],             // horizontal row 3 (excl center)
-                  [1,4],[2,4],[5,4],[6,4]];            // horizontal row 4 (excl center)
-      const plusSet=new Set(PLUS.map(([x,y])=>x+','+y));
-      for(let ry=0;ry<8;ry++) for(let rx=0;rx<8;rx++){
-        const inCircle=Math.sqrt((rx+.5-4)**2+(ry+.5-4)**2)<4;
-        if(!inCircle) continue;
-        const px=bx+rx*STEP, py=by+ry*STEP;
-        const isPlus=plusSet.has(rx+','+ry);
-        const [r,g,b]=isPlus?[203,30,30]:[234,195,16];
-        ctx.fillStyle='rgb('+r+','+g+','+b+')';
-        ctx.fillRect(px,py,CELL,CELL);
-        ctx.strokeStyle='rgba(0,0,0,0.15)';
-        ctx.lineWidth=1;
-        ctx.strokeRect(px+.5,py+.5,CELL-1,CELL-1);
-        const hx=px+CELL/2,hy=py+CELL/2,d=CELL*0.22;
-        ctx.fillStyle='rgba(0,0,0,0.28)';
-        ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(px+CELL,py);ctx.lineTo(hx,py+d);ctx.closePath();ctx.fill();
-        ctx.beginPath();ctx.moveTo(px,py+CELL);ctx.lineTo(px+CELL,py+CELL);ctx.lineTo(hx,py+CELL-d);ctx.closePath();ctx.fill();
-        ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(px,py+CELL);ctx.lineTo(px+d,hy);ctx.closePath();ctx.fill();
-        ctx.beginPath();ctx.moveTo(px+CELL,py);ctx.lineTo(px+CELL,py+CELL);ctx.lineTo(px+CELL-d,hy);ctx.closePath();ctx.fill();
       }
     }
 
