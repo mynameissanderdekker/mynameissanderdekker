@@ -35,7 +35,8 @@ function run(){
   const CELL=STEP;
   const TOTAL=COLS*ROWS;
 
-  const ox=Math.floor((VW-GRIDW)/2);
+  const mobileShift=VW<768?Math.round(5*STEP):0;
+  const ox=Math.floor((VW-GRIDW)/2)+mobileShift;
   const oy=Math.floor((VH-ROWS*STEP)/2);
 
   function getCol(c,r){ return PAL[IDX[r*COLS+c]]; }
