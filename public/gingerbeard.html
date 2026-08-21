@@ -25,9 +25,10 @@ function run() {
   const VW = canvas.width  = window.innerWidth;
   const VH = canvas.height = window.innerHeight;
 
-  // Fixed 120×120 grid, cell size scales to fit width
-  const COLS=120, ROWS=120, GAP=1;
-  const CELL=Math.max(2, Math.min(Math.floor(VW/COLS), Math.floor(VH/ROWS))-GAP), STEP=CELL+GAP;
+  // Fill width with 120 cols, rows follow image aspect ratio
+  const COLS=120, GAP=1;
+  const CELL=Math.max(2, Math.floor(VW/COLS)-GAP), STEP=CELL+GAP;
+  const ROWS=Math.round(COLS*(img.height/img.width));
   const TOTAL=COLS*ROWS;
 
   // Sample full image at 120×120
