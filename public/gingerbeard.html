@@ -75,7 +75,8 @@ function run(){
   const VW=canvas.width=window.innerWidth;
   const VH=canvas.height=window.innerHeight;
 
-  const GRIDW=Math.max(800,Math.min(VW,2200));
+  const mobileScale=VW<768?0.9:1;
+  const GRIDW=Math.max(800,Math.min(VW,2200))*mobileScale;
   const STEP=GRIDW/COLS;
   const CELL=STEP;
   const TOTAL=COLS*ROWS;
