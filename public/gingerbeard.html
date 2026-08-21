@@ -31,15 +31,19 @@ function run() {
   const ROWS=Math.round(COLS*(img.height/img.width));
   const TOTAL=COLS*ROWS;
 
-  // Sample full image at 120×120
+  // Sample full image at COLS×ROWS, then posterize to flat palette
   const off=document.createElement('canvas');
   off.width=COLS; off.height=ROWS;
   const oc=off.getContext('2d');
   oc.drawImage(img,0,0,img.width,img.height,0,0,COLS,ROWS);
-  const px=oc.getImageData(0,0,COLS,ROWS).data;
+  const raw=oc.getImageData(0,0,COLS,ROWS).data;
 
-  const bgR=px[0],bgG=px[1],bgB=px[2];
-  function isBg(r,g,b){return Math.sqrt((r-bgR)**2+(g-bgG)**2+(b-bgB)**2)<40;}
+  // Posterize: snap each channel to nearest step of 48
+  function snap(v){return Math.min(255,Math.round(v/48)*48);}
+  const px=new Uint8Array(raw.length);
+  for(let i=0;i<raw.length;i+=4){
+    px[i]=snap(raw[i]); px[i+1]=snap(raw[i+1]); px[i+2]=snap(raw[i+2]); px[i+3]=255;
+  }
   function getCol(c,r){const i=(r*COLS+c)*4;return[px[i],px[i+1],px[i+2]];}
 
   const state=new Uint8Array(TOTAL);
