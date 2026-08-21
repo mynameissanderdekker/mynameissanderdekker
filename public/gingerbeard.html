@@ -75,7 +75,7 @@ canvas.addEventListener('click',e=>{
   if(!_btnBounds) return;
   const {bx,by,sz}=_btnBounds;
   if(e.clientX>=bx&&e.clientX<=bx+sz&&e.clientY>=by&&e.clientY<=by+sz)
-    window.location.href="mailto:sander@gingerbeard.works?subject=I%20heard%20about%20you%20and%20I'm%20intrigued";
+    window.location.href="mailto:sander@gingerbeard.works?subject=I%20heard%20about%20your%20services%20and%20I'm%20intrigued";
 });
 canvas.addEventListener('mousemove',e=>{
   if(!_btnBounds){canvas.style.cursor='default';return;}
@@ -202,7 +202,7 @@ function run(){
     // Draw contact button: 8×8 cell circle, yellow + red plus
     {
       const bx=ox+Math.round((COLS/2-4)*STEP);
-      const by=oy+ROWS*STEP+Math.round(3*STEP);
+      const by=oy+ROWS*STEP+Math.round(-19*STEP);
       const sz=8*STEP;
       _btnBounds={bx,by,sz};
       // circle mask: radius 4, center at (4,4)
