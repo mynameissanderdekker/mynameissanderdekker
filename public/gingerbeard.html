@@ -25,20 +25,14 @@ function run() {
   const VW = canvas.width  = window.innerWidth;
   const VH = canvas.height = window.innerHeight;
 
-  // Contain: show full image, fit by width or height, never crop
-  const iA=img.width/img.height, sA=VW/VH;
-  const CELL=7, GAP=1, STEP=CELL+GAP;
-  let imgW,imgH,imgX,imgY;
-  if(iA>sA){imgW=VW;imgH=VW/iA;imgX=0;imgY=(VH-imgH)/2;}
-  else{imgH=VH;imgW=VH*iA;imgX=(VW-imgW)/2;imgY=0;}
-
-  const COLS=Math.floor(imgW/STEP);
-  const ROWS=Math.floor(imgH/STEP);
+  // Fixed 120×120 grid, cell size scales to fit width
+  const COLS=120, ROWS=120, GAP=1;
+  const CELL=Math.max(2, Math.floor(VW/COLS)-GAP), STEP=CELL+GAP;
   const TOTAL=COLS*ROWS;
 
-  // Sample full image into grid
+  // Sample full image at 120×120
   const off=document.createElement('canvas');
-  off.width=COLS;off.height=ROWS;
+  off.width=COLS; off.height=ROWS;
   const oc=off.getContext('2d');
   oc.drawImage(img,0,0,img.width,img.height,0,0,COLS,ROWS);
   const px=oc.getImageData(0,0,COLS,ROWS).data;
@@ -57,9 +51,9 @@ function run() {
     {y:-(Math.random()*ROWS*0.4+ROWS*0.5),speed:0.625+Math.random()*0.78},
   ]));
 
-  // Center the grid within the image area
-  const ox=Math.floor(imgX+(imgW-COLS*STEP)/2);
-  const oy=Math.floor(imgY+(imgH-ROWS*STEP)/2);
+  // Center grid on screen
+  const ox=Math.floor((VW-COLS*STEP)/2);
+  const oy=Math.floor((VH-ROWS*STEP)/2);
 
   function drawCell(col,row,r,g,b,bg){
     const x=ox+col*STEP,y=oy+row*STEP;
