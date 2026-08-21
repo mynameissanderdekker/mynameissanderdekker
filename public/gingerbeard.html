@@ -31,18 +31,33 @@ function run() {
   const ROWS=Math.round(COLS*(img.height/img.width));
   const TOTAL=COLS*ROWS;
 
-  // Sample full image at COLS×ROWS, then posterize to flat palette
+  // 12-color palette (from the embroidery pattern)
+  const PAL=[
+    [67,77,20],[171,155,122],[15,71,109],[96,106,44],[219,184,30],
+    [245,245,243],[143,26,14],[5,5,5],[84,94,35],[48,132,17],
+    [196,196,175],[47,110,151]
+  ];
+  function nearest(r,g,b){
+    let best=0,bd=1e9;
+    for(let i=0;i<PAL.length;i++){
+      const dr=r-PAL[i][0],dg=g-PAL[i][1],db=b-PAL[i][2];
+      const d=dr*dr+dg*dg+db*db;
+      if(d<bd){bd=d;best=i;}
+    }
+    return PAL[best];
+  }
+
+  // Sample full image at COLS×ROWS, snap each cell to nearest palette color
   const off=document.createElement('canvas');
   off.width=COLS; off.height=ROWS;
   const oc=off.getContext('2d');
   oc.drawImage(img,0,0,img.width,img.height,0,0,COLS,ROWS);
   const raw=oc.getImageData(0,0,COLS,ROWS).data;
 
-  // Posterize: snap each channel to nearest step of 48
-  function snap(v){return Math.min(255,Math.round(v/48)*48);}
   const px=new Uint8Array(raw.length);
   for(let i=0;i<raw.length;i+=4){
-    px[i]=snap(raw[i]); px[i+1]=snap(raw[i+1]); px[i+2]=snap(raw[i+2]); px[i+3]=255;
+    const [r,g,b]=nearest(raw[i],raw[i+1],raw[i+2]);
+    px[i]=r; px[i+1]=g; px[i+2]=b; px[i+3]=255;
   }
   function getCol(c,r){const i=(r*COLS+c)*4;return[px[i],px[i+1],px[i+2]];}
 
