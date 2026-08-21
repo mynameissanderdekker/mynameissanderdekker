@@ -163,22 +163,26 @@ function run(){
     '.':[0,0,0,0,0,0b00100,0],
   };
   function drawPixelText(){
-    function txt(str,startCol,startRow,r,g,b){
+    // sc = font pixel scale in grid cells
+    function txt(str,startCol,startRow,r,g,b,sc){
       ctx.fillStyle='rgb('+r+','+g+','+b+')';
       let col=startCol;
       for(const ch of str.toUpperCase()){
         const rows=F[ch]||F[' '];
         for(let ry=0;ry<7;ry++) for(let rx=0;rx<5;rx++)
-          if(rows[ry]&(1<<(4-rx))) ctx.fillRect(ox+(col+rx)*STEP,oy+(startRow+ry)*STEP,CELL,CELL);
-        col+=6;
+          if(rows[ry]&(1<<(4-rx)))
+            ctx.fillRect(ox+(col+rx*sc)*STEP,oy+(startRow+ry*sc)*STEP,CELL*sc,CELL*sc);
+        col+=5*sc+sc; // 5 wide + 1 gap (in font pixels × sc)
       }
     }
-    // "GINGER BEARD" centered, row 3, orange
-    const t1='GINGER BEARD', w1=t1.length*6-1;
-    txt(t1,Math.round((COLS-w1)/2),3,195,95,21);
-    // ".works" slightly right of center, row 63, white
-    const t2='.works', w2=t2.length*6-1;
-    txt(t2,Math.round((COLS-w2)/2)+8,63,253,253,252);
+    // "GINGER BEARD" — scale 2, centered, row 2, orange
+    const sc1=2, cw1=5*sc1+sc1; // char width incl gap
+    const t1='GINGER BEARD', tw1=t1.length*cw1-sc1;
+    txt(t1,Math.round((COLS-tw1)/2),2,195,95,21,sc1);
+    // ".works" — scale 2, slightly right of center, row 60, white
+    const sc2=2, cw2=5*sc2+sc2;
+    const t2='.works', tw2=t2.length*cw2-sc2;
+    txt(t2,Math.round((COLS-tw2)/2)+6,60,253,253,252,sc2);
   }
 
   render();
