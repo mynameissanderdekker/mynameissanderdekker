@@ -6,7 +6,7 @@
 <title>gingerbeard.works</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
-  html, body { width:100%; height:100%; overflow:hidden; background:#d9d9d9; position:fixed; touch-action:none; }
+  html, body { width:100%; height:100%; overflow:hidden; background:#111; position:fixed; touch-action:none; }
   canvas { position:fixed; top:0; left:0; display:block; }
 </style>
 </head>
@@ -30,13 +30,12 @@ function run(){
   const VW=canvas.width=window.innerWidth;
   const VH=canvas.height=window.innerHeight;
 
-  const GAP=0;
   const MAXW=Math.min(VW,1600);
-  const STEP=Math.max(3,Math.floor(MAXW/COLS));
+  const STEP=Math.max(3,MAXW/COLS); // float — fills width exactly
   const CELL=STEP;
   const TOTAL=COLS*ROWS;
 
-  const ox=Math.floor((VW-COLS*STEP)/2);
+  const ox=Math.floor((VW-MAXW)/2); // 0 when VW≤1600, centers when wider
   const oy=Math.floor((VH-ROWS*STEP)/2);
 
   function getCol(c,r){ return PAL[IDX[r*COLS+c]]; }
@@ -99,7 +98,7 @@ function run(){
   canvas.addEventListener('touchmove',e=>{ e.preventDefault(); if(Math.random()>0.1) return; const t=e.touches[0]; glitch(t.clientX,t.clientY); },{passive:false});
 
   function render(){
-    ctx.fillStyle='#d9d9d9';
+    ctx.fillStyle='#111';
     ctx.fillRect(0,0,VW,VH);
 
     for(let col=0;col<COLS;col++){
