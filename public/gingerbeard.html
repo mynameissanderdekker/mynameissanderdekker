@@ -27,15 +27,14 @@ let animId=null;
 function run(){
   if(animId) cancelAnimationFrame(animId);
 
-  const VW=canvas.width=canvas.offsetWidth||window.innerWidth;
-  const VH=canvas.height=canvas.offsetHeight||window.innerHeight;
+  const VW=canvas.width=window.innerWidth;
+  const VH=canvas.height=window.innerHeight;
 
-  const MAXW=Math.min(VW,1600);
-  const STEP=Math.max(3,MAXW/COLS); // float — fills width exactly
+  const STEP=Math.min(VW,1600)/COLS; // fills width exactly, max 1600px
   const CELL=STEP;
   const TOTAL=COLS*ROWS;
 
-  const ox=Math.floor((VW-MAXW)/2); // 0 when VW≤1600, centers when wider
+  const ox=VW>1600?Math.floor((VW-1600)/2):0; // only center when screen > 1600px
   const oy=Math.floor((VH-ROWS*STEP)/2);
 
   function getCol(c,r){ return PAL[IDX[r*COLS+c]]; }
