@@ -58,20 +58,28 @@ export class ArtworkBuyers extends React.Component<FieldProps, State> {
         })
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await (this.sanityClient.fetch as any)(
-        `{
-          "artwork": *[_type == "artwork" && _id == $id][0]{ editionTotal, editionAP },
-          "buyers": *[_type == "contact" && $id in purchases[].artwork._ref]{
-            firstName, lastName, email,
-            "purchases": purchases[artwork._ref == $id]{ copyNumber, soldVia, editionNumber, price }
-          } | order(lastName asc)
-        }`,
+      // Step 1: fetch artwork + slug (to derive possible legacy hist ID)
+      const artwork = await (this.sanityClient.fetch as any)(
+        `*[_type == "artwork" && (_id == $id || _id == "drafts." + $id)][0]{ editionTotal, editionAP, "slug": slug.current }`,
         { id: artworkId },
       )
+      // Build all _ref values that could point to this artwork
+      const slug = artwork?.slug ?? ''
+      const histId = `artwork-hist-${slug.replace(/^sd-/, '')}`
+      const ids: string[] = [artworkId, `drafts.${artworkId}`, histId].filter(Boolean)
+
+      // Step 2: fetch buyers matching any of those refs
+      const buyers = await (this.sanityClient.fetch as any)(
+        `*[_type == "contact" && count(purchases[artwork._ref in $ids]) > 0]{
+          firstName, lastName, email,
+          "purchases": purchases[artwork._ref in $ids]{ copyNumber, soldVia, editionNumber, price }
+        } | order(lastName asc)`,
+        { ids },
+      )
       this.setState({
-        buyers: result?.buyers ?? [],
-        editionTotal: result?.artwork?.editionTotal ?? null,
-        editionAP: result?.artwork?.editionAP ?? null,
+        buyers: buyers ?? [],
+        editionTotal: artwork?.editionTotal ?? null,
+        editionAP: artwork?.editionAP ?? null,
         loading: false,
       })
     } catch (err) {
