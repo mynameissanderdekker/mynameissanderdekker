@@ -199,8 +199,8 @@ export default async function ViewingRoomPdf({ params, searchParams }: Props) {
 
                     {artwork.status && (
                       <div>
-                        <span className={`artwork-status ${artwork.status === 'available' ? 'status-available' : artwork.priceOnRequest ? 'status-enquire' : 'status-sold'}`}>
-                          {artwork.status === 'available' ? 'Available' : artwork.priceOnRequest ? 'On request' : 'Sold'}
+                        <span className={`artwork-status ${artwork.status === 'available' ? 'status-available' : !artwork.priceIncVat ? 'status-enquire' : 'status-sold'}`}>
+                          {artwork.status === 'available' ? 'Available' : !artwork.priceIncVat ? 'On request' : 'Sold'}
                         </span>
                       </div>
                     )}

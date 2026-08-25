@@ -19,7 +19,7 @@ export interface ArtworkData {
   dimensionsExclFrame?: boolean
   images?: Array<{ asset?: { _ref: string; _id?: string; url?: string }; hotspot?: object; crop?: object }>
   roomImageUrl?: string
-  showViewInRoom?: boolean
+  showViewOnWall?: boolean
   framedDimensions?: { widthCm?: number }
   priceExclVAT?: number
   priceIncVat?: number
@@ -241,8 +241,13 @@ export default function ArtworkDetail({ artwork }: { artwork: ArtworkData }) {
               </p>
             )}
 
+            {/* Price on request — in webshop but no price set */}
+            {!isSoldOut && sellInWebshop && !effectivePriceExclVAT && !hasOptions && (
+              <p className="text-sm text-gray-500 uppercase tracking-widest">Price on request</p>
+            )}
+
             {/* Buy — showInWebshop aan → voeg toe aan cart en ga naar /cart */}
-            {!isSoldOut && sellInWebshop && (
+            {!isSoldOut && sellInWebshop && effectivePriceExclVAT && (
               <button
                 onClick={() => {
                   const variantKey = selectedOption?.sku ?? selectedOption?.label
@@ -274,7 +279,7 @@ export default function ArtworkDetail({ artwork }: { artwork: ArtworkData }) {
               </button>
             )}
 
-            {artwork.showViewInRoom && mainUrl && (
+            {artwork.showViewOnWall && mainUrl && (
               <button
                 onClick={() => setRoomOpen(true)}
                 className="border border-gray-300 px-6 py-3 text-xs tracking-widest uppercase font-medium text-gray-500 hover:border-gray-500 hover:text-gray-800 transition-colors duration-150"

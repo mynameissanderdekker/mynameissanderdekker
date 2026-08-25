@@ -81,7 +81,9 @@ export async function POST(req: NextRequest) {
         "mnsdkSoldCount": count(*[_type == "contact" && ^._id in purchases[].artwork._ref][].purchases[artwork._ref == ^._id]),
         description,
         status,
-        storageCode
+        storageCode,
+        weightKg,
+        options[] { label, sku, priceExclVAT, buyUrl }
       }`,
       { ids: artworkIds }
     )
@@ -106,20 +108,22 @@ export async function POST(req: NextRequest) {
         .join('\n') || undefined
     }
 
+    type ArtworkOption = { label: string; sku?: string; priceExclVAT: number; buyUrl?: string }
     type ArtworkRaw = {
       _id: string; title?: string; year?: number; medium?: string;
       dimensions?: { widthCm?: number; heightCm?: number; depthCm?: number };
       category?: string; editionType?: string; editionTotal?: number;
       editionAP?: number; priceIncVat?: number; vatRate?: string;
       description?: unknown; status?: string; mnsdkSoldCount?: number;
-      storageCode?: string;
+      storageCode?: string; weightKg?: number;
       images?: Array<{ url?: string }>;
+      options?: ArtworkOption[];
     }
 
     const artworkPayload = (artworks as ArtworkRaw[]).map(artwork => ({
       mnsdkId:     artwork._id,
       title:       artwork.title,
-      year:        artwork.year != null ? String(artwork.year) : undefined,
+      year:        artwork.year,
       medium:      artwork.medium,
       widthCm:     artwork.dimensions?.widthCm,
       heightCm:    artwork.dimensions?.heightCm,
@@ -131,8 +135,10 @@ export async function POST(req: NextRequest) {
       editionAP:   artwork.editionAP,
       priceExVat:  artwork.priceIncVat,
       vatRate:     artwork.vatRate,
-      description: ptToPlainText(artwork.description),
+      description: artwork.description, // keep as Portable Text array
       storageCode: artwork.storageCode,
+      weightKg:    artwork.weightKg,
+      options:     artwork.options,
       mnsdkSoldCount: artwork.mnsdkSoldCount ?? 0,
       notes: [
         artwork.status ? `Status op MNSDK: ${artwork.status}` : null,

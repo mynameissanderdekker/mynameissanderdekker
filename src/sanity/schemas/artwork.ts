@@ -6,8 +6,11 @@ import { ArtworkQRCode } from '../components/ArtworkQRCode'
 import { ArtworkBuyers } from '../components/ArtworkBuyers'
 import { ArtworkCoA } from '../components/ArtworkCoA'
 import { StorageCodeInput } from '../components/StorageCodeInput'
+import { SyncBadge } from '../components/SyncBadge'
+import { SyncedField } from '../components/SyncedField'
 
 // ── Main artwork schema ───────────────────────────────────────────────────────
+// ⮂ = actief gesynchroniseerd met torch-gallery.vercel.app (Torch CMS)
 export const artwork = defineType({
   name: 'artwork',
   title: 'Artwork',
@@ -25,6 +28,17 @@ export const artwork = defineType({
     { name: 'priceLine',      title: 'Price in Euro',    options: { columns: 2 } },
   ],
   fields: [
+    // ── Sync badge (only visible on artworks synced to Torch) ─────────────────
+    defineField({
+      name: 'syncBadge',
+      title: '',
+      type: 'string',
+      group: 'basis',
+      readOnly: true,
+      components: { field: SyncBadge },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      hidden: ({ document }: any) => !document?.torchId,
+    }),
     // ── Basis ─────────────────────────────────────────────────────────────────
     defineField({
       name: 'title',
@@ -33,6 +47,7 @@ export const artwork = defineType({
       group: 'basis',
       fieldset: 'titleYear',
       validation: (r) => r.required(),
+      components: { field: SyncedField },
     }),
     defineField({
       name: 'year',
@@ -41,6 +56,7 @@ export const artwork = defineType({
       group: 'basis',
       fieldset: 'titleYear',
       validation: (r) => r.required().min(1900).max(2100),
+      components: { field: SyncedField },
     }),
     defineField({
       name: 'medium',
@@ -48,13 +64,14 @@ export const artwork = defineType({
       type: 'string',
       group: 'basis',
       description: 'E.g. "Lambda print on dibond, framed"',
+      components: { field: SyncedField },
     }),
     defineField({
       name: 'dimensions',
       title: 'Dimensions (cm)',
       type: 'object',
       group: 'basis',
-      components: { input: CompactDimensions },
+      components: { input: CompactDimensions, field: SyncedField },
       fields: [
         defineField({ name: 'widthCm',  title: 'Width',  type: 'number' }),
         defineField({ name: 'heightCm', title: 'Height', type: 'number' }),
@@ -74,7 +91,7 @@ export const artwork = defineType({
       title: 'Category',
       type: 'string',
       group: 'basis',
-      components: { input: CategoryInput },
+      components: { input: CategoryInput, field: SyncedField },
     }),
     defineField({
       name: 'editionType',
@@ -89,6 +106,7 @@ export const artwork = defineType({
         layout: 'radio',
       },
       initialValue: 'unique',
+      components: { field: SyncedField },
     }),
     defineField({
       name: 'editionTotal',
@@ -99,6 +117,7 @@ export const artwork = defineType({
       description: 'E.g. 7 (for an edition of 7 + 2 AP)',
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       hidden: ({ document }: any) => document?.editionType !== 'edition',
+      components: { field: SyncedField },
     }),
     defineField({
       name: 'editionAP',
@@ -110,6 +129,7 @@ export const artwork = defineType({
       initialValue: 0,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       hidden: ({ document }: any) => document?.editionType !== 'edition',
+      components: { field: SyncedField },
     }),
     defineField({
       name: 'images',
@@ -125,6 +145,7 @@ export const artwork = defineType({
       type: 'number',
       group: 'basis',
       fieldset: 'priceLine',
+      components: { field: SyncedField },
     }),
     defineField({
       name: 'vatRate',
@@ -140,14 +161,7 @@ export const artwork = defineType({
         ],
       },
       initialValue: '9',
-    }),
-    defineField({
-      name: 'priceOnRequest',
-      title: 'Price on request',
-      type: 'boolean',
-      group: 'basis',
-      description: 'Hide the price publicly — visitors see an enquiry button instead.',
-      initialValue: false,
+      components: { field: SyncedField },
     }),
     defineField({
       name: 'description',
@@ -155,6 +169,7 @@ export const artwork = defineType({
       type: 'array',
       group: 'basis',
       of: [{ type: 'block' }],
+      components: { field: SyncedField },
     }),
     defineField({
       name: 'status',
@@ -195,6 +210,7 @@ export const artwork = defineType({
       type: 'number',
       group: 'details',
       description: 'Used for shipping cost calculation',
+      components: { field: SyncedField },
     }),
     defineField({
       name: 'isbn',
@@ -212,6 +228,7 @@ export const artwork = defineType({
       title: 'Purchase options (variants)',
       type: 'array',
       group: 'details',
+      components: { field: SyncedField },
       description: 'Optional — use when this artwork is sold in multiple variants (e.g. "1 roll" vs "2 rolls"), each with its own price. When set, these replace the single price above on the site and the buyer picks one before buying.',
       of: [
         defineField({
@@ -296,7 +313,7 @@ export const artwork = defineType({
       ],
     }),
     defineField({
-      name: 'showViewInRoom',
+      name: 'showViewOnWall',
       title: 'View on wall',
       type: 'boolean',
       group: 'gallery',

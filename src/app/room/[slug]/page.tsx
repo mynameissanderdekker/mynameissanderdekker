@@ -256,7 +256,7 @@ export default function RoomPage() {
                     {artwork.status === 'available' && (
                       <span className="room-status-badge room-status-badge--available">Beschikbaar</span>
                     )}
-                    {artwork.priceOnRequest && (
+                    {!artwork.priceIncVat && (
                       <span className="room-status-badge room-status-badge--enquire">Op aanvraag</span>
                     )}
                     {artwork.status === 'sold' && (

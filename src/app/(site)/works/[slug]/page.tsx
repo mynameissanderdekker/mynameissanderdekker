@@ -24,7 +24,7 @@ async function getArtwork(slug: string): Promise<ArtworkData | null> {
       status,
       showInWebshop,
       "roomImageUrl": roomImage.asset->url,
-      showViewInRoom,
+      showViewOnWall,
       framedDimensions,
       buyUrl,
       editionTotal,

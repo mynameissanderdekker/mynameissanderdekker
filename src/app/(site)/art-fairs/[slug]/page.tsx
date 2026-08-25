@@ -145,7 +145,7 @@ export default async function ArtFairPage({ params }: Props) {
             {artworks.map((a: typeof artworks[0]) => {
               const imgSrc = a.mainImage?.asset ? urlFor(a.mainImage).width(600).fit('max').url() : null
               const soldOut = a.status === 'sold'
-              const enquire = a.priceOnRequest === true
+              const enquire = !a.priceIncVat
               const price = (!enquire && !soldOut && a.priceExclVAT) ? formatPrice(a.priceExclVAT, a.vatRate) : null
               const inner = (
                 <>

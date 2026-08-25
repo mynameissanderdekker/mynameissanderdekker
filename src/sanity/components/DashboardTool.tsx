@@ -356,7 +356,7 @@ export function DashboardTool() {
 
         // Artworks available without price and not on-request
         client.fetch<Array<{ _id: string; title: string }>>(
-          `*[_type == "artwork" && status == "available" && !defined(priceIncVat) && priceOnRequest != true && !(category in ["Zine","book"]) && !(_id in path("drafts.**"))] | order(title asc) [0..49] { _id, title }`
+          `*[_type == "artwork" && status == "available" && !defined(priceIncVat) && !(category in ["Zine","book"]) && !(_id in path("drafts.**"))] | order(title asc) [0..49] { _id, title }`
         ),
 
         // Artworks without category
