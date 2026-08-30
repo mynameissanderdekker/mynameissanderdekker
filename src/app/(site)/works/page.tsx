@@ -128,16 +128,18 @@ async function getWorksData(): Promise<{ config: WorksPageConfig | null; works: 
     ),
   ])
 
-  // Build variant extra cards from shopVariants
-  const variantEntries: ArtworkCard[] = zines
-    .filter(z => z.slug?.current && z.shopVariants?.length)
+  // Expand zines: each zine is followed immediately by its active variant cards
+  const vatRate = (z: { vatRate?: number | string }) =>
+    typeof z.vatRate === 'number' ? z.vatRate : 9
+
+  const expandedZines: ArtworkCard[] = zines
+    .filter(z => z.slug?.current)
     .flatMap(z => {
-      const vatRate = typeof z.vatRate === 'number' ? z.vatRate : 9
-      return (z.shopVariants ?? [])
+      const variants: ArtworkCard[] = (z.shopVariants ?? [])
         .filter(v => v.available !== false)
         .map((v, i) => {
           const priceIncVat = v.priceExclVAT != null
-            ? Math.round(v.priceExclVAT * (1 + vatRate / 100) * 100) / 100
+            ? Math.round(v.priceExclVAT * (1 + vatRate(z) / 100) * 100) / 100
             : z.priceIncVat
           return {
             _id: `${z._id}-variant-${i}`,
@@ -157,11 +159,13 @@ async function getWorksData(): Promise<{ config: WorksPageConfig | null; works: 
             variantNote: v.note,
           } satisfies ArtworkCard
         })
+      return [z as ArtworkCard, ...variants]
     })
 
-  const works = [...artworks, ...zines.filter(z => z.slug?.current), ...variantEntries]
+  const works = [...artworks, ...expandedZines]
     .sort((a, b) => {
       // Items with an explicit order come first (ascending), items without go to the end
+      // Variant cards share their parent's order value — they'll cluster together
       if (a.order != null && b.order != null) return a.order - b.order
       if (a.order != null) return -1
       if (b.order != null) return 1
@@ -221,10 +225,9 @@ function WorkCard({ w }: { w: ArtworkCard }) {
 
   // Badge style per type
   const BADGE_STYLES: Record<string, { bg: string; color: string; icon: string }> = {
-    'Signed':          { bg: '#1a1a1a', color: '#fff',    icon: '✦' },
-    'Special Edition': { bg: '#2d1a5e', color: '#fff',    icon: '★' },
-    'Limited Edition': { bg: '#7c3a00', color: '#fff',    icon: '◆' },
-    'Sale':            { bg: '#b91c1c', color: '#fff',    icon: '%' },
+    'Signed':          { bg: '#1a1a1a', color: '#fff', icon: '✦' },
+    'Special Edition': { bg: '#1a56c4', color: '#fff', icon: '★' },
+    'Sale':            { bg: '#b91c1c', color: '#fff', icon: '%' },
   }
   const badgeStyle = badge ? (BADGE_STYLES[badge] ?? { bg: '#333', color: '#fff', icon: '' }) : null
 
