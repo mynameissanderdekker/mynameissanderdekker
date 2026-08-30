@@ -76,6 +76,10 @@ interface ArtworkCard {
   buyUrl?: string
   medium?: string
   dimensions?: { widthCm?: number; heightCm?: number }
+  // variant card (synthetic — not from Sanity directly)
+  isVariantCard?: boolean
+  variantBadge?: string
+  variantNote?: string
 }
 
 interface SectionConfig {
@@ -111,19 +115,51 @@ async function getWorksData(): Promise<{ config: WorksPageConfig | null; works: 
       {},
       { next: { revalidate: 0 } },
     ),
-    client.fetch<ArtworkCard[]>(
+    client.fetch<(ArtworkCard & { priceExclVAT?: number; shopVariants?: { badge: string; available?: boolean; status?: string; priceExclVAT?: number; buyUrl?: string; note?: string }[] })[]>(
       `*[_type == "zine" && defined(category)] | order(featured desc, order asc){
         _id, _type, title, category, status, priceIncVat, priceExclVAT, vatRate, featured, order,
         "year": null,
         "slug": { "current": coalesce(slug.current, projectSlug) },
-        "mainImage": { "url": coalesce(coverImage.asset->url, coverImageUrl) }
+        "mainImage": { "url": coalesce(coverImage.asset->url, coverImageUrl) },
+        shopVariants[]{ badge, available, status, priceExclVAT, buyUrl, note }
       }`,
       {},
       { next: { revalidate: 0 } },
     ),
   ])
 
-  const works = [...artworks, ...zines.filter(z => z.slug?.current)]
+  // Build variant extra cards from shopVariants
+  const variantEntries: ArtworkCard[] = zines
+    .filter(z => z.slug?.current && z.shopVariants?.length)
+    .flatMap(z => {
+      const vatRate = typeof z.vatRate === 'number' ? z.vatRate : 9
+      return (z.shopVariants ?? [])
+        .filter(v => v.available !== false)
+        .map((v, i) => {
+          const priceIncVat = v.priceExclVAT != null
+            ? Math.round(v.priceExclVAT * (1 + vatRate / 100) * 100) / 100
+            : z.priceIncVat
+          return {
+            _id: `${z._id}-variant-${i}`,
+            _type: z._type,
+            title: z.title,
+            category: z.category,
+            status: v.status ?? 'available',
+            priceIncVat,
+            vatRate: z.vatRate,
+            featured: z.featured,
+            order: z.order,
+            slug: z.slug,
+            mainImage: z.mainImage,
+            buyUrl: v.buyUrl ?? z.buyUrl,
+            isVariantCard: true,
+            variantBadge: v.badge,
+            variantNote: v.note,
+          } satisfies ArtworkCard
+        })
+    })
+
+  const works = [...artworks, ...zines.filter(z => z.slug?.current), ...variantEntries]
     .sort((a, b) => {
       // Items with an explicit order come first (ascending), items without go to the end
       if (a.order != null && b.order != null) return a.order - b.order
@@ -163,29 +199,49 @@ function WorkCard({ w }: { w: ArtworkCard }) {
       ? `${rawUrl}?w=600&auto=format&q=80`
       : rawUrl
     : null
-  const soldOut = w.status === 'sold'
+  const soldOut = w.status === 'sold' || w.status === 'sold_out'
   const price = w.priceIncVat ? formatPrice(w.priceIncVat) : null
 
   const zineProjectHref = ZINE_PROJECT_LINKS[w.slug.current]
   const isZine = w._type === 'zine' || !!zineProjectHref
-
+  const isVariant = w.isVariantCard === true
+  const badge = w.variantBadge
   const isGetInTouch = w.slug.current === 'get-in-touch'
+
+  // Variant card: use its buyUrl directly (external), or fall back to product page with ?variant=<badge>
+  const variantParam = badge ? `?variant=${encodeURIComponent(badge.toLowerCase())}` : ''
+  const variantHref = w.buyUrl ?? `/projects/${w.slug.current}${variantParam}`
 
   const href = isGetInTouch
     ? '/contact'
+    : isVariant
+    ? variantHref
     : zineProjectHref
     ?? (w._type === 'zine' ? `/projects/${w.slug.current}` : `/works/${w.slug.current}`)
 
+  // Badge style per type
+  const BADGE_STYLES: Record<string, { bg: string; color: string; icon: string }> = {
+    'Signed':          { bg: '#1a1a1a', color: '#fff',    icon: '✦' },
+    'Special Edition': { bg: '#2d1a5e', color: '#fff',    icon: '★' },
+    'Limited Edition': { bg: '#7c3a00', color: '#fff',    icon: '◆' },
+    'Sale':            { bg: '#b91c1c', color: '#fff',    icon: '%' },
+  }
+  const badgeStyle = badge ? (BADGE_STYLES[badge] ?? { bg: '#333', color: '#fff', icon: '' }) : null
+
   const overlayLabel = isGetInTouch
     ? 'Get in touch'
+    : isVariant
+    ? (badge ? `Buy — ${badge}` : 'Buy variant')
     : isZine
     ? 'Read the zine'
     : soldOut
     ? 'More information'
     : <><CartIcon /> Add to cart</>
 
-  return (
-    <Link href={href} className={`works-grid-item-link${soldOut ? ' is-sold-out' : ''}`}>
+  const isExternalHref = isVariant && !!w.buyUrl
+
+  const cardContent = (
+    <>
       <div className="works-grid-img-wrap">
         {imgUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -193,13 +249,23 @@ function WorkCard({ w }: { w: ArtworkCard }) {
         ) : (
           <div className="works-grid-img" style={{ background: '#f0f0f0' }} />
         )}
+        {isVariant && !soldOut && badgeStyle && (
+          <span className="works-badge" style={{ background: badgeStyle.bg, color: badgeStyle.color, fontSize: '0.65rem', letterSpacing: '0.08em' }}>
+            {badgeStyle.icon && `${badgeStyle.icon} `}{badge?.toUpperCase()}
+          </span>
+        )}
         {soldOut && <span className="works-badge works-badge-sold">SOLD OUT</span>}
         <div className="works-hover-overlay">{overlayLabel}</div>
       </div>
       <h3 className="works-grid-title">
-        {w.title}{isZine && <span style={{ color: '#999', fontStyle: 'normal' }}> (click to read)</span>}
+        {w.title}
+        {isVariant && badge && <span style={{ color: '#999', fontStyle: 'normal' }}> — {badge.toLowerCase()}</span>}
+        {!isVariant && isZine && <span style={{ color: '#999', fontStyle: 'normal' }}> (click to read)</span>}
       </h3>
-      {w.medium && (
+      {w.variantNote && (
+        <p className="works-grid-medium">{w.variantNote}</p>
+      )}
+      {!isVariant && w.medium && (
         <p className="works-grid-medium">{w.medium}</p>
       )}
       {(w.year || w.dimensions) && (
@@ -213,6 +279,23 @@ function WorkCard({ w }: { w: ArtworkCard }) {
         </p>
       )}
       {price && <p className="works-price">{price}</p>}
+    </>
+  )
+
+  const className = `works-grid-item-link${soldOut ? ' is-sold-out' : ''}${isVariant ? ' is-variant-card' : ''}`
+  const cardStyle = isVariant ? { background: '#f7f5f0' } : undefined
+
+  if (isExternalHref) {
+    return (
+      <a href={href} target="_blank" rel="noopener noreferrer" className={className} style={cardStyle}>
+        {cardContent}
+      </a>
+    )
+  }
+
+  return (
+    <Link href={href} className={className} style={cardStyle}>
+      {cardContent}
     </Link>
   )
 }

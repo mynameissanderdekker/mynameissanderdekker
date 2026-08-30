@@ -160,6 +160,88 @@ export const zine = defineType({
       },
     }),
     defineField({
+      name: 'shopVariants',
+      title: 'Shop variants',
+      type: 'array',
+      group: 'edition',
+      description: 'Extra cards in the shop listing — each variant shows alongside the standard card with its own badge, price and buy link.',
+      of: [
+        defineField({
+          name: 'shopVariant',
+          title: 'Variant',
+          type: 'object',
+          fields: [
+            defineField({
+              name: 'badge',
+              title: 'Badge label',
+              type: 'string',
+              description: 'Shown as a badge on the card',
+              options: {
+                list: [
+                  { title: '✦ Signed', value: 'Signed' },
+                  { title: '★ Special Edition', value: 'Special Edition' },
+                  { title: '◆ Limited Edition', value: 'Limited Edition' },
+                  { title: '% Sale', value: 'Sale' },
+                ],
+              },
+              validation: (r) => r.required(),
+            }),
+            defineField({
+              name: 'available',
+              title: 'Available for sale',
+              type: 'boolean',
+              initialValue: true,
+            }),
+            defineField({
+              name: 'status',
+              title: 'Status',
+              type: 'string',
+              initialValue: 'available',
+              options: {
+                list: [
+                  { title: 'Available', value: 'available' },
+                  { title: 'Sold out', value: 'sold_out' },
+                ],
+                layout: 'radio',
+                direction: 'horizontal',
+              },
+            }),
+            defineField({
+              name: 'priceExclVAT',
+              title: 'Price (excl. BTW)',
+              type: 'number',
+            }),
+            defineField({
+              name: 'editionTotal',
+              title: 'Edition total',
+              type: 'number',
+            }),
+            defineField({
+              name: 'buyUrl',
+              title: 'Buy link',
+              type: 'url',
+              description: 'Direct payment link for this variant',
+            }),
+            defineField({
+              name: 'note',
+              title: 'Note',
+              type: 'string',
+              description: 'Shown below the title, e.g. "Signed and numbered by the artist"',
+            }),
+          ],
+          preview: {
+            select: { badge: 'badge', price: 'priceExclVAT', status: 'status' },
+            prepare({ badge, price, status }) {
+              return {
+                title: badge ?? '—',
+                subtitle: [status, price != null ? `€${price}` : null].filter(Boolean).join(' · '),
+              }
+            },
+          },
+        }),
+      ],
+    }),
+    defineField({
       name: 'options',
       title: 'Purchase options (variants)',
       type: 'array',
