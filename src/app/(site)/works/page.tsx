@@ -227,7 +227,6 @@ function WorkCard({ w }: { w: ArtworkCard }) {
   const BADGE_STYLES: Record<string, { bg: string; color: string; icon: string }> = {
     'Signed':          { bg: '#1a1a1a', color: '#fff', icon: '✦' },
     'Special Edition': { bg: '#1a56c4', color: '#fff', icon: '★' },
-    'Sale':            { bg: '#b91c1c', color: '#fff', icon: '%' },
   }
   const badgeStyle = badge ? (BADGE_STYLES[badge] ?? { bg: '#333', color: '#fff', icon: '' }) : null
 

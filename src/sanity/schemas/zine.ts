@@ -180,7 +180,6 @@ export const zine = defineType({
                 list: [
                   { title: '✦ Signed', value: 'Signed' },
                   { title: '★ Special Edition', value: 'Special Edition' },
-                  { title: '% Sale', value: 'Sale' },
                 ],
               },
               validation: (r) => r.required(),
