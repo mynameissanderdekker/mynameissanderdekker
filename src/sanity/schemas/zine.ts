@@ -5,7 +5,7 @@ import { ArtworkQRCode } from '../components/ArtworkQRCode'
 
 export const zine = defineType({
   name: 'zine',
-  title: 'Zine',
+  title: 'Publication',
   type: 'document',
   orderings: [
     { title: 'Number (asc)', name: 'numberAsc', by: [{ field: 'order', direction: 'asc' }] },
@@ -170,25 +170,25 @@ export const zine = defineType({
           name: 'shopVariant',
           title: 'Variant',
           type: 'object',
+          fieldsets: [
+            { name: 'pricing', title: 'Price', options: { columns: 2 } },
+            { name: 'sale', title: 'Sale', options: { columns: 2 } },
+          ],
           fields: [
             defineField({
               name: 'badge',
-              title: 'Badge label',
+              title: 'Type',
               type: 'string',
-              description: 'Shown as a badge on the card',
+              description: 'Automatically shows as a badge on the listing card',
               options: {
                 list: [
                   { title: '✦ Signed', value: 'Signed' },
+                  { title: '◈ Limited Edition', value: 'Limited Edition' },
                   { title: '★ Special Edition', value: 'Special Edition' },
                 ],
+                layout: 'radio',
               },
               validation: (r) => r.required(),
-            }),
-            defineField({
-              name: 'available',
-              title: 'Available for sale',
-              type: 'boolean',
-              initialValue: true,
             }),
             defineField({
               name: 'status',
@@ -208,11 +208,33 @@ export const zine = defineType({
               name: 'priceExclVAT',
               title: 'Price (excl. BTW)',
               type: 'number',
+              fieldset: 'pricing',
             }),
             defineField({
               name: 'editionTotal',
               title: 'Edition total',
               type: 'number',
+              fieldset: 'pricing',
+            }),
+            defineField({
+              name: 'onSale',
+              title: 'On sale',
+              type: 'boolean',
+              initialValue: false,
+              fieldset: 'sale',
+            }),
+            defineField({
+              name: 'salePriceExclVAT',
+              title: 'Sale price (excl. BTW)',
+              type: 'number',
+              fieldset: 'sale',
+            }),
+            defineField({
+              name: 'images',
+              title: 'Own photos (optional)',
+              type: 'array',
+              description: 'Upload if this variant has its own cover image. Leave empty to use the main zine image.',
+              of: [{ type: 'image', options: { hotspot: true } }],
             }),
             defineField({
               name: 'buyUrl',
@@ -228,11 +250,12 @@ export const zine = defineType({
             }),
           ],
           preview: {
-            select: { badge: 'badge', price: 'priceExclVAT', status: 'status' },
-            prepare({ badge, price, status }) {
+            select: { badge: 'badge', price: 'priceExclVAT', onSale: 'onSale', salePrice: 'salePriceExclVAT', status: 'status' },
+            prepare({ badge, price, onSale, salePrice, status }) {
+              const displayPrice = onSale && salePrice != null ? `€${salePrice} (sale)` : price != null ? `€${price}` : null
               return {
                 title: badge ?? '—',
-                subtitle: [status, price != null ? `€${price}` : null].filter(Boolean).join(' · '),
+                subtitle: [status, displayPrice].filter(Boolean).join(' · '),
               }
             },
           },
@@ -319,21 +342,6 @@ export const zine = defineType({
       description: 'Show in the featured grid (top section)',
       type: 'boolean',
       group: 'webshop',
-      initialValue: false,
-    }),
-    defineField({
-      name: 'order',
-      title: 'Sort order (in webshop)',
-      description: 'Sort order — lower = earlier',
-      type: 'number',
-      group: 'webshop',
-    }),
-    defineField({
-      name: 'hasVariants',
-      title: 'Has options / variants',
-      type: 'boolean',
-      group: 'webshop',
-      description: 'On = shows "Select options" button instead of "Add to cart" (e.g. for items with size/format options)',
       initialValue: false,
     }),
     defineField({

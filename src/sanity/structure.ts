@@ -57,6 +57,22 @@ function artworkListItem(S: StructureBuilder, categories: string[], customFilter
           ...(categoryItems.length > 0 ? [S.divider(), ...categoryItems] : []),
           S.divider(),
           S.listItem()
+            .title('By project series')
+            .id('artwork-by-series')
+            .child(() =>
+              S.documentTypeList('projectSeries')
+                .title('Project series')
+                .defaultOrdering([{ field: 'title', direction: 'asc' }])
+                .child((seriesId) =>
+                  S.documentList()
+                    .title('Works in series')
+                    .filter('_type == "artwork" && _id in *[_type == "projectSeries" && _id == $seriesId].artworks[]._ref')
+                    .params({ seriesId })
+                    .defaultOrdering([{ field: 'year', direction: 'desc' }])
+                )
+            ),
+          S.divider(),
+          S.listItem()
             .title('Sold works')
             .id('artwork-sold')
             .child(
@@ -110,7 +126,7 @@ function artworkListItem(S: StructureBuilder, categories: string[], customFilter
     )
 }
 
-// Publications: zines + book-category artworks
+// Publications
 function publicationsListItem(S: StructureBuilder) {
   return S.listItem()
     .title('Publications')
@@ -121,55 +137,21 @@ function publicationsListItem(S: StructureBuilder) {
         .title('Publications')
         .items([
           S.listItem()
-            .title('Zines')
-            .id('publications-zines')
-            .child(S.documentTypeList('zine').title('Zines')),
-          S.listItem()
-            .title('Books')
-            .id('publications-books')
+            .title('All publications')
+            .id('publications-all')
             .child(
-              S.documentTypeList('artwork')
-                .title('Books')
-                .filter('_type == "artwork" && category == "book"')
+              S.documentTypeList('zine')
+                .title('All publications')
                 .defaultOrdering([{ field: 'year', direction: 'desc' }])
             ),
-          S.listItem()
-            .title('Zines (artworks)')
-            .id('publications-zines-artworks')
-            .child(
-              S.documentTypeList('artwork')
-                .title('Zines')
-                .filter('_type == "artwork" && category == "Zine"')
-                .defaultOrdering([{ field: 'year', direction: 'desc' }])
-            ),
-          S.divider(),
           S.listItem()
             .title('In webshop')
             .id('publications-in-webshop')
             .child(
-              S.list()
-                .id('publications-in-webshop-list')
+              S.documentTypeList('zine')
                 .title('In webshop')
-                .items([
-                  S.listItem()
-                    .title('Zines')
-                    .id('publications-webshop-zines')
-                    .child(
-                      S.documentTypeList('zine')
-                        .title('Zines — in webshop')
-                        .filter('_type == "zine" && showInWebshop == true')
-                        .defaultOrdering([{ field: 'featured', direction: 'desc' }, { field: 'order', direction: 'asc' }])
-                    ),
-                  S.listItem()
-                    .title('Books')
-                    .id('publications-webshop-books')
-                    .child(
-                      S.documentTypeList('artwork')
-                        .title('Books — in webshop')
-                        .filter('_type == "artwork" && category == "book" && showInWebshop == true')
-                        .defaultOrdering([{ field: 'featured', direction: 'desc' }, { field: 'order', direction: 'asc' }])
-                    ),
-                ])
+                .filter('_type == "zine" && showInWebshop == true')
+                .defaultOrdering([{ field: 'featured', direction: 'desc' }, { field: 'title', direction: 'asc' }])
             ),
         ])
     )
@@ -411,6 +393,33 @@ export const structure: StructureResolver = async (S, { getClient }) => {
         .id('sales-overview')
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .child(S.component(SalesOverviewTool as any).title('Sales Overview')),
+      S.listItem()
+        .title('Proposals / Offertes')
+        .id('proposals')
+        .child(
+          S.list()
+            .id('proposals-list')
+            .title('Proposals / Offertes')
+            .items([
+              S.listItem()
+                .title('All proposals')
+                .id('proposals-all')
+                .child(S.documentTypeList('proposal').title('All proposals').defaultOrdering([{ field: '_createdAt', direction: 'desc' }])),
+              S.divider(),
+              S.listItem()
+                .title('📤 Sent')
+                .id('proposals-sent')
+                .child(S.documentList().title('Sent').filter('_type == "proposal" && status == "sent"').defaultOrdering([{ field: '_createdAt', direction: 'desc' }])),
+              S.listItem()
+                .title('✅ Accepted')
+                .id('proposals-accepted')
+                .child(S.documentList().title('Accepted').filter('_type == "proposal" && status == "accepted"').defaultOrdering([{ field: '_createdAt', direction: 'desc' }])),
+              S.listItem()
+                .title('⬜ Drafts')
+                .id('proposals-drafts')
+                .child(S.documentList().title('Drafts').filter('_type == "proposal" && status == "draft"').defaultOrdering([{ field: '_createdAt', direction: 'desc' }])),
+            ])
+        ),
       S.listItem()
         .title('Exhibitions')
         .id('exhibition')
