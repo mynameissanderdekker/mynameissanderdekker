@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
+import { Turnstile, type TurnstileInstance } from '@marsidev/react-turnstile'
 
 const SUBJECTS = [
   { value: 'artwork',    label: 'Artwork enquiry',           desc: 'Interested in purchasing a work' },
@@ -55,6 +56,9 @@ export default function ContactPage() {
   // Exhibition
   const [venue, setVenue]             = useState('')
 
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
+  const turnstileRef = useRef<TurnstileInstance>(null)
+
   const [status, setStatus]   = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [errorMsg, setErrorMsg] = useState('')
 
@@ -67,6 +71,7 @@ export default function ContactPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           subject, name, email, phone, message, newsletter,
+          turnstileToken,
           artworkInterest, spaceType, budget, timeline,
           company, projectType, publication, topic, venue,
         }),
@@ -77,10 +82,12 @@ export default function ContactPage() {
       } else {
         setStatus('error')
         setErrorMsg(data.error ?? 'Something went wrong.')
+        turnstileRef.current?.reset()
       }
     } catch {
       setStatus('error')
       setErrorMsg('Something went wrong. Please try again later.')
+      turnstileRef.current?.reset()
     }
   }
 
@@ -316,9 +323,18 @@ export default function ContactPage() {
                 <p className="text-sm text-red-500">{errorMsg}</p>
               )}
 
+              <Turnstile
+                ref={turnstileRef}
+                siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+                onSuccess={token => setTurnstileToken(token)}
+                onExpire={() => setTurnstileToken(null)}
+                onError={() => setTurnstileToken(null)}
+                options={{ theme: 'light' }}
+              />
+
               <button
                 type="submit"
-                disabled={status === 'loading' || !name || !email || !message}
+                disabled={status === 'loading' || !name || !email || !message || !turnstileToken}
                 className="self-start border border-black px-8 py-3 text-sm tracking-widest uppercase hover:bg-black hover:text-white transition-colors duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {status === 'loading' ? 'Sending…' : 'Send message'}

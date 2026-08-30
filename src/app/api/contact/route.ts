@@ -20,6 +20,7 @@ export async function POST(req: NextRequest) {
     const {
       subject,
       name, email, phone, message, newsletter,
+      turnstileToken,
       // artwork
       artworkInterest,
       // interior / corporate
@@ -34,6 +35,23 @@ export async function POST(req: NextRequest) {
 
     if (!name || !email || !message || !subject) {
       return NextResponse.json({ error: 'Name, email, subject and message are required.' }, { status: 400 })
+    }
+
+    // ── Cloudflare Turnstile verification ────────────────────────────────────
+    const secretKey = process.env.TURNSTILE_SECRET_KEY
+    if (secretKey) {
+      if (!turnstileToken) {
+        return NextResponse.json({ error: 'Turnstile token missing' }, { status: 400 })
+      }
+      const verifyRes = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ secret: secretKey, response: turnstileToken }),
+      })
+      const verifyData = await verifyRes.json() as { success: boolean }
+      if (!verifyData.success) {
+        return NextResponse.json({ error: 'Security check failed. Please try again.' }, { status: 400 })
+      }
     }
 
     const subjectLabel = SUBJECT_LABELS[subject] ?? subject
