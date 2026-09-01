@@ -92,7 +92,11 @@ export const proposal = defineType({
             }),
             defineField({
               name: 'priceOverride',
-              title: 'Price override (€ incl. BTW)',
+              // Exclusief, net als op de prijslijst en in de verkooptool. Stond
+              // hier als inclusief; dat maakte hetzelfde veld in de twee
+              // templates twee verschillende dingen. Nul offertes in de data,
+              // dus er viel niets om te migreren.
+              title: 'Price override (€ excl. BTW)',
               description: 'Leave empty to use the artwork\'s standard price',
               type: 'number',
             }),

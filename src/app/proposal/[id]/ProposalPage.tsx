@@ -1,5 +1,6 @@
 'use client'
 import React, { useState, useEffect, useCallback } from 'react'
+import { fmtProposalPrice } from './priceLabel'
 
 interface ProposalItem {
   showPrice?: boolean
@@ -53,22 +54,12 @@ function fmtDims(item: ProposalItem['artwork']) {
   return item.depthCm ? `${base} × ${item.depthCm} cm` : base
 }
 
-function fmtPrice(item: ProposalItem, clientLocation = 'nl') {
-  const aw = item.artwork
-  const raw = item.priceOverride ?? aw?.priceIncVat
-  if (raw == null) return null
-  const vat = Number(aw?.vatRate ?? 9)
-  let display: number
-  if (clientLocation === 'nl') {
-    display = raw  // already incl. BTW
-  } else {
-    display = Math.round((raw / (1 + vat / 100)) * 100) / 100  // excl. BTW
-  }
-  const base = '€ ' + Math.round(display).toLocaleString('nl-NL')
-  if (clientLocation === 'nl') return `${base} incl. ${vat}% btw`
-  if (clientLocation === 'eu') return `${base} excl. btw`
-  return base
-}
+// Zelfde functie als in de gallery-template. `priceOverride` betekende hier
+// inclusief BTW en daar exclusief — twee betekenissen voor hetzelfde veld
+// tussen twee templates die één product moeten worden. Exclusief wint: dat is
+// wat de verkoop, de factuurregel en de prijslijst al gebruiken.
+const fmtPrice = (item: ProposalItem, clientLocation = 'nl') =>
+  fmtProposalPrice(item, clientLocation)
 
 const T: Record<string, Record<string, string>> = {
   en: {

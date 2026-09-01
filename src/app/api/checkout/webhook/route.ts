@@ -88,8 +88,11 @@ export async function POST(req: NextRequest) {
     }
 
     // ── Sla order op in Sanity ────────────────────────────────────────────
+    // De koper wordt verderop gevonden of aangemaakt; het id daarvan komt
+    // daarna alsnog op deze order te staan.
+    let createdOrderId: string | null = null
     try {
-      await sanity.create({
+      const createdOrder = await sanity.create({
         _type:           'order',
         orderNumber,
         stripeSessionId: session.id,
@@ -117,6 +120,7 @@ export async function POST(req: NextRequest) {
         createdAt:   new Date().toISOString(),
         statusHistory: [buildStatusEntry('paid', `Betaling ontvangen via Stripe (${session.id})`)],
       })
+      createdOrderId = createdOrder._id
     } catch (err) {
       console.error('[webhook] Sanity order aanmaken mislukt:', err)
       // Ga door met emails, ook als Sanity faalt
@@ -193,6 +197,16 @@ export async function POST(req: NextRequest) {
           editionNumber: orderNumber,
           price:         i.price,
         }))
+
+        // De order aan de koper hangen. Zonder deze verwijzing blijft "Bill to"
+        // op de factuur leeg — die leest uit `contact->`, niet uit de losse
+        // klantvelden op de order — en staat de koper nergens als klant.
+        if (createdOrderId) {
+          await sanity.patch(createdOrderId)
+            .set({ contact: { _type: 'reference', _ref: contactId } })
+            .commit()
+            .catch(err => console.error('[webhook] kon order niet aan contact koppelen:', err))
+        }
 
         if (purchaseEntries.length > 0) {
           await sanity.patch(contactId).setIfMissing({ purchases: [] }).append('purchases', purchaseEntries).commit()

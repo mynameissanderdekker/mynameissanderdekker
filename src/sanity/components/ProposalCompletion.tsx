@@ -49,6 +49,39 @@ export function ProposalCompletion() {
     setTimeout(() => { publish.execute(); setBusy(false) }, 120)
   }
 
+  /**
+   * Versturen, met een nummer erbij als dat er nog niet is.
+   *
+   * Het nummer kwam alleen van de knop "Genereer nummer" op het veld zelf.
+   * Vergat iemand die, dan ging de offerte naamloos de deur uit en viel de
+   * koppeling met de factuur stil weg: `/api/manual-sale` laat de factuur de
+   * reeks van de offerte volgen (PROP-<prefix>-26-003 → <prefix>-26-003), maar
+   * zonder nummer valt hij terug op het eerstvolgende vrije. Belt de klant
+   * over "offerte 003", dan is er niets te vinden.
+   *
+   * Versturen is het moment waarop het nummer moet bestaan — daarvoor is een
+   * offerte een klad, daarna een stuk waar de klant naar verwijst.
+   */
+  async function markSent() {
+    setBusy(true)
+    try {
+      let number = proposalNumber
+      if (!number) {
+        const token = (client as unknown as { config?: () => { token?: string } }).config?.()?.token ?? ''
+        const res = await fetch('/api/admin/generate-number?type=proposal', {
+          headers: { 'x-sanity-token': token },
+        })
+        if (res.ok) number = (await res.json()).number
+      }
+      patch.execute([{ set: { status: 'sent', ...(number ? { proposalNumber: number } : {}) } }])
+      setTimeout(() => { publish.execute(); setBusy(false) }, 120)
+    } catch {
+      // Lukt het nummer niet, dan blijft versturen wel mogelijk — een offerte
+      // tegenhouden om een ontbrekend volgnummer helpt niemand.
+      apply({ status: 'sent' })
+    }
+  }
+
   const box: React.CSSProperties = {
     border: '1px solid #e5e7eb', borderRadius: 10, overflow: 'hidden',
     background: '#fff', fontSize: 14,
@@ -116,7 +149,7 @@ export function ProposalCompletion() {
           </div>
         </div>
         {!sent && (
-          <button style={btn(true)} disabled={busy} onClick={() => apply({ status: 'sent' })}>
+          <button style={btn(true)} disabled={busy} onClick={markSent}>
             Mark as sent
           </button>
         )}

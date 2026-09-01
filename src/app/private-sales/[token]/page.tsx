@@ -37,6 +37,9 @@ export default async function PrivateSalePage({ params }: Props) {
       expiresAt,
       introText,
       footerText,
+      // Stond wel in het schema maar werd nooit gelezen: elke prijslijst toonde
+      // Nederlandse BTW, ook aan een koper in Duitsland of daarbuiten.
+      clientLocation,
       artworks[]{
         priceOverride,
         note,

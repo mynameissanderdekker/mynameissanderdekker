@@ -77,7 +77,8 @@ export function ContactLinkedSelections() {
       {items.map((item) => {
         const active = item.isActive
         // De private sale draait op `token`, niet op `slug` — de publieke
-        // route (`/private-sales/[token]`) zoekt daarop.
+        // route (`/private-sales/[token]`) zoekt daarop. Hier stond `/sale/`
+        // en daarna `/room/`; geen van beide bestaat.
         const slug = item.token
         const path = `/private-sales/${slug}`
         const date = new Date(item._createdAt).toLocaleDateString('nl-NL', {

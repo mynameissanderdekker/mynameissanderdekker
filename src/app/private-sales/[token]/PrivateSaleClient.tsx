@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import { vatTreatment, type ClientLocation } from '@/lib/invoiceVat'
 
 interface ArtworkItem {
   artwork: {
@@ -22,6 +23,7 @@ interface Sale {
   recipientName: string
   introText?: string
   footerText?: string
+  clientLocation?: ClientLocation
   artworks: ArtworkItem[]
 }
 
@@ -36,6 +38,10 @@ export default function PrivateSaleClient({ sale, requiresPassword, correctPassw
   const [pwInput, setPwInput] = useState('')
   const [pwError, setPwError] = useState(false)
   const printRef = useRef<HTMLDivElement>(null)
+
+  // Dezelfde regel als op de factuur, zodat prijslijst en factuur niet
+  // uiteenlopen.
+  const vatRule = vatTreatment(sale.clientLocation)
 
   function handlePassword(e: React.FormEvent) {
     e.preventDefault()
@@ -140,8 +146,10 @@ export default function PrivateSaleClient({ sale, requiresPassword, correctPassw
           {sale.artworks.map((item, i) => {
             const { artwork, priceOverride, note, imageUrl } = item
             const priceExcl = priceOverride ?? artwork.priceExclVAT
-            const vatRate = artwork.vatRate ?? 9
-            const priceIncl = priceExcl != null ? priceExcl * (1 + vatRate / 100) : null
+            // Het tarief hangt af van waar de koper zit: binnen Nederland het
+            // gewone tarief, binnen de EU verlegd, daarbuiten 0%.
+            const vatRate = vatRule.rate(artwork.vatRate ?? 9)
+            const priceIncl = priceExcl != null && vatRate ? priceExcl * (1 + vatRate / 100) : null
 
             const dims = artwork.dimensions
             const dimStr = dims
@@ -177,11 +185,15 @@ export default function PrivateSaleClient({ sale, requiresPassword, correctPassw
                   {priceExcl != null && (
                     <p style={{ margin: '0 0 4px', fontSize: 14, color: '#111' }}>
                       €{priceExcl.toLocaleString('nl-NL', { minimumFractionDigits: 0 })} excl. BTW
-                      {priceIncl != null && (
+                      {priceIncl != null ? (
                         <span style={{ color: '#888', fontSize: 12, marginLeft: 6 }}>
                           (€{Math.round(priceIncl).toLocaleString('nl-NL')} incl.)
                         </span>
-                      )}
+                      ) : vatRule.note ? (
+                        <span style={{ color: '#888', fontSize: 12, marginLeft: 6 }}>
+                          — {vatRule.note.nl}
+                        </span>
+                      ) : null}
                     </p>
                   )}
                   {note && (

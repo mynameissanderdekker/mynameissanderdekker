@@ -7,7 +7,7 @@ import type { StringInputProps } from 'sanity'
 
 /**
  * Proposal number input: shows the field + a "Genereer nummer" button.
- * The number is sequential and shared with invoices (PROP-SDK-26-001),
+ * The number is sequential and shared with invoices (PROP-<prefix>-26-001),
  * so converting a proposal to an invoice keeps the same sequence number.
  */
 export function AutoProposalNumber(props: StringInputProps) {

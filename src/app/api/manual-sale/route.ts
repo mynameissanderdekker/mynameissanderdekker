@@ -56,6 +56,11 @@ export async function POST(req: NextRequest) {
     notes?: string
     sendConfirmation?: boolean
     paid?: boolean
+    // Komt de verkoop uit een offerte, dan blijft die koppeling hier bewaard.
+    // Zonder dit raakte de offerte los zodra hij verkoop werd: de order wist
+    // niet waar hij vandaan kwam, en bij een vraag over "offerte 003" was er
+    // niets terug te vinden.
+    proposalId?: string
   }
 
   const sanity = getSanityWriteClient()
@@ -126,6 +131,11 @@ export async function POST(req: NextRequest) {
   await sanity.create({
     _type:         'order',
     orderNumber:   body.invoiceNumber,
+    // De koper erbij. Ontbrak dit, dan bleef "Bill to" op de factuur leeg —
+    // die leest uit `contact->`, niet uit de losse klantvelden hieronder — en
+    // was er vanaf het contact geen weg terug naar de order.
+    contact:       { _type: 'reference', _ref: contactId },
+    ...(body.proposalId ? { proposal: { _type: 'reference', _ref: body.proposalId } } : {}),
     // Betaald of niet — de levering is een aparte vraag (fulfilment) en wordt
     // in de Studio gezet. Eerder stond hier 'delivered' om betaald te bedoelen.
     status:        body.paid ? 'paid' : 'awaiting-payment',

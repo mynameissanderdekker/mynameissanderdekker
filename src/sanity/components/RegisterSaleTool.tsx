@@ -163,10 +163,11 @@ export function RegisterSaleTool() {
           const a = it.artwork as ArtworkResult
           const vat = a.vatRate ?? 9
           // De prijs uit de offerte wint — dat is wat de klant is toegezegd.
-          // Die staat incl. BTW, de regel hier excl.
-          const excl = it.priceOverride != null
-            ? Math.round((it.priceOverride / (1 + vat / 100)) * 100) / 100
-            : a.priceExclVAT ?? 0
+          // `priceOverride` staat exclusief BTW, net als deze regel; er valt
+          // dus niets om te rekenen. Stond hier eerder wél een omrekening,
+          // omdat het veld toen inclusief bedoeld was — een afgesproken €1800
+          // werd zo €1651 op de factuur.
+          const excl = it.priceOverride ?? a.priceExclVAT ?? 0
           return {
             artwork: a,
             copyNumber: '',
@@ -180,6 +181,14 @@ export function RegisterSaleTool() {
         setStep(2)
       }
       setFromProposal({ id: handoff.proposalId!, number: handoff.proposalNumber ?? null })
+
+      // De factuur krijgt hetzelfde reeksnummer als de offerte:
+      // PROP-SDK-26-003 wordt SDK-26-003. Belt de klant over "offerte 003",
+      // dan vind je meteen de bijbehorende factuur. Het nummer blijft
+      // aanpasbaar in het formulier als het al bezet zou zijn.
+      if (handoff.proposalNumber) {
+        setInvoiceNumber(handoff.proposalNumber.replace(/^PROP-/, ''))
+      }
     }).catch(() => { /* stil falen — de tool blijft leeg bruikbaar */ })
   }, [client])
 
@@ -340,6 +349,10 @@ export function RegisterSaleTool() {
       notes,
       sendConfirmation: sendConf,
       paid,
+      // De offerte waar deze verkoop uit komt. Werd wel opgehaald om de
+      // gegevens voor te vullen, maar niet doorgegeven — de order kwam dus
+      // zonder herkomst binnen.
+      proposalId: fromProposal?.id,
     }
 
     try {
