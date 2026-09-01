@@ -48,6 +48,11 @@ export const location = defineType({
       validation: Rule => Rule.required(),
     }),
     defineField({
+      name: 'street',
+      title: 'Address',
+      type: 'string',
+    }),
+    defineField({
       name: 'city',
       title: 'City',
       type: 'string',
@@ -64,17 +69,15 @@ export const location = defineType({
       to: [{ type: 'contact' }],
       options: { disableNew: true },
     }),
+    // `since` stond hier — een datum op een document dat door tientallen
+    // werken gedeeld wordt. Sinds wanneer een specifiek werk ergens ligt staat
+    // nu op het werk zelf (`locationSince`, tab Logistics).
     defineField({
-      name: 'since',
-      title: 'Since',
-      type: 'date',
-      description: 'Date since which this artwork is at this location.',
-    }),
-    defineField({
-      name: 'notes',
-      title: 'Notes',
+      name: 'note',
+      title: 'Note',
       type: 'text',
-      rows: 3,
+      rows: 2,
+      description: 'E.g. opening hours or access instructions.',
     }),
   ],
 })

@@ -329,13 +329,33 @@ export const artwork = defineType({
       group: 'gallery',
       of: [{ type: 'reference', to: [{ type: 'artFair' }] }],
     }),
+    // De plek staat los van het werk zodat je haar kunt hergebruiken — naam,
+    // adres, contactpersoon. Wat er alleen voor dít werk geldt hoort hier:
+    // sinds wanneer het er ligt en waar precies. Stond eerder op het
+    // locatiedocument, waardoor vijftig werken in dezelfde opslag één datum
+    // deelden.
     defineField({
       name: 'currentLocation',
-      title: 'Current location, dates & insurance',
-      description: 'Link to a location record. All details (since, received, insurance, note) are stored on the location.',
+      title: 'Current location',
+      description: 'Pick a location, or create one first under Collection → Where is my work?',
       type: 'reference',
       to: [{ type: 'location' }],
       group: 'logistics',
+    }),
+    defineField({
+      name: 'locationSince',
+      title: 'There since',
+      type: 'date',
+      group: 'logistics',
+      hidden: ({ document }) => !document?.currentLocation,
+    }),
+    defineField({
+      name: 'locationNote',
+      title: 'Spot on site',
+      description: 'E.g. "unit B, shelf 3" or "back wall".',
+      type: 'string',
+      group: 'logistics',
+      hidden: ({ document }) => !document?.currentLocation,
     }),
     defineField({
       name: 'commissionPct',

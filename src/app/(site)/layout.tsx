@@ -32,18 +32,17 @@ export default async function SiteLayout({
   const today = new Date().toISOString().slice(0, 10)
   const announced = await client
     .fetch<AnnouncedExhibition | null>(
-      // Exposities én beurzen: een beurs duurt vier dagen, dus juist daar wil je
-      // vooraf iets kunnen melden. De beurs gebruikt `name` waar de expositie
-      // `title` gebruikt — vandaar de coalesce; dat naamverschil staat als los
-      // punt in OPEN.md.
+      // Exposities én beurzen: een beurs duurt vier dagen, dus juist daar wil
+      // je vooraf iets kunnen melden. Beide gebruiken nu `title` — de beurs
+      // heette daar eerder `name`.
       `*[_type in ["exhibition", "artFair"] && showOnHomepage == true
          && (!defined(announceFrom)  || announceFrom  <= $today)
          && (!defined(announceUntil) || announceUntil >= $today)]
        | order(coalesce(announceFrom, startDate) desc)[0]{
         _id, _type, hasPage, startDate, endDate,
-        "title": coalesce(title, name),
+        title,
         "slug": slug.current,
-        "venueName": coalesce(venue.name, gallery, fair, location),
+        "venueName": coalesce(venue.name, gallery, location),
         "imageUrl": coalesce(image.asset->url, images[0].asset->url)
       }`,
       { today },

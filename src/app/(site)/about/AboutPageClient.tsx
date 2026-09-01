@@ -146,8 +146,8 @@ export default function AboutPage() {
           },
           ...*[_type == "artFair" && showInCV == true]{
             startDate,
-            "label": name,
-            "gallery": fair,
+            "label": title,
+            "gallery": title,
             location,
             "exhibitionType": "artFair",
             hasPage,

@@ -207,6 +207,9 @@ export function BulkAssignTool() {
           tx.patch(id, {
             set: {
               currentLocation: { _type: 'reference', _ref: actionValue },
+              // Sinds wanneer het er ligt hoort erbij: zonder datum weet je
+              // later niet of dit nog klopt.
+              locationSince: new Date().toISOString().slice(0, 10),
             },
           })
         }

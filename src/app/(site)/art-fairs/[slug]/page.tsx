@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { client } from '@/sanity/lib/client'
 import { urlFor } from '@/sanity/lib/image'
+import { PortableText } from '@portabletext/react'
 
 export const revalidate = 3600
 
@@ -14,11 +15,11 @@ export async function generateMetadata({ params }: Props) {
   if (!fair) return {}
   const img = fair.images?.[0]?.asset?.url
   return {
-    title: fair.name,
-    description: typeof fair.notes === 'string' ? fair.notes.slice(0, 160) : undefined,
+    title: fair.title,
+    description: undefined,
     openGraph: {
-      title: fair.name,
-      description: typeof fair.notes === 'string' ? fair.notes.slice(0, 160) : undefined,
+      title: fair.title,
+      description: undefined,
       ...(img ? { images: [{ url: `${img}?w=1200&auto=format` }] } : {}),
     },
   }
@@ -27,7 +28,7 @@ export async function generateMetadata({ params }: Props) {
 async function getArtFair(slug: string) {
   return client.fetch(
     `*[_type == "artFair" && slug.current == $slug][0]{
-      _id, name, slug, fair, booth, location, startDate, endDate, notes, websiteUrl,
+      _id, title, slug, booth, location, startDate, endDate, description, websiteUrl,
       images[]{ asset->{ _id, url }, hotspot, crop },
       "artworks": [
         ...coalesce(artworkSeries[]->artworks[]->{ _id, title, slug, "mainImage": images[0]{ asset, hotspot, crop }, priceExclVAT, vatRate, status }, []),
@@ -71,19 +72,13 @@ export default async function ArtFairPage({ params }: Props) {
       {/* Title */}
       <div style={{ marginBottom: '2rem' }}>
         <p className="section-title" style={{ marginTop: 0, marginBottom: '4px' }}>Art fair</p>
-        <h1 style={{ fontSize: '1.8rem', fontWeight: 400, margin: 0 }}>{fair.name}</h1>
+        <h1 style={{ fontSize: '1.8rem', fontWeight: 400, margin: 0 }}>{fair.title}</h1>
       </div>
 
-      {/* 2-col: details | notes */}
+      {/* 2-col: details | description */}
       <div style={{ display: 'grid', gridTemplateColumns: '20% 80%', gap: '48px', alignItems: 'start', marginBottom: '4rem', borderTop: '1px solid #eee', paddingTop: '24px' }}>
 
         <dl style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.9rem', margin: 0 }}>
-          {fair.fair && (
-            <div>
-              <dt style={{ color: '#999' }}>Fair</dt>
-              <dd style={{ margin: 0 }}>{fair.fair}</dd>
-            </div>
-          )}
           {fair.location && (
             <div>
               <dt style={{ color: '#999' }}>Location</dt>
@@ -112,8 +107,10 @@ export default async function ArtFairPage({ params }: Props) {
           )}
         </dl>
 
-        {fair.notes && typeof fair.notes === 'string' && (
-          <p style={{ margin: 0, fontSize: '0.9rem', color: '#444', lineHeight: 1.7 }}>{fair.notes}</p>
+        {Array.isArray(fair.description) && fair.description.length > 0 && (
+          <div style={{ fontSize: '0.9rem', color: '#444', lineHeight: 1.7 }}>
+            <PortableText value={fair.description} />
+          </div>
         )}
       </div>
 

@@ -21,12 +21,17 @@ export const artFair = defineType({
     { name: 'dates', title: ' ', options: { columns: 2, collapsible: false } },
   ],
   fields: [
+    // Heette `name` en bevatte het próject ("The Social Media Project"),
+    // terwijl de beurs in een apart veld `fair` stond. Het project staat al in
+    // `cvProject` — in negen van de tien gevallen was `name` daar een
+    // letterlijke kopie van. De titel is nu de beurs, zoals `title` op de
+    // expositie en in de gallery-template.
     defineField({
-      name: 'name',
+      name: 'title',
       group: 'details',
-      title: 'Name',
+      title: 'Fair',
       type: 'string',
-      description: 'E.g. "Art Rotterdam 2026"',
+      description: 'E.g. "Art Rotterdam". Which project you showed there is set under CV.',
       validation: (r) => r.required(),
     }),
     defineField({
@@ -34,15 +39,8 @@ export const artFair = defineType({
       group: 'details',
       title: 'Slug',
       type: 'slug',
-      options: { source: 'name' },
+      options: { source: 'title' },
       validation: (r) => r.required(),
-    }),
-    defineField({
-      name: 'fair',
-      group: 'details',
-      title: 'Fair name',
-      type: 'string',
-      description: 'E.g. "Art Rotterdam"',
     }),
     defineField({
       name: 'booth',
@@ -102,6 +100,15 @@ export const artFair = defineType({
       description: 'Leave empty to keep showing it until you switch it off.',
     }),
     defineField({
+      // Ontbrak hier, terwijl de expositie en de gallery-template hem wel
+      // hebben — en de aankondiging op de homepage hem leest.
+      name: 'image',
+      group: 'details',
+      title: 'Banner Image',
+      type: 'image',
+      options: { hotspot: true, accept: 'image/*' },
+    }),
+    defineField({
       name: 'images',
       group: 'installation',
       title: 'Booth / installation photos',
@@ -157,19 +164,24 @@ export const artFair = defineType({
       of: [{ type: 'reference', to: [{ type: 'artwork' }] }],
     }),
     defineField({
-      name: 'press',
+      // Eén richting, net als bij de expositie: je koppelt vanuit het
+      // persbericht (`press.exhibitions[]` accepteert ook beurzen). Twee
+      // lijsten die je met de hand gelijk moet houden lopen altijd uit elkaar.
+      name: 'pressDerived',
       group: 'share',
       title: 'Press',
-      description: 'Select press articles about this fair — create new ones via Studio → Press',
-      type: 'array',
-      of: [{ type: 'reference', to: [{ type: 'press' }], options: { disableNew: true } }],
+      description: 'Linked from the press item itself. Open a press article to add or remove.',
+      type: 'string',
+      readOnly: true,
     }),
     defineField({
-      name: 'notes',
+      // Heette `notes` en was een kaal tekstveld; de expositie en de
+      // gallery-template gebruiken hier `description` met opmaak.
+      name: 'description',
       group: 'details',
-      title: 'Notes',
-      type: 'text',
-      rows: 2,
+      title: 'Description',
+      type: 'array',
+      of: [{ type: 'block', styles: [{ title: 'Normal', value: 'normal' }, { title: 'H2', value: 'h2' }] }],
     }),
     defineField({
       name: 'roomLink',
@@ -183,7 +195,7 @@ export const artFair = defineType({
   ],
   preview: {
     select: {
-      title: 'name',
+      title: 'title',
       location: 'location',
       startDate: 'startDate',
       media: 'images.0',

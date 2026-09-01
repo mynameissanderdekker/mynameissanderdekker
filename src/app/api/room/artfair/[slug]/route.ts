@@ -26,7 +26,7 @@ export async function GET(
   const client = getSanityWriteClient('2026-01-01')
   const fair = await client.fetch(
     `*[_type == "artFair" && slug.current == $slug && !(_id in path("drafts.**"))][0] {
-      _id, title, fair, location, startDate, endDate,
+      _id, title, location, startDate, endDate,
       "artworks": *[_type == "artwork" && ^._id in artFairs[]._ref && !(_id in path("drafts.**"))] | order(title asc) {
         "_key": _id,
         "contextNote": null,

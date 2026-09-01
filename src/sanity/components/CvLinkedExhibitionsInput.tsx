@@ -38,7 +38,7 @@ export function CvLinkedExhibitionsInput() {
         { id: documentId }
       ),
       client.fetch<LinkedItem[]>(
-        `*[_type == "artFair" && cvProject._ref == $id]{ _id, "_type": "artFair", "gallery": fair, startDate, "exhibitionType": "artFair" } | order(startDate desc)`,
+        `*[_type == "artFair" && cvProject._ref == $id]{ _id, "_type": "artFair", "gallery": title, startDate, "exhibitionType": "artFair" } | order(startDate desc)`,
         { id: documentId }
       ),
     ]).then(([exs, afs]) => {

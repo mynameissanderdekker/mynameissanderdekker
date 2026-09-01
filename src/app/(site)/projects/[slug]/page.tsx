@@ -116,7 +116,7 @@ async function getProject(slug: string) {
       ],
       "exhibitions": [
         ...*[_type == "exhibition" && cvProject._ref == ^._id]{ _id, _type, slug, hasPage, title, gallery, location, startDate, exhibitionType, isSolo, websiteUrl },
-        ...*[_type == "artFair" && cvProject._ref == ^._id]{ _id, "_type": "artFair", slug, hasPage, name, "gallery": fair, "fair": fair, booth, location, startDate, websiteUrl }
+        ...*[_type == "artFair" && cvProject._ref == ^._id]{ _id, "_type": "artFair", slug, hasPage, title, "gallery": title, "fair": title, booth, location, startDate, websiteUrl }
       ] | order(startDate desc)
     }`,
     { slug }
