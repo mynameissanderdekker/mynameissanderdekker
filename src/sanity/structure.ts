@@ -335,9 +335,55 @@ export const structure: StructureResolver = async (S, { getClient }) => {
         .icon(DashboardIcon)
         .child(S.component().title('Dashboard').component(DashboardTool)),
 
+      // ── COLLECTION ────────────────────────────────────────────────────────
+      // Het werk zelf en waar het is, en meteen bovenaan: hier begint alles.
+      // Heette WORKS met LOGISTICS als losse kop ernaast — maar waar een werk
+      // ligt is een eigenschap van het werk, geen apart onderwerp.
+      S.divider().title('COLLECTION'),
+
+      artworkListItem(S, categories ?? [], customFilters),
+      publicationsListItem(S),
+      S.documentTypeListItem('projectSeries').title('Project Series'),
+      // Press stond onder WEBSITE, maar er is geen perspagina op de site en
+      // niets vraagt het type op. Het gaat óver het werk, dus hoort het hier —
+      // net als in de gallery-template.
+      S.documentTypeListItem('press').title('Press'),
+      S.listItem()
+        .title('Where is my work?')
+        .id('where-is-my-work')
+        .child(
+          S.list()
+            .id('logistics-list')
+            .title('Where is my work?')
+            .items([
+              S.listItem()
+                .title('Active loans')
+                .id('loans-active')
+                .child(
+                  S.documentTypeList('loan')
+                    .title('Active loans')
+                    .filter('_type == "loan" && (!defined(endDate) || endDate >= $today)')
+                    .params({ today: new Date().toISOString().slice(0, 10) })
+                    .defaultOrdering([{ field: 'startDate', direction: 'desc' }])
+                ),
+              S.listItem()
+                .title('All loans')
+                .id('loans-all')
+                .child(
+                  S.documentTypeList('loan')
+                    .title('All loans')
+                    .defaultOrdering([{ field: 'startDate', direction: 'desc' }])
+                ),
+              S.divider(),
+              S.documentTypeListItem('location').title('Manage locations'),
+            ])
+        ),
+
       // ── PROGRAMME ─────────────────────────────────────────────────────────
-      // Wat je doet en waar je hangt. Bij een galerie is dit het programma dat
-      // je samenstelt; hier is het je loopbaan. Zelfde kop, andere betekenis.
+      // Staat hier ná COLLECTION, andersom dan in de gallery-template. Een
+      // galerie stelt een programma samen — dat is waar het werk voor gemaakt
+      // wordt, dus dat staat daar bovenaan. Voor een kunstenaar is het de
+      // uitkomst: waar het werk heeft gehangen. Vandaar eerst het werk.
       S.divider().title('PROGRAMME'),
 
       S.listItem()
@@ -423,46 +469,6 @@ export const structure: StructureResolver = async (S, { getClient }) => {
                       .defaultOrdering([{ field: 'startDate', direction: 'desc' }])
                   )
               ),
-            ])
-        ),
-
-      // ── COLLECTION ────────────────────────────────────────────────────────
-      // Het werk zelf en waar het is. Heette WORKS met LOGISTICS als losse kop
-      // ernaast — maar waar een werk hangt is een eigenschap van het werk,
-      // geen apart onderwerp.
-      S.divider().title('COLLECTION'),
-
-      artworkListItem(S, categories ?? [], customFilters),
-      publicationsListItem(S),
-      S.documentTypeListItem('projectSeries').title('Project Series'),
-      S.listItem()
-        .title('Where is my work?')
-        .id('where-is-my-work')
-        .child(
-          S.list()
-            .id('logistics-list')
-            .title('Where is my work?')
-            .items([
-              S.listItem()
-                .title('Active loans')
-                .id('loans-active')
-                .child(
-                  S.documentTypeList('loan')
-                    .title('Active loans')
-                    .filter('_type == "loan" && (!defined(endDate) || endDate >= $today)')
-                    .params({ today: new Date().toISOString().slice(0, 10) })
-                    .defaultOrdering([{ field: 'startDate', direction: 'desc' }])
-                ),
-              S.listItem()
-                .title('All loans')
-                .id('loans-all')
-                .child(
-                  S.documentTypeList('loan')
-                    .title('All loans')
-                    .defaultOrdering([{ field: 'startDate', direction: 'desc' }])
-                ),
-              S.divider(),
-              S.documentTypeListItem('location').title('Manage locations'),
             ])
         ),
 
@@ -588,7 +594,6 @@ export const structure: StructureResolver = async (S, { getClient }) => {
             )
         ),
 
-      S.documentTypeListItem('press').title('Press'),
       S.listItem()
         .title('Contact (hardcoded)')
         .id('contactPage')
