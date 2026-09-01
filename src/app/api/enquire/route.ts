@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
   try {
     const resend = getResendClient()
     const sanity = getSanityWriteClient('2026-07-24')
-    const { name, email, phone, message, newsletter, artworkTitle, artworkSlug, viewingRoomSlug } =
+    const { name, email, phone, message, newsletter, artworkTitle, artworkSlug, priceListSlug } =
       await req.json()
 
     if (!name || !email || !message) {
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
       '',
       artworkTitle ? `Werk: ${artworkTitle}` : null,
       artworkSlug ? `URL: https://mynameissanderdekker.com/projects/innate-curiosity/${artworkSlug}` : null,
-      viewingRoomSlug ? `Viewing Room: https://mynameissanderdekker.com/room/${viewingRoomSlug}` : null,
+      priceListSlug ? `Price list: https://mynameissanderdekker.com/room/${priceListSlug}` : null,
       newsletter ? `Nieuwsbrief: Ja` : null,
     ].filter((l): l is string => l !== null)
 

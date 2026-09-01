@@ -250,7 +250,7 @@ export default function AutoRoomPage({ apiPath }: { apiPath: string }) {
 
       <EnquirePanel
         artwork={activeArtwork}
-        viewingRoomSlug=""
+        priceListSlug=""
         onClose={() => setActiveArtwork(null)}
       />
     </>

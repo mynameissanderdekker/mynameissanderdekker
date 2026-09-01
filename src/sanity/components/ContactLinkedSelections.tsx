@@ -6,12 +6,11 @@ import { useListClient } from './useListClient'
 
 interface Selection {
   _id: string
-  _type: 'viewingRoom' | 'privateSale'
+  _type: 'privateSale'
   title?: string
   slug?: { current: string }
   token?: string
   occasion?: string
-  isPublished?: boolean
   isActive?: boolean
   _createdAt: string
 }
@@ -32,7 +31,7 @@ export function ContactLinkedSelections() {
     }
     let mounted = true
 
-    const query = `*[_type in ["viewingRoom","privateSale"] && contact._ref == $id] | order(_createdAt desc) {
+    const query = `*[_type == "privateSale" && contact._ref == $id] | order(_createdAt desc) {
       _id, _type, title, slug, token, occasion, isPublished, isActive, _createdAt
     }`
 
@@ -76,12 +75,11 @@ export function ContactLinkedSelections() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
       {items.map((item) => {
-        const isVR = item._type === 'viewingRoom'
-        const active = isVR ? item.isPublished : item.isActive
+        const active = item.isActive
         // De private sale draait op `token`, niet op `slug` — de publieke
         // route (`/private-sales/[token]`) zoekt daarop.
-        const slug = isVR ? item.slug?.current : item.token
-        const path = isVR ? `/room/${slug}` : `/private-sales/${slug}`
+        const slug = item.token
+        const path = `/private-sales/${slug}`
         const date = new Date(item._createdAt).toLocaleDateString('nl-NL', {
           day: '2-digit', month: 'short', year: 'numeric',
         })
@@ -122,7 +120,7 @@ export function ContactLinkedSelections() {
                   color: active ? '#065f46' : '#6b7280',
                 }}
               >
-                {isVR ? 'Viewing Room' : 'Private Sale'} · {active ? 'actief' : 'inactief'}
+                Price list · {active ? 'actief' : 'inactief'}
               </span>
               <span style={{ color: 'var(--card-muted-fg-color, #888)', fontSize: 11 }}>{date}</span>
             </div>

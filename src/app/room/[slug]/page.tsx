@@ -293,7 +293,7 @@ export default function RoomPage() {
       {/* Enquire panel */}
       <EnquirePanel
         artwork={activeArtwork}
-        viewingRoomSlug={slug}
+        priceListSlug={slug}
         onClose={() => setActiveArtwork(null)}
       />
     </>

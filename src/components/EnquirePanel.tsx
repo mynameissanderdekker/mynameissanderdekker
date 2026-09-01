@@ -12,11 +12,11 @@ interface Artwork {
 
 interface EnquirePanelProps {
   artwork: Artwork | null
-  viewingRoomSlug?: string
+  priceListSlug?: string
   onClose: () => void
 }
 
-export default function EnquirePanel({ artwork, viewingRoomSlug, onClose }: EnquirePanelProps) {
+export default function EnquirePanel({ artwork, priceListSlug, onClose }: EnquirePanelProps) {
   const [visible, setVisible] = useState(false)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -81,7 +81,7 @@ export default function EnquirePanel({ artwork, viewingRoomSlug, onClose }: Enqu
           newsletter,
           artworkTitle: artwork?.title,
           artworkSlug: artwork?.slug,
-          viewingRoomSlug,
+          priceListSlug,
         }),
       })
       const data = await res.json()

@@ -6,7 +6,6 @@ import { projectSeries } from '../schemas/projectSeries'
 import { artwork } from '../schemas/artwork'
 import { exhibition } from '../schemas/exhibition'
 import { artFair } from '../schemas/artFair'
-import { viewingRoom } from '../schemas/viewingRoom'
 import { contact } from '../schemas/contact'
 import { contactTag } from '../schemas/contactTag'
 import { worksPage } from '../schemas/worksPage'
@@ -38,7 +37,6 @@ export const schema: { types: SchemaTypeDefinition[] } = {
     exhibition,
     artFair,
     // Private sales & CRM
-    viewingRoom,
     contact,
     contactTag,
     // Webshop
