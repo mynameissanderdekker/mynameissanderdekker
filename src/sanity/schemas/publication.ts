@@ -51,10 +51,13 @@ export const publication = defineType({
       options: { source: 'title' },
     }),
     defineField({
-      name: 'category',
+      // Heet `publicationCategory` en niet `category`: dat laatste is bij het
+      // artwork in gebruik voor iets anders, en de gallery-template maakt
+      // datzelfde onderscheid.
+      name: 'publicationCategory',
       title: 'Category',
       type: 'string',
-      description: 'Category used to place this publication in a shop section (e.g. "Publications")',
+      description: 'Book, Zine, Poster, Bag — places it in a shop section',
       group: 'basis',
       components: { input: CategoryInput },
     }),
@@ -143,27 +146,42 @@ export const publication = defineType({
       group: 'details',
       description: 'E.g. 35 (for an edition of 35)',
     }),
+    // Incl. BTW, zoals op het artwork en op de shopvarianten hieronder. Het
+    // basisveld stond op excl. terwijl de varianten al incl. rekenden — een
+    // boek en zijn gesigneerde uitvoering rekenden dus verschillend.
     defineField({
-      name: 'priceExclVAT',
-      title: 'Price (excl. BTW)',
+      name: 'priceIncVat',
+      title: 'Price (incl. BTW)',
       type: 'number',
-      description: 'Price in EUR excluding BTW',
-      group: 'details',
+      group: 'basis',
     }),
     defineField({
       name: 'vatRate',
-      title: 'BTW rate (%)',
-      type: 'number',
-      group: 'details',
-      initialValue: 9,
+      title: 'BTW rate',
+      type: 'string',
+      group: 'basis',
+      initialValue: '9',
       options: {
         list: [
-          { title: '9%', value: 9 },
-          { title: '21%', value: 21 },
-          { title: '0%', value: 0 },
+          { title: '9%', value: '9' },
+          { title: '21%', value: '21' },
+          { title: '0% (export)', value: '0' },
         ],
       },
     }),
+    defineField({
+      name: 'priceExclVAT',
+      title: 'Price excl. BTW [legacy — do not use]',
+      type: 'number',
+      group: 'details',
+      hidden: true,
+    }),
+
+    // ── Boekgegevens ─────────────────────────────────────────────────────────
+    defineField({ name: 'isbn', title: 'ISBN', type: 'string', group: 'details', description: 'E.g. 978-90-123456-7-8' }),
+    defineField({ name: 'pageCount', title: 'Pages', type: 'number', group: 'details' }),
+    defineField({ name: 'publisher', title: 'Published by', type: 'string', group: 'details' }),
+    defineField({ name: 'publicationCode', title: 'Publication code', type: 'string', group: 'details', description: 'Internal reference, e.g. for storage' }),
     defineField({
       name: 'shopVariants',
       title: 'Shop variants',
@@ -360,12 +378,38 @@ export const publication = defineType({
       group: 'webshop',
       initialValue: false,
     }),
+    // Deze vijf had het artwork wel en de publicatie niet — terwijl een boek
+    // juist het type is met voorraad en verzendkosten.
+    defineField({
+      name: 'onSale', title: 'On sale', type: 'boolean', group: 'webshop', initialValue: false,
+      hidden: ({ document }) => !document?.availableInShop,
+    }),
+    defineField({
+      name: 'salePrice', title: 'Sale price (incl. BTW)', type: 'number', group: 'webshop',
+      hidden: ({ document }) => !document?.availableInShop || !document?.onSale,
+    }),
+    defineField({
+      name: 'stock', title: 'Stock', type: 'number', group: 'webshop', initialValue: 1,
+      description: 'Quantity available for purchase in the webshop',
+      hidden: ({ document }) => !document?.availableInShop,
+    }),
+    defineField({
+      name: 'shippingNote', title: 'Shipping note', type: 'string', group: 'webshop',
+      description: 'E.g. "Ships within 5 business days"',
+      hidden: ({ document }) => !document?.availableInShop,
+    }),
+    defineField({
+      name: 'shippingClass', title: 'Shipping class', type: 'reference', group: 'webshop',
+      to: [{ type: 'shippingClass' }],
+      description: 'Determines the shipping rate for this item in the webshop',
+      hidden: ({ document }) => !document?.availableInShop,
+    }),
     defineField({
       name: 'buyUrl',
       title: 'Buy link',
       type: 'url',
       group: 'webshop',
-      description: 'Direct payment link (Mollie, Stripe, etc.) — shown as "Buy" button when status is "Available"',
+      description: 'Direct payment link — shown as "Buy" button when status is "Available"',
     }),
   ],
 })

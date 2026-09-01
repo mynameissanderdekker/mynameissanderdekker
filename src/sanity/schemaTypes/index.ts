@@ -8,6 +8,7 @@ import { exhibition } from '../schemas/exhibition'
 import { artFair } from '../schemas/artFair'
 import { viewingRoom } from '../schemas/viewingRoom'
 import { contact } from '../schemas/contact'
+import { contactTag } from '../schemas/contactTag'
 import { worksPage } from '../schemas/worksPage'
 import { aboutPage } from '../schemas/aboutPage'
 import { cvPage } from '../schemas/cvPage'
@@ -39,6 +40,7 @@ export const schema: { types: SchemaTypeDefinition[] } = {
     // Private sales & CRM
     viewingRoom,
     contact,
+    contactTag,
     // Webshop
     order,
     shippingZone,

@@ -3,6 +3,7 @@ import { CirclePhotoField } from '../components/CirclePhotoField'
 import { InstagramLink } from '../components/InstagramLink'
 import { PurchasesTotalField } from '../components/PurchasesTotalField'
 import { EditionPickerInput } from '../components/EditionPickerInput'
+import { ContactLinkedSelections } from '../components/ContactLinkedSelections'
 
 export const contact = defineType({
   name: 'contact',
@@ -132,7 +133,61 @@ export const contact = defineType({
       group: 'person',
       description: 'Username or full URL',
     }),
+    // Bepaalt hoe de factuur de BTW toont. Zonder dit rekent elke factuur op
+    // de Nederlandse manier, ook naar een Duitse klant met BTW-nummer.
+    defineField({
+      name: 'clientLocation',
+      title: 'Invoice location',
+      type: 'string',
+      group: 'person',
+      options: {
+        list: [
+          { title: 'Netherlands (incl. BTW)', value: 'nl' },
+          { title: 'EU (excl. BTW)', value: 'eu' },
+          { title: 'Outside EU (0%)', value: 'export' },
+        ],
+        layout: 'radio',
+        direction: 'horizontal',
+      },
+    }),
+    defineField({
+      name: 'language',
+      title: 'Preferred language',
+      type: 'string',
+      group: 'person',
+      options: {
+        list: [
+          { title: 'Dutch', value: 'nl' },
+          { title: 'English', value: 'en' },
+          { title: 'Other', value: 'other' },
+        ],
+        layout: 'radio',
+        direction: 'horizontal',
+      },
+    }),
+    defineField({
+      name: 'invoiceLanguage',
+      title: 'Invoice language',
+      type: 'string',
+      group: 'person',
+      options: {
+        list: [
+          { title: 'Dutch (NL)', value: 'nl' },
+          { title: 'English (EN)', value: 'en' },
+        ],
+        layout: 'radio',
+        direction: 'horizontal',
+      },
+    }),
+
     // ── CRM ───────────────────────────────────────────────────────────────────
+    defineField({
+      name: 'tags',
+      title: 'Tags',
+      type: 'array',
+      group: 'crm',
+      of: [{ type: 'reference', to: [{ type: 'contactTag' }] }],
+    }),
     defineField({
       name: 'type',
       title: 'Contact type',
@@ -170,6 +225,50 @@ export const contact = defineType({
       type: 'text',
       rows: 3,
       group: 'crm',
+    }),
+    // Een voornemen dat alleen in je hoofd zit vergeet je. Zodra de datum
+    // bereikt is verschijnt er een bolletje bij Contacts in de navigatie.
+    defineField({
+      name: 'followUpDate',
+      title: 'Follow-up date',
+      description: 'When to get back in touch with this contact',
+      type: 'date',
+      group: 'crm',
+    }),
+    defineField({
+      name: 'followUpNote',
+      title: 'Follow-up note',
+      description: 'E.g. "Call about the large piece — he was still hesitating"',
+      type: 'string',
+      group: 'crm',
+    }),
+    defineField({
+      name: 'wishlist',
+      title: 'Wishlist',
+      description: 'Works this contact has shown interest in',
+      type: 'array',
+      group: 'crm',
+      of: [{
+        type: 'object',
+        name: 'wishlistItem',
+        fields: [
+          // De gallery-template heeft hier ook een kunstenaar-verwijzing; bij
+          // één kunstenaar zegt die niets.
+          defineField({ name: 'artwork', title: 'Artwork', type: 'reference', to: [{ type: 'artwork' }] }),
+          defineField({ name: 'maxBudget', title: 'Max budget (€)', type: 'number' }),
+          defineField({ name: 'note', title: 'Note', type: 'string', description: 'E.g. "Large formats only"' }),
+        ],
+        preview: {
+          select: { artwork: 'artwork.title', note: 'note', budget: 'maxBudget' },
+          prepare({ artwork, note, budget }: { artwork?: string; note?: string; budget?: number }) {
+            const budgetLabel = budget != null ? `≤ €${budget.toLocaleString('nl-NL')}` : null
+            return {
+              title: artwork || note || 'Interest',
+              subtitle: [artwork ? note : null, budgetLabel].filter(Boolean).join(' · '),
+            }
+          },
+        },
+      }],
     }),
 
     // ── Newsletter ────────────────────────────────────────────────────────────
@@ -301,12 +400,16 @@ export const contact = defineType({
       ],
     }),
     defineField({
-      name: 'viewingRooms',
-      title: 'Viewing Rooms received',
-      type: 'array',
+      // Was een handmatige lijst, terwijl de viewing room en de private sale
+      // zelf al naar dit contact verwijzen. Twee lijsten die je gelijk moet
+      // houden lopen altijd uit elkaar — deze wordt nu afgeleid.
+      name: 'linkedSelections',
+      title: 'Viewing rooms & private sales',
+      description: 'Linked from the viewing room or private sale itself — read-only.',
+      type: 'string',
       group: 'history',
-      of: [{ type: 'reference', to: [{ type: 'viewingRoom' }] }],
-      description: 'Which private selections have been sent to this person',
+      readOnly: true,
+      components: { input: ContactLinkedSelections },
     }),
   ],
 

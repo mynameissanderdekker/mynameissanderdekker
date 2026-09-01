@@ -249,7 +249,7 @@ export const exhibition = defineType({
       readOnly: true,
     }),
     defineField({
-      name: 'roomLink',
+      name: 'shareRoomLink',
       group: 'share',
       title: 'Deel prijslijst met klant',
       type: 'string',

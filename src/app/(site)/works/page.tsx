@@ -167,8 +167,8 @@ async function getWorksData(): Promise<{ config: WorksPageConfig | null; works: 
       { next: { revalidate: 0 } },
     ),
     client.fetch<WithVariants[]>(
-      `*[_type == "publication" && defined(category)] | order(shopFeatured desc, order asc){
-        _id, _type, title, category, status, priceIncVat, vatRate, "featured": shopFeatured, order,
+      `*[_type == "publication" && defined(publicationCategory)] | order(shopFeatured desc, order asc){
+        _id, _type, title, "category": publicationCategory, status, priceIncVat, vatRate, "featured": shopFeatured, order,
         "year": null,
         "slug": { "current": coalesce(slug.current, projectSlug) },
         "mainImage": { "url": coalesce(coverImage.asset->url, coverImageUrl) },

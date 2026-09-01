@@ -223,6 +223,25 @@ function contactsListItem(S: StructureBuilder) {
             .id('contacts-webshop')
             .child(S.documentTypeList('contact').title('Webshop customers').filter('_type == "contact" && type == "webshop_customer"').defaultOrdering([{ field: 'lastName', direction: 'asc' }])),
           S.divider(),
+          // Bovenaan wat actie vraagt: een follow-updatum die bereikt is.
+          S.listItem()
+            .title('Follow-up')
+            .id('contacts-followup')
+            .icon(attentionBadge(
+              `count(*[_type == "contact" && defined(followUpDate) && followUpDate <= $today])`,
+              { color: 'amber', label: 'follow-ups', listenOn: 'contact' }
+            ))
+            .child(
+              S.documentTypeList('contact')
+                .title('Follow-up — sorted by date')
+                .filter('_type == "contact" && defined(followUpDate)')
+                .defaultOrdering([{ field: 'followUpDate', direction: 'asc' }])
+            ),
+          S.listItem()
+            .title('Contact Tags')
+            .id('contact-tags')
+            .child(S.documentTypeList('contactTag').title('Contact Tags')),
+          S.divider(),
           S.listItem()
             .title('Export mailing list')
             .id('contacts-mailing-export')

@@ -183,8 +183,17 @@ export const artFair = defineType({
       type: 'array',
       of: [{ type: 'block', styles: [{ title: 'Normal', value: 'normal' }, { title: 'H2', value: 'h2' }] }],
     }),
+    // De expositie had dit veld wel en de beurs niet: je kon de prijslijst van
+    // een expositie beveiligen, die van een beurs niet.
     defineField({
-      name: 'roomLink',
+      name: 'priceListPassword',
+      group: 'share',
+      title: 'Price list password',
+      type: 'string',
+      description: 'If set, the shared price list asks for this password. Leave empty for your own use only.',
+    }),
+    defineField({
+      name: 'shareRoomLink',
       group: 'share',
       title: 'Share with client',
       type: 'string',
