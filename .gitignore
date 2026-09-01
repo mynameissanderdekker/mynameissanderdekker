@@ -44,3 +44,8 @@ scripts/contacts.vcf
 
 # Migratie-backups
 backup-*.json
+
+# Buildartefacten en lokale rommel die per ongeluk meegecommit werd
+dist/
+.sanity/
+Uploads/

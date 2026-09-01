@@ -1,0 +1,42 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { getSanityWriteClient } from '@/lib/sanityClient'
+
+const ARTWORK_FIELDS = `
+  _id, title, year, medium, status, vatRate,
+  "priceIncVat": priceIncVat,
+  "priceExclVAT": select(
+    defined(priceIncVat) && vatRate == "21" => round(priceIncVat / 1.21 * 100) / 100,
+    defined(priceIncVat) && vatRate == "0"  => priceIncVat,
+    defined(priceIncVat)                    => round(priceIncVat / 1.09 * 100) / 100
+  ),
+  "widthCm": dimensions.widthCm,
+  "heightCm": dimensions.heightCm,
+  "depthCm": dimensions.depthCm,
+  editionType, editionTotal, editionAP,
+  "slug": slug.current,
+  "image": images[0].asset->url
+`
+
+export async function GET(
+  _req: NextRequest,
+  { params }: { params: Promise<{ slug: string }> }
+) {
+  const { slug } = await params
+
+  const client = getSanityWriteClient('2026-01-01')
+  const exhibition = await client.fetch(
+    `*[_type == "exhibition" && slug.current == $slug && !(_id in path("drafts.**"))][0] {
+      _id, title, gallery, location, startDate, endDate,
+      "artworks": *[_type == "artwork" && ^._id in exhibitions[]._ref && !(_id in path("drafts.**"))] | order(title asc) {
+        "_key": _id,
+        "contextNote": null,
+        "artwork": { ${ARTWORK_FIELDS} }
+      }
+    }`,
+    { slug }
+  )
+
+  if (!exhibition) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  return NextResponse.json({ ...exhibition, showPrices: true })
+}
