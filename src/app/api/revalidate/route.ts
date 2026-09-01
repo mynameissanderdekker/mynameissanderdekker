@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
       case 'siteSettings':
         revalidatePath('/', 'layout')
         break
-      case 'zine':
+      case 'publication':
         revalidatePath('/projects', 'page')
         if (slug) revalidatePath(`/projects/${slug}`, 'page')
         break

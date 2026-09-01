@@ -17,20 +17,28 @@ export const order = defineType({
   title: 'Order',
   type: 'document',
   liveEdit: false,
+  // Zelfde vier tabs als in de gallery-template. Stond hier als één lange
+  // lijst, waarin de verkoop, het geld en de verzending door elkaar liepen.
+  groups: [
+    { name: 'sale',     title: 'Sale', default: true },
+    { name: 'amounts',  title: 'Amounts' },
+    { name: 'shipping', title: 'Shipping' },
+    { name: 'history',  title: 'History' },
+  ],
   fields: [
-    defineField({ name: 'orderNumber',    title: 'Order number',    type: 'string' }),
-    defineField({ name: 'stripeSessionId', title: 'Stripe session ID', type: 'string', readOnly: true }),
+    defineField({ name: 'orderNumber',    title: 'Order number',    type: 'string', group: 'sale' }),
+    defineField({ name: 'stripeSessionId', title: 'Stripe session ID', type: 'string', readOnly: true, group: 'history' }),
     defineField({
-      name: 'status', title: 'Status', type: 'string',
+      name: 'status', title: 'Status', type: 'string', group: 'sale',
       options: { list: ORDER_STATUS_LIST }, initialValue: 'new',
     }),
-    defineField({ name: 'customerName',  title: 'Name',  type: 'string' }),
-    defineField({ name: 'customerEmail', title: 'Email', type: 'string' }),
-    defineField({ name: 'customerPhone', title: 'Phone', type: 'string' }),
-    defineField({ name: 'companyName',   title: 'Company name', type: 'string' }),
-    defineField({ name: 'vatNumber',     title: 'BTW number', type: 'string' }),
+    defineField({ name: 'customerName',  title: 'Name',  type: 'string', group: 'sale' }),
+    defineField({ name: 'customerEmail', title: 'Email', type: 'string', group: 'sale' }),
+    defineField({ name: 'customerPhone', title: 'Phone', type: 'string', group: 'sale' }),
+    defineField({ name: 'companyName',   title: 'Company name', type: 'string', group: 'sale' }),
+    defineField({ name: 'vatNumber',     title: 'BTW number', type: 'string', group: 'sale' }),
     defineField({
-      name: 'shippingAddress', title: 'Shipping address', type: 'object',
+      name: 'shippingAddress', title: 'Shipping address', type: 'object', group: 'shipping',
       fields: [
         { name: 'street',     title: 'Street + house number', type: 'string' },
         { name: 'postalCode', title: 'Postal code',           type: 'string' },
@@ -39,7 +47,7 @@ export const order = defineType({
       ],
     }),
     defineField({
-      name: 'items', title: 'Items', type: 'array',
+      name: 'items', title: 'Items', type: 'array', group: 'sale',
       of: [{
         type: 'object',
         fields: [
@@ -56,27 +64,27 @@ export const order = defineType({
         },
       }],
     }),
-    defineField({ name: 'shippingCost', title: 'Shipping cost (€)', type: 'number' }),
-    defineField({ name: 'totalAmount',  title: 'Total amount (€)',  type: 'number' }),
-    defineField({ name: 'createdAt',    title: 'Created at',        type: 'datetime' }),
+    defineField({ name: 'shippingCost', title: 'Shipping cost (€)', type: 'number', group: 'amounts' }),
+    defineField({ name: 'totalAmount',  title: 'Total amount (€)',  type: 'number', group: 'amounts' }),
+    defineField({ name: 'createdAt',    title: 'Created at',        type: 'datetime', group: 'history' }),
     // ── Shipping ───────────────────────────────────────────────────────────
-    defineField({ name: 'trackingNumber', title: 'Tracking number', type: 'string' }),
+    defineField({ name: 'trackingNumber', title: 'Tracking number', type: 'string', group: 'shipping' }),
     defineField({
-      name: 'trackingCarrier', title: 'Carrier', type: 'string',
+      name: 'trackingCarrier', title: 'Carrier', type: 'string', group: 'shipping',
       options: { list: ['PostNL', 'DHL', 'UPS', 'Other'] },
     }),
-    defineField({ name: 'shippedAt',          title: 'Shipped at',                type: 'datetime' }),
-    defineField({ name: 'shippingEmailSentAt', title: 'Shipping email sent at',   type: 'datetime', readOnly: true, hidden: true }),
+    defineField({ name: 'shippedAt',          title: 'Shipped at',                type: 'datetime', group: 'shipping' }),
+    defineField({ name: 'shippingEmailSentAt', title: 'Shipping email sent at',   type: 'datetime', readOnly: true, hidden: true, group: 'shipping' }),
     // ── Invoice ───────────────────────────────────────────────────────────────
-    defineField({ name: 'invoiceNumber', title: 'Invoice number', type: 'string', readOnly: true }),
+    defineField({ name: 'invoiceNumber', title: 'Invoice number', type: 'string', readOnly: true, group: 'sale' }),
     defineField({
-      name: 'invoicePdf', title: 'Invoice PDF', type: 'file',
+      name: 'invoicePdf', title: 'Invoice PDF', type: 'file', group: 'sale',
       options: { accept: 'application/pdf' },
       readOnly: true,
     }),
     // ── Status history ─────────────────────────────────────────────────────
     defineField({
-      name: 'statusHistory', title: 'Status history', type: 'array', readOnly: true,
+      name: 'statusHistory', title: 'Status history', type: 'array', readOnly: true, group: 'history',
       of: [{
         type: 'object', name: 'statusHistoryEntry',
         fields: [

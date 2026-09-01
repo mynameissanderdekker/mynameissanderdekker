@@ -160,7 +160,7 @@ function publicationsListItem(S: StructureBuilder) {
             .title('All publications')
             .id('publications-all')
             .child(
-              S.documentTypeList('zine')
+              S.documentTypeList('publication')
                 .title('All publications')
                 .defaultOrdering([{ field: 'year', direction: 'desc' }])
             ),
@@ -168,9 +168,9 @@ function publicationsListItem(S: StructureBuilder) {
             .title('In webshop')
             .id('publications-in-webshop')
             .child(
-              S.documentTypeList('zine')
+              S.documentTypeList('publication')
                 .title('In webshop')
-                .filter('_type == "zine" && availableInShop == true')
+                .filter('_type == "publication" && availableInShop == true')
                 .defaultOrdering([{ field: 'shopFeatured', direction: 'desc' }, { field: 'title', direction: 'asc' }])
             ),
         ])

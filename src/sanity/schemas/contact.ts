@@ -9,9 +9,12 @@ export const contact = defineType({
   title: 'Contact',
   type: 'document',
   groups: [
-    { name: 'info',      title: 'Person',    default: true },
-    { name: 'history',   title: 'History' },
-    { name: 'email',     title: 'Email' },
+    // Zelfde vier tabs als in de gallery-template: wie het is, wat je met ze
+    // hebt, of ze de nieuwsbrief krijgen, en wat ze gekocht hebben.
+    { name: 'person',     title: 'Person',     default: true },
+    { name: 'crm',        title: 'CRM' },
+    { name: 'newsletter', title: 'Newsletter' },
+    { name: 'history',    title: 'History' },
   ],
   fields: [
     // ── Person ────────────────────────────────────────────────────────────────
@@ -19,7 +22,7 @@ export const contact = defineType({
       name: 'photo',
       title: 'Photo',
       type: 'image',
-      group: 'info',
+      group: 'person',
       options: { hotspot: true },
       components: { field: CirclePhotoField },
     }),
@@ -27,63 +30,69 @@ export const contact = defineType({
       name: 'firstName',
       title: 'First name',
       type: 'string',
-      group: 'info',
+      group: 'person',
       validation: (r) => r.required(),
     }),
     defineField({
       name: 'lastName',
       title: 'Last name',
       type: 'string',
-      group: 'info',
+      group: 'person',
     }),
     defineField({
       name: 'company',
       title: 'Company / Gallery',
       type: 'string',
-      group: 'info',
+      group: 'person',
     }),
     defineField({
       name: 'vatNumber',
       title: 'BTW number',
       type: 'string',
-      group: 'info',
+      group: 'person',
     }),
     defineField({
       name: 'email',
       title: 'Email address',
       type: 'string',
-      group: 'info',
+      group: 'person',
       validation: (r) => r.required().email(),
+    }),
+    defineField({
+      name: 'website',
+      title: 'Website',
+      type: 'url',
+      group: 'person',
     }),
     defineField({
       name: 'phone',
       title: 'Phone',
       type: 'string',
-      group: 'info',
+      group: 'person',
     }),
     defineField({
       name: 'street',
       title: 'Street & number',
       type: 'string',
-      group: 'info',
+      group: 'person',
     }),
     defineField({
       name: 'postalCode',
       title: 'Postal code',
       type: 'string',
-      group: 'info',
+      group: 'person',
     }),
     defineField({
       name: 'city',
       title: 'City',
       type: 'string',
-      group: 'info',
+      group: 'person',
     }),
     defineField({
       name: 'country',
       title: 'Country',
       type: 'string',
-      group: 'info',
+      group: 'person',
       description: 'ISO country code: NL, DE, FR, GB, US, BE, DK …',
       options: {
         list: [
@@ -112,7 +121,7 @@ export const contact = defineType({
       name: 'instagram',
       title: 'Instagram',
       type: 'string',
-      group: 'info',
+      group: 'person',
       description: 'Username without @, e.g. "sanderdekker"',
       components: { input: InstagramLink },
     }),
@@ -120,20 +129,15 @@ export const contact = defineType({
       name: 'facebook',
       title: 'Facebook',
       type: 'string',
-      group: 'info',
+      group: 'person',
       description: 'Username or full URL',
     }),
-    defineField({
-      name: 'website',
-      title: 'Website',
-      type: 'url',
-      group: 'info',
-    }),
+    // ── CRM ───────────────────────────────────────────────────────────────────
     defineField({
       name: 'type',
       title: 'Contact type',
       type: 'string',
-      group: 'info',
+      group: 'crm',
       options: {
         list: [
           { title: 'Collector',         value: 'collector' },
@@ -155,7 +159,7 @@ export const contact = defineType({
       name: 'worksWithMe',
       title: 'I work with this gallery',
       type: 'boolean',
-      group: 'info',
+      group: 'crm',
       initialValue: false,
       description: 'Shows up as a venue when you add an exhibition.',
       hidden: ({ document }) => document?.type !== 'gallery',
@@ -165,41 +169,44 @@ export const contact = defineType({
       title: 'Notes (private)',
       type: 'text',
       rows: 3,
-      group: 'info',
+      group: 'crm',
     }),
 
-    // ── Email preferences ─────────────────────────────────────────────────────
+    // ── Newsletter ────────────────────────────────────────────────────────────
     defineField({
       name: 'subscribed',
       title: 'Subscribed to newsletter',
       type: 'boolean',
-      group: 'email',
+      group: 'newsletter',
       initialValue: true,
     }),
     defineField({
       name: 'subscribedAt',
       title: 'Subscription date',
       type: 'datetime',
-      group: 'email',
+      group: 'newsletter',
     }),
     defineField({
       name: 'unsubscribedAt',
       title: 'Unsubscription date',
       type: 'datetime',
-      group: 'email',
+      group: 'newsletter',
     }),
     defineField({
+      // Waar het contact vandaan komt en waar het in geïnteresseerd is, staan
+      // bij Torch op CRM — het zegt iets over de relatie, niet over de
+      // nieuwsbrief.
       name: 'source',
       title: 'Source',
       type: 'string',
-      group: 'email',
+      group: 'crm',
       description: 'E.g. "website signup", "Art Rotterdam 2026", "Added manually"',
     }),
     defineField({
       name: 'interests',
       title: 'Interests',
       type: 'array',
-      group: 'email',
+      group: 'crm',
       of: [{ type: 'string' }],
       options: {
         list: [

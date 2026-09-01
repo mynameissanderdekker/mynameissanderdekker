@@ -41,3 +41,6 @@ scripts/contacts.vcf
 
 # local Claude Code permissions (may accumulate machine-specific/sensitive entries)
 .claude/settings.local.json
+
+# Migratie-backups
+backup-*.json

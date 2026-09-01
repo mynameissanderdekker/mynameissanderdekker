@@ -93,6 +93,13 @@ export const artwork = defineType({
       components: { field: SyncedField },
     }),
     defineField({
+      name: 'dimensionNotes',
+      title: 'Notes',
+      description: 'E.g. "variable dimensions", "each element ≈ 10 × 5 cm", or other dimension info',
+      type: 'string',
+      group: 'basis',
+    }),
+    defineField({
       name: 'category',
       title: 'Category',
       type: 'string',
@@ -435,6 +442,118 @@ export const artwork = defineType({
       group: 'webshop',
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       hidden: ({ document }: any) => !document?.availableInShop,
+    }),
+    // Zelfde vorm als in de gallery-template, zodat een variant in beide
+    // systemen hetzelfde betekent. Stond hier alleen op `zine`, waardoor een
+    // gesigneerde of speciale uitvoering van een werk niet te maken was.
+    defineField({
+      name: 'shopVariants',
+      title: 'Shop variants',
+      type: 'array',
+      group: 'webshop',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      hidden: ({ document }: any) => !document?.availableInShop,
+      description: 'Extra cards in the shop listing — each variant shows alongside the standard card with its own badge, price and buy link.',
+      of: [
+        defineField({
+          name: 'shopVariant',
+          title: 'Variant',
+          type: 'object',
+          fieldsets: [
+            { name: 'pricing', title: 'Price', options: { columns: 2 } },
+            { name: 'sale', title: 'Sale', options: { columns: 2 } },
+          ],
+          fields: [
+            defineField({
+              name: 'badge',
+              title: 'Type',
+              type: 'string',
+              description: 'Shown as a badge on the listing card. Use predefined values or enter a custom label (e.g. "Special Edition Box 1").',
+              validation: (r) => r.required(),
+            }),
+            defineField({
+              name: 'status',
+              title: 'Status',
+              type: 'string',
+              initialValue: 'available',
+              options: {
+                list: [
+                  { title: 'Available', value: 'available' },
+                  { title: 'Sold out', value: 'sold_out' },
+                ],
+                layout: 'radio',
+                direction: 'horizontal',
+              },
+            }),
+            defineField({
+              name: 'priceIncVat',
+              title: 'Price (incl. BTW)',
+              type: 'number',
+              fieldset: 'pricing',
+            }),
+            defineField({
+              name: 'stock',
+              title: 'Stock',
+              type: 'number',
+              fieldset: 'pricing',
+            }),
+            defineField({
+              name: 'onSale',
+              title: 'On sale',
+              type: 'boolean',
+              initialValue: false,
+              fieldset: 'sale',
+            }),
+            defineField({
+              name: 'salePrice',
+              title: 'Sale price (incl. BTW)',
+              type: 'number',
+              fieldset: 'sale',
+            }),
+            defineField({
+              name: 'images',
+              title: 'Own photos (optional)',
+              type: 'array',
+              description: 'Upload if this variant has its own cover image. Leave empty to use the main product image.',
+              of: [{ type: 'image', options: { hotspot: true } }],
+            }),
+            defineField({
+              name: 'description',
+              title: 'Description',
+              type: 'array',
+              description: 'Variant-specific description shown on the product page when this variant is selected.',
+              of: [{ type: 'block' }],
+            }),
+            defineField({
+              name: 'buyUrl',
+              title: 'Buy link',
+              type: 'url',
+              description: 'Direct payment link for this variant',
+            }),
+            defineField({
+              name: 'editionTotal',
+              title: 'Edition total',
+              type: 'number',
+            }),
+            defineField({
+              name: 'note',
+              title: 'Note',
+              type: 'string',
+              description: 'Short note shown on the shop card (e.g. "Signed and numbered by the artist")',
+            }),
+          ],
+          preview: {
+            select: { badge: 'badge', price: 'priceIncVat', onSale: 'onSale', salePrice: 'salePrice', status: 'status' },
+            prepare({ badge, price, onSale, salePrice, status }) {
+              const displayPrice = onSale && salePrice != null ? `€${salePrice} (sale)` : price != null ? `€${price}` : null
+              return {
+                title: badge ?? '—',
+                subtitle: [status, displayPrice].filter(Boolean).join(' · '),
+              }
+            },
+          },
+        }),
+      ],
     }),
     defineField({
       name: 'options',

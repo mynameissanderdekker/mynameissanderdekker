@@ -100,6 +100,54 @@ interface WorksPageConfig {
   sections?: SectionConfig[]
 }
 
+/**
+ * Shopvarianten — dezelfde vorm op artwork en zine, en dezelfde als in de
+ * gallery-template. Alle bedragen incl. BTW; er wordt niets omgerekend.
+ */
+interface ShopVariant {
+  badge: string
+  status?: string
+  priceIncVat?: number
+  onSale?: boolean
+  salePrice?: number
+  buyUrl?: string
+  note?: string
+  variantImages?: { asset: { url: string } }[]
+}
+
+type WithVariants = ArtworkCard & { shopVariants?: ShopVariant[] }
+
+const VARIANT_PROJECTION = `shopVariants[]{
+  badge, status, priceIncVat, onSale, salePrice, buyUrl, note,
+  "variantImages": images[]{ asset->{ url } }
+}`
+
+/** Zet een product om in zijn eigen kaart, gevolgd door één kaart per variant. */
+function expandVariants(item: WithVariants): ArtworkCard[] {
+  const variants = (item.shopVariants ?? []).map((v, i) => ({
+    _id: `${item._id}-variant-${i}`,
+    _type: item._type,
+    title: item.title,
+    year: item.year,
+    category: item.category,
+    status: v.status ?? 'available',
+    // De variantprijs vervangt de basisprijs; ontbreekt hij, dan geldt de basis.
+    priceIncVat: v.priceIncVat ?? item.priceIncVat,
+    vatRate: item.vatRate,
+    featured: item.featured,
+    order: item.order,
+    slug: item.slug,
+    mainImage: v.variantImages?.[0] ? { url: v.variantImages[0].asset.url } : item.mainImage,
+    buyUrl: v.buyUrl ?? item.buyUrl,
+    isVariantCard: true,
+    variantBadge: v.badge,
+    variantNote: v.note,
+    variantOnSale: v.onSale,
+    variantSalePrice: v.salePrice,
+  } satisfies ArtworkCard))
+  return [item as ArtworkCard, ...variants]
+}
+
 async function getWorksData(): Promise<{ config: WorksPageConfig | null; works: ArtworkCard[] }> {
   const [config, artworks, zines] = await Promise.all([
     client.fetch<WorksPageConfig | null>(
@@ -107,70 +155,34 @@ async function getWorksData(): Promise<{ config: WorksPageConfig | null; works: 
       {},
       { next: { revalidate: 0 } },
     ),
-    client.fetch<ArtworkCard[]>(
+    client.fetch<WithVariants[]>(
       `*[_type == "artwork" && defined(slug.current) && availableInShop == true] | order(shopFeatured desc, shopOrder asc, year desc){
         _id, _type, title, year, slug, "order": shopOrder,
         "mainImage": { "url": coalesce(images[0].asset->url, coverImageUrl) },
         priceIncVat, vatRate, status, category, "featured": shopFeatured, buyUrl,
-        medium, dimensions
+        medium, dimensions,
+        ${VARIANT_PROJECTION}
       }`,
       {},
       { next: { revalidate: 0 } },
     ),
-    client.fetch<(ArtworkCard & { priceExclVAT?: number; shopVariants?: { badge: string; available?: boolean; status?: string; priceExclVAT?: number; buyUrl?: string; note?: string }[] })[]>(
-      `*[_type == "zine" && defined(category)] | order(shopFeatured desc, order asc){
-        _id, _type, title, category, status, priceIncVat, priceExclVAT, vatRate, "featured": shopFeatured, order,
+    client.fetch<WithVariants[]>(
+      `*[_type == "publication" && defined(category)] | order(shopFeatured desc, order asc){
+        _id, _type, title, category, status, priceIncVat, vatRate, "featured": shopFeatured, order,
         "year": null,
         "slug": { "current": coalesce(slug.current, projectSlug) },
         "mainImage": { "url": coalesce(coverImage.asset->url, coverImageUrl) },
-        shopVariants[]{ badge, available, status, priceExclVAT, onSale, salePriceExclVAT, buyUrl, note, "variantImages": images[]{ asset->{ url } } }
+        ${VARIANT_PROJECTION}
       }`,
       {},
       { next: { revalidate: 0 } },
     ),
   ])
 
-  // Expand zines: each zine is followed immediately by its active variant cards
-  const vatRate = (z: { vatRate?: number | string }) =>
-    typeof z.vatRate === 'number' ? z.vatRate : 9
+  const expandedArtworks = artworks.flatMap(expandVariants)
+  const expandedZines = zines.filter(z => z.slug?.current).flatMap(expandVariants)
 
-  const expandedZines: ArtworkCard[] = zines
-    .filter(z => z.slug?.current)
-    .flatMap(z => {
-      const variants: ArtworkCard[] = (z.shopVariants ?? [])
-        .filter(v => v.available !== false)
-        .map((v, i) => {
-          const priceIncVat = v.priceExclVAT != null
-            ? Math.round(v.priceExclVAT * (1 + vatRate(z) / 100) * 100) / 100
-            : z.priceIncVat
-          const variantSalePrice = v.salePriceExclVAT != null
-            ? Math.round(v.salePriceExclVAT * (1 + vatRate(z) / 100) * 100) / 100
-            : undefined
-          const variantImage = v.variantImages?.[0]
-          return {
-            _id: `${z._id}-variant-${i}`,
-            _type: z._type,
-            title: z.title,
-            category: z.category,
-            status: v.status ?? 'available',
-            priceIncVat,
-            vatRate: z.vatRate,
-            featured: z.featured,
-            order: z.order,
-            slug: z.slug,
-            mainImage: variantImage ? { url: variantImage.asset.url } : z.mainImage,
-            buyUrl: v.buyUrl ?? z.buyUrl,
-            isVariantCard: true,
-            variantBadge: v.badge,
-            variantNote: v.note,
-            variantOnSale: v.onSale,
-            variantSalePrice,
-          } satisfies ArtworkCard
-        })
-      return [z as ArtworkCard, ...variants]
-    })
-
-  const works = [...artworks, ...expandedZines]
+  const works = [...expandedArtworks, ...expandedZines]
     .sort((a, b) => {
       // Items with an explicit order come first (ascending), items without go to the end
       // Variant cards share their parent's order value — they'll cluster together
@@ -215,7 +227,7 @@ function WorkCard({ w }: { w: ArtworkCard }) {
   const price = w.priceIncVat ? formatPrice(w.priceIncVat) : null
 
   const zineProjectHref = ZINE_PROJECT_LINKS[w.slug.current]
-  const isZine = w._type === 'zine' || !!zineProjectHref
+  const isZine = w._type === 'publication' || !!zineProjectHref
   const isVariant = w.isVariantCard === true
   const badge = w.variantBadge
   const isGetInTouch = w.slug.current === 'get-in-touch'
@@ -229,7 +241,7 @@ function WorkCard({ w }: { w: ArtworkCard }) {
     : isVariant
     ? variantHref
     : zineProjectHref
-    ?? (w._type === 'zine' ? `/projects/${w.slug.current}` : `/works/${w.slug.current}`)
+    ?? (w._type === 'publication' ? `/projects/${w.slug.current}` : `/works/${w.slug.current}`)
 
   // Badge style per type
   const BADGE_STYLES: Record<string, { bg: string; color: string; icon: string }> = {
@@ -237,7 +249,13 @@ function WorkCard({ w }: { w: ArtworkCard }) {
     'Limited Edition': { bg: '#6b4f12', color: '#fff', icon: '◈' },
     'Special Edition': { bg: '#1a56c4', color: '#fff', icon: '★' },
   }
-  const badgeStyle = badge ? (BADGE_STYLES[badge] ?? { bg: '#333', color: '#fff', icon: '' }) : null
+  // Ook op voorvoegsel, zodat "Special Edition Box 1" de kleur van Special
+  // Edition krijgt in plaats van de neutrale terugval.
+  const badgeStyle = badge
+    ? (BADGE_STYLES[badge] ??
+       Object.entries(BADGE_STYLES).find(([k]) => badge.startsWith(k))?.[1] ??
+       { bg: '#333', color: '#fff', icon: '' })
+    : null
 
   const overlayLabel = isGetInTouch
     ? 'Get in touch'

@@ -38,7 +38,7 @@ export const projectSeries = defineType({
       type: 'array',
       of: [{
         type: 'reference',
-        to: [{ type: 'zine' }],
+        to: [{ type: 'publication' }],
       }],
     }),
     defineField({ name: 'order', type: 'number', title: 'Sort order' }),

@@ -3,16 +3,21 @@ import { CompactDimensions } from '../components/CompactDimensions'
 import { CategoryInput } from '../components/CategoryInput'
 import { ArtworkQRCode } from '../components/ArtworkQRCode'
 
-export const zine = defineType({
-  name: 'zine',
+export const publication = defineType({
+  // Een zine is geen eigen soort ding: het is een publicatie met de categorie
+  // 'Zine', naast Book, Poster en Bag. Het type heette hier nog `zine` uit de
+  // tijd dat er alleen zines waren.
+  name: 'publication',
   title: 'Publication',
   type: 'document',
   orderings: [
     { title: 'Number (asc)', name: 'numberAsc', by: [{ field: 'order', direction: 'asc' }] },
   ],
   groups: [
-    { name: 'info',    title: 'Info', default: true },
-    { name: 'edition', title: 'Edition & Sales' },
+    // Zelfde tabnamen als publication in de gallery-template, zodat je in
+    // beide Studio's op dezelfde plek zoekt.
+    { name: 'basis',   title: 'Basics', default: true },
+    { name: 'details', title: 'Details' },
     { name: 'webshop', title: 'Webshop' },
   ],
   preview: {
@@ -22,19 +27,19 @@ export const zine = defineType({
     },
   },
   fields: [
-    // ── Info ──────────────────────────────────────────────────────────────────
+    // ── Basics ────────────────────────────────────────────────────────────────
     defineField({
       name: 'number',
       title: 'Number',
       description: 'E.g. Nº2',
       type: 'string',
-      group: 'info',
+      group: 'basis',
     }),
     defineField({
       name: 'title',
       title: 'Title',
       type: 'string',
-      group: 'info',
+      group: 'basis',
       validation: Rule => Rule.required(),
     }),
     defineField({
@@ -42,35 +47,35 @@ export const zine = defineType({
       title: 'Slug (URL)',
       type: 'slug',
       description: 'URL slug for the shop page (auto-generated from title)',
-      group: 'info',
+      group: 'basis',
       options: { source: 'title' },
     }),
     defineField({
       name: 'category',
       title: 'Category',
       type: 'string',
-      description: 'Category used to place this zine in a shop section (e.g. "Publications")',
-      group: 'info',
+      description: 'Category used to place this publication in a shop section (e.g. "Publications")',
+      group: 'basis',
       components: { input: CategoryInput },
     }),
     defineField({
       name: 'year',
       title: 'Year',
       type: 'number',
-      group: 'info',
+      group: 'basis',
     }),
     defineField({
       name: 'meta',
       title: 'Meta',
       description: 'E.g. September 2022 · Edition of 35',
       type: 'string',
-      group: 'info',
+      group: 'basis',
     }),
     defineField({
       name: 'dimensions',
       title: 'Dimensions (cm)',
       type: 'object',
-      group: 'info',
+      group: 'basis',
       components: { input: CompactDimensions },
       fields: [
         defineField({ name: 'widthCm',  title: 'Width',  type: 'number' }),
@@ -82,7 +87,7 @@ export const zine = defineType({
       name: 'qrCode',
       title: 'QR Code',
       type: 'string',
-      group: 'info',
+      group: 'basis',
       readOnly: true,
       components: { field: ArtworkQRCode },
     }),
@@ -90,7 +95,7 @@ export const zine = defineType({
       name: 'weightKg',
       title: 'Weight (kg)',
       type: 'number',
-      group: 'info',
+      group: 'basis',
       description: 'Used for shipping cost calculation',
     }),
     defineField({
@@ -98,13 +103,13 @@ export const zine = defineType({
       title: 'Description',
       type: 'text',
       rows: 4,
-      group: 'info',
+      group: 'basis',
     }),
     defineField({
       name: 'images',
       title: 'Images',
       type: 'array',
-      group: 'info',
+      group: 'basis',
       of: [{ type: 'image', options: { hotspot: true } }],
       description: 'First image = main photo',
     }),
@@ -112,7 +117,7 @@ export const zine = defineType({
       name: 'coverImage',
       title: 'Cover image',
       type: 'image',
-      group: 'info',
+      group: 'basis',
       options: { hotspot: true },
     }),
     defineField({
@@ -120,22 +125,22 @@ export const zine = defineType({
       title: 'Cover image URL (fallback)',
       description: 'External URL — used when no Sanity image is uploaded yet',
       type: 'url',
-      group: 'info',
+      group: 'basis',
     }),
     defineField({
       name: 'projectSlug',
       title: 'Links to project',
-      description: 'Slug of the project page this zine links to (e.g. girls-in-paris). Leave empty if no project page exists.',
+      description: 'Slug of the project page this publication links to (e.g. girls-in-paris). Leave empty if no project page exists.',
       type: 'string',
-      group: 'info',
+      group: 'basis',
     }),
 
-    // ── Edition & Sales ───────────────────────────────────────────────────────
+    // ── Details ───────────────────────────────────────────────────────────────
     defineField({
       name: 'editionTotal',
       title: 'Edition total',
       type: 'number',
-      group: 'edition',
+      group: 'details',
       description: 'E.g. 35 (for an edition of 35)',
     }),
     defineField({
@@ -143,13 +148,13 @@ export const zine = defineType({
       title: 'Price (excl. BTW)',
       type: 'number',
       description: 'Price in EUR excluding BTW',
-      group: 'edition',
+      group: 'details',
     }),
     defineField({
       name: 'vatRate',
       title: 'BTW rate (%)',
       type: 'number',
-      group: 'edition',
+      group: 'details',
       initialValue: 9,
       options: {
         list: [
@@ -163,7 +168,7 @@ export const zine = defineType({
       name: 'shopVariants',
       title: 'Shop variants',
       type: 'array',
-      group: 'edition',
+      group: 'details',
       description: 'Extra cards in the shop listing — each variant shows alongside the standard card with its own badge, price and buy link.',
       of: [
         defineField({
@@ -179,15 +184,11 @@ export const zine = defineType({
               name: 'badge',
               title: 'Type',
               type: 'string',
-              description: 'Automatically shows as a badge on the listing card',
-              options: {
-                list: [
-                  { title: '✦ Signed', value: 'Signed' },
-                  { title: '◈ Limited Edition', value: 'Limited Edition' },
-                  { title: '★ Special Edition', value: 'Special Edition' },
-                ],
-                layout: 'radio',
-              },
+              // Vrij tekstveld, geen keuzelijst: een keuzelijst sluit een
+              // genummerde uitvoering uit ("Special Edition Box 1"), en juist
+              // die komt in de praktijk voor. De site herkent de drie bekende
+              // waarden ook als voorvoegsel.
+              description: 'Shown as a badge on the listing card. Use predefined values or enter a custom label (e.g. "Special Edition Box 1").',
               validation: (r) => r.required(),
             }),
             defineField({
@@ -204,9 +205,18 @@ export const zine = defineType({
                 direction: 'horizontal',
               },
             }),
+            // Incl. BTW, net als in de gallery-template. Er stond hier excl.,
+            // wat betekende dat de site elke variantprijs eerst moest omrekenen
+            // — één bedrag in twee vormen, en de kans op afrondingsverschil.
             defineField({
-              name: 'priceExclVAT',
-              title: 'Price (excl. BTW)',
+              name: 'priceIncVat',
+              title: 'Price (incl. BTW)',
+              type: 'number',
+              fieldset: 'pricing',
+            }),
+            defineField({
+              name: 'stock',
+              title: 'Stock',
               type: 'number',
               fieldset: 'pricing',
             }),
@@ -214,7 +224,6 @@ export const zine = defineType({
               name: 'editionTotal',
               title: 'Edition total',
               type: 'number',
-              fieldset: 'pricing',
             }),
             defineField({
               name: 'onSale',
@@ -224,8 +233,8 @@ export const zine = defineType({
               fieldset: 'sale',
             }),
             defineField({
-              name: 'salePriceExclVAT',
-              title: 'Sale price (excl. BTW)',
+              name: 'salePrice',
+              title: 'Sale price (incl. BTW)',
               type: 'number',
               fieldset: 'sale',
             }),
@@ -233,8 +242,15 @@ export const zine = defineType({
               name: 'images',
               title: 'Own photos (optional)',
               type: 'array',
-              description: 'Upload if this variant has its own cover image. Leave empty to use the main zine image.',
+              description: 'Upload if this variant has its own cover image. Leave empty to use the main cover image.',
               of: [{ type: 'image', options: { hotspot: true } }],
+            }),
+            defineField({
+              name: 'description',
+              title: 'Description',
+              type: 'array',
+              description: 'Variant-specific description shown on the product page when this variant is selected.',
+              of: [{ type: 'block' }],
             }),
             defineField({
               name: 'buyUrl',
@@ -250,7 +266,7 @@ export const zine = defineType({
             }),
           ],
           preview: {
-            select: { badge: 'badge', price: 'priceExclVAT', onSale: 'onSale', salePrice: 'salePriceExclVAT', status: 'status' },
+            select: { badge: 'badge', price: 'priceIncVat', onSale: 'onSale', salePrice: 'salePrice', status: 'status' },
             prepare({ badge, price, onSale, salePrice, status }) {
               const displayPrice = onSale && salePrice != null ? `€${salePrice} (sale)` : price != null ? `€${price}` : null
               return {
@@ -266,11 +282,11 @@ export const zine = defineType({
       name: 'options',
       title: 'Purchase options (variants)',
       type: 'array',
-      group: 'edition',
-      description: 'Optional — use when this zine is sold in multiple variants, each with its own price. When set, these replace the single price above on the site and the buyer picks one before buying.',
+      group: 'details',
+      description: 'Optional — use when this publication is sold in multiple variants, each with its own price. When set, these replace the single price above on the site and the buyer picks one before buying.',
       of: [
         defineField({
-          name: 'zineOption',
+          name: 'publicationOption',
           title: 'Option',
           type: 'object',
           fields: [
@@ -295,7 +311,7 @@ export const zine = defineType({
               name: 'buyUrl',
               title: 'Buy link (optional override)',
               type: 'url',
-              description: 'Leave empty to use the zine\'s main buy link',
+              description: 'Leave empty to use the main buy link',
             }),
           ],
           preview: {
@@ -314,7 +330,7 @@ export const zine = defineType({
       name: 'status',
       title: 'Status',
       type: 'string',
-      group: 'edition',
+      group: 'details',
       initialValue: 'available',
       options: {
         list: [

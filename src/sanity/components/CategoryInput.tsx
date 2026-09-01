@@ -22,7 +22,7 @@ export function CategoryMultiInput(props: any) {
       .fetch<string[]>(
         `array::unique([
           ...*[_type == "artwork" && defined(category) && category != ""].category,
-          ...*[_type == "zine" && defined(category) && category != ""].category
+          ...*[_type == "publication" && defined(category) && category != ""].category
         ]) | order(@)`
       )
       .then((cats) => setExisting((cats ?? []).filter(Boolean)))

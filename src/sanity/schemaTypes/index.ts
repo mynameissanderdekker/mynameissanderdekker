@@ -1,7 +1,7 @@
 import { type SchemaTypeDefinition } from 'sanity'
 import siteSettings from '../schemas/siteSettings'
 import { project } from '../schemas/project'
-import { zine } from '../schemas/zine'
+import { publication } from '../schemas/publication'
 import { projectSeries } from '../schemas/projectSeries'
 import { artwork } from '../schemas/artwork'
 import { exhibition } from '../schemas/exhibition'
@@ -24,6 +24,7 @@ import { press } from '../schemas/press'
 import { location } from '../schemas/location'
 import { loan } from '../schemas/loan'
 import { artworkFilter } from '../schemas/artworkFilter'
+import { proposal } from '../schemas/proposal'
 
 export const schema: { types: SchemaTypeDefinition[] } = {
   types: [
@@ -46,11 +47,12 @@ export const schema: { types: SchemaTypeDefinition[] } = {
     shopSettings,
     // Sales
     privateSale,
+    proposal,
     // Logistics
     location,
     loan,
-    // Zines
-    zine,
+    // Publications (books, zines, posters)
+    publication,
     // Page config
     worksPage,
     aboutPage,
