@@ -149,6 +149,18 @@ export const contact = defineType({
       initialValue: 'newsletter',
     }),
     defineField({
+      // 'Contact type = gallery' is te grof: er staan ook galeries in de
+      // nieuwsbrieflijst waar je nooit mee werkt. Dit vinkje maakt het verschil
+      // tussen kennen en samenwerken, en vult de locatiekeuze op een expositie.
+      name: 'worksWithMe',
+      title: 'I work with this gallery',
+      type: 'boolean',
+      group: 'info',
+      initialValue: false,
+      description: 'Shows up as a venue when you add an exhibition.',
+      hidden: ({ document }) => document?.type !== 'gallery',
+    }),
+    defineField({
       name: 'notes',
       title: 'Notes (private)',
       type: 'text',

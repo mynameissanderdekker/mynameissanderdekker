@@ -302,17 +302,6 @@ export const artwork = defineType({
 
     // ── Gallery ───────────────────────────────────────────────────────────────
     defineField({
-      name: 'framedDimensions',
-      title: 'Framed dimensions (cm)',
-      type: 'object',
-      group: 'gallery',
-      description: 'For "View on wall" — outer width incl. frame and passe-partout.',
-      components: { input: CompactDimensions },
-      fields: [
-        defineField({ name: 'widthCm', title: 'Width', type: 'number' }),
-      ],
-    }),
-    defineField({
       name: 'showViewOnWall',
       title: 'View on wall',
       type: 'boolean',
@@ -322,11 +311,24 @@ export const artwork = defineType({
     }),
     defineField({
       name: 'roomImage',
-      title: 'Room photo (optional)',
+      title: 'Wall photo (optional)',
       type: 'image',
       group: 'gallery',
       description: "Optional: photo of artwork for option 'View on wall'. If left empty, the first artwork photo is used. Use JPG (tightly cropped, no empty space outside the edges).",
       options: { accept: 'image/png,image/jpeg' },
+      hidden: ({ document }: any) => !document?.showViewOnWall,
+    }),
+    defineField({
+      name: 'framedDimensions',
+      title: 'Wall photo — afwijkende breedte (cm)',
+      type: 'object',
+      group: 'gallery',
+      description: 'Alleen invullen als het werk op de Wall photo breder is dan de echte afmetingen — bijv. door een lijst of passe-partout. Laat leeg als de breedte overeenkomt.',
+      components: { input: CompactDimensions },
+      hidden: ({ document }: any) => !document?.roomImage?.asset,
+      fields: [
+        defineField({ name: 'widthCm', title: 'Width', type: 'number' }),
+      ],
     }),
     defineField({
       name: 'coaPanel',
