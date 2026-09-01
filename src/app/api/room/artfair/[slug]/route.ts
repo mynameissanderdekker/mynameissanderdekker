@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSanityWriteClient } from '@/lib/sanityClient'
+import { getSiteIdentity } from '@/lib/siteIdentity'
 
 const ARTWORK_FIELDS = `
   _id, title, year, medium, status, vatRate,
@@ -38,5 +39,5 @@ export async function GET(
 
   if (!fair) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-  return NextResponse.json({ ...fair, showPrices: true })
+  return NextResponse.json({ ...fair, showPrices: true, siteEmail: (await getSiteIdentity(client)).email })
 }

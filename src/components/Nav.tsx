@@ -23,14 +23,8 @@ function SearchIcon() {
   )
 }
 
-function AccountIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-      <circle cx="12" cy="7" r="4"/>
-    </svg>
-  )
-}
+// AccountIcon stond hier, voor een link naar /account — die pagina bestaat
+// niet. Er is geen klantaccount in deze webshop.
 
 function CartIconShop() {
   const items = useCartStore((s) => s.items)
@@ -201,9 +195,6 @@ export default function Nav() {
               <button className="nav-shop-icon" aria-label="Zoeken">
                 <SearchIcon />
               </button>
-              <Link href="/account" className="nav-shop-icon" aria-label="Account">
-                <AccountIcon />
-              </Link>
               <span className="nav-divider" aria-hidden="true" />
               <CartIconShop />
             </>

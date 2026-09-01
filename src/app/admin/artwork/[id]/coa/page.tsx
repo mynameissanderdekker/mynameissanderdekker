@@ -1,5 +1,6 @@
 import { createClient } from 'next-sanity'
 import { notFound } from 'next/navigation'
+import { getSiteIdentity } from '@/lib/siteIdentity'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,6 +22,8 @@ export default async function CoAPage({
 }) {
   const { id } = await params
   const cleanId = id.replace(/^drafts\./, '')
+  // Naam, website en e-mail kwamen hier hardcoded uit de code.
+  const site = await getSiteIdentity(client)
 
   const artwork = await client.fetch(
     `*[_type == "artwork" && _id == $id][0] {
@@ -233,7 +236,7 @@ export default async function CoAPage({
           </div>
 
           <div className="coa-footer">
-            <span>mynameissanderdekker.com · hello@mynameissanderdekker.com</span>
+            <span>{site.website} · {site.email}</span>
             <span>{today()}</span>
           </div>
 

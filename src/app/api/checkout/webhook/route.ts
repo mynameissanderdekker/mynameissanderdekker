@@ -135,8 +135,12 @@ export async function POST(req: NextRequest) {
           { email }
         )
 
-        // Full address for the contact
-        const contactAddress = shipping ? {
+        // Full address for the contact. Expliciet getypeerd: zonder dit leidt
+        // TypeScript twee verschillende vormen af (met en zonder adres) en
+        // weigert het samengestelde document.
+        const contactAddress: {
+          street?: string; postalCode?: string; city?: string; country?: string
+        } = shipping ? {
           street:     [shipping.line1, shipping.line2].filter(Boolean).join(' ') || undefined,
           postalCode: shipping.postal_code || undefined,
           city:       shipping.city || undefined,

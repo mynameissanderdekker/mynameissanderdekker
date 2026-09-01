@@ -6,6 +6,14 @@ import { Turnstile, type TurnstileInstance } from '@marsidev/react-turnstile'
 
 type SignupState = 'idle' | 'loading' | 'success' | 'error'
 
+export interface FooterSocial {
+  instagram?: string
+  linkedin?: string
+  facebook?: string
+  twitter?: string
+  vimeo?: string
+}
+
 function IconInstagram() {
   return (
     <svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -27,7 +35,7 @@ function IconLinkedIn() {
 }
 
 
-export default function Footer() {
+export default function Footer({ social = {}, contactEmail = '' }: { social?: FooterSocial; contactEmail?: string }) {
   const pathname = usePathname()
   const [firstName, setFirstName]   = useState('')
   const [lastName, setLastName]     = useState('')
@@ -115,13 +123,19 @@ export default function Footer() {
             </form>
           )}
         </div>
+        {/* De URL's stonden hier hardcoded terwijl Site Settings er al velden
+            voor heeft. Een icoon verschijnt alleen als de link is ingevuld. */}
         <div className="footer-social">
-          <a href="https://www.instagram.com/iamsanderdekker" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
-            <IconInstagram />
-          </a>
-          <a href="https://nl.linkedin.com/in/iamsanderdekker" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
-            <IconLinkedIn />
-          </a>
+          {social.instagram && (
+            <a href={social.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+              <IconInstagram />
+            </a>
+          )}
+          {social.linkedin && (
+            <a href={social.linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+              <IconLinkedIn />
+            </a>
+          )}
         </div>
       </div>
 
@@ -132,9 +146,7 @@ export default function Footer() {
         <div className="footer-col">
           <h4>Press &amp; info</h4>
           <p>
-            <a href="mailto:hello@mynameissanderdekker.com">
-              hello@mynameissanderdekker.com
-            </a>
+            <a href={`mailto:${contactEmail}`}>{contactEmail}</a>
           </p>
           <p>Amsterdam, the Netherlands</p>
           <p>
@@ -144,6 +156,11 @@ export default function Footer() {
           </p>
         </div>
 
+        {/* TODO: deze drie kolommen zijn hardcoded. Het zijn precies de
+            contacten met type "gallery" en "I work with this gallery" aan —
+            het veld dat de locatiekiezer op een expositie al gebruikt. Ze
+            zouden daaruit moeten komen, met een kop per galerie als veld.
+            Nu betekent een nieuwe galerie een codewijziging. */}
         {/* Column 2 — Mother gallery */}
         <div className="footer-col">
           <h4>Mother gallery</h4>

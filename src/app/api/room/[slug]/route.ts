@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSanityWriteClient } from '@/lib/sanityClient'
+import { getSiteIdentity } from '@/lib/siteIdentity'
 
 const QUERY = `
   *[_type == "privateSale" && slug.current == $slug][0] {
@@ -64,7 +65,9 @@ export async function GET(
     // Strip private fields before returning
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _password, ...publicRoom } = room
-    return NextResponse.json(publicRoom)
+    // De prijslijst toont een contactadres; dat stond in de pagina hardcoded.
+    const site = await getSiteIdentity(sanity)
+    return NextResponse.json({ ...publicRoom, siteEmail: site.email })
   } catch (err) {
     console.error('[api/room]', err)
     return NextResponse.json({ error: 'Er ging iets mis' }, { status: 500 })

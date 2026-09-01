@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import { createClient } from '@sanity/client'
+import { getSiteIdentity } from '@/lib/siteIdentity'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,6 +20,7 @@ interface ArtworkData {
   status?: string
   priceOnRequest?: boolean
   priceExclVAT?: number
+  priceIncVat?: number
   vatRate?: number
   editionTotal?: number
   editionAP?: number
@@ -58,6 +60,8 @@ function formatPrice(excl: number, rate: number) {
 }
 
 export default async function ViewingRoomPdf({ params, searchParams }: Props) {
+  // Naam, adres en e-mail kwamen hier hardcoded uit de code.
+  const site = await getSiteIdentity(client)
   const { slug } = await params
   const { style = 'compact' } = await searchParams
   const isFull = style === 'full'
@@ -214,7 +218,7 @@ export default async function ViewingRoomPdf({ params, searchParams }: Props) {
 
           {/* Footer */}
           <div className="footer">
-            <span>Sander Dekker · hello@mynameissanderdekker.com · mynameissanderdekker.com · Amsterdam, NL</span>
+            <span>{site.footerLine}</span>
             <span>Confidential</span>
           </div>
         </div>

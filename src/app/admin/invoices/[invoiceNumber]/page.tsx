@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { createClient } from '@sanity/client'
 import { InvoiceToolbar } from './PrintBar'
+import { vatTreatment } from '@/lib/invoiceVat'
 
 const client = createClient({
   projectId:  process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!,
@@ -86,6 +87,7 @@ interface Order {
     company?: string; vatNumber?: string
     email?: string; phone?: string
     street?: string; postalCode?: string; city?: string; country?: string
+    clientLocation?: 'nl' | 'eu' | 'export'
   }
 }
 
@@ -123,7 +125,7 @@ export default async function InvoicePage({ params, searchParams }: Props) {
         items[]{ _key, title, quantity, price, priceExcl, vatRate,
           "artwork": item->{title, "vatRate": vatRate}
         },
-        contact->{ firstName, lastName, name, company, vatNumber, email, phone, street, postalCode, city, country }
+        contact->{ firstName, lastName, name, company, vatNumber, email, phone, street, postalCode, city, country, clientLocation }
       }`,
       { n: invoiceNumber }
     ),
@@ -153,10 +155,15 @@ export default async function InvoicePage({ params, searchParams }: Props) {
   const vatGroups: Record<number, { excl: number; vat: number }> = {}
   let totalExcl = 0
 
+  // Waar de klant zit bepaalt het tarief: binnenland het gewone percentage,
+  // binnen de EU verlegd (0%), daarbuiten export (0%).
+  const vatRule = vatTreatment(order.contact?.clientLocation)
+
   for (const item of order.items ?? []) {
     const qty = item.quantity ?? 1
     const priceExcl = (item.priceExcl ?? item.price ?? 0) * qty
-    const rate = item.vatRate ?? (item.artwork?.vatRate != null ? parseInt(item.artwork.vatRate, 10) : 9)
+    const baseRate = item.vatRate ?? (item.artwork?.vatRate != null ? parseInt(item.artwork.vatRate, 10) : 9)
+    const rate = vatRule.rate(baseRate)
     const vatAmount = priceExcl * (rate / 100)
     totalExcl += priceExcl
     if (!vatGroups[rate]) vatGroups[rate] = { excl: 0, vat: 0 }
@@ -167,7 +174,7 @@ export default async function InvoicePage({ params, searchParams }: Props) {
   const totalVat     = Object.values(vatGroups).reduce((s, g) => s + g.vat, 0)
   const discount     = order.discount     ?? 0
   const shippingCost = order.shippingCost ?? 0
-  const shippingVat  = shippingCost * 0.21
+  const shippingVat  = shippingCost * (vatRule.rate(21) / 100)
   const discountVat  = discount * (totalExcl > 0 ? totalVat / totalExcl : 0)
   const totalExclAdj = totalExcl - discount + shippingCost
   const totalVatAdj  = totalVat - discountVat + shippingVat
@@ -342,6 +349,12 @@ export default async function InvoicePage({ params, searchParams }: Props) {
               <span>{t.total}</span>
               <span>€ {fmtEur(totalIncl)}</span>
             </div>
+            {/* Zonder deze regel staat er 0% BTW zonder uitleg. */}
+            {vatRule.note && (
+              <p style={{ fontSize: 11, color: '#6b7280', marginTop: 10, textAlign: 'right' }}>
+                {lang === 'nl' ? vatRule.note.nl : vatRule.note.en}
+              </p>
+            )}
           </div>
         </div>
 

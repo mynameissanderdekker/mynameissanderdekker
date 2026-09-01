@@ -10,6 +10,7 @@
  * ingevuld — maar zodra dat wel zo is, wint de instelling.
  */
 import { PDFDocument, PDFPage, rgb, StandardFonts } from 'pdf-lib'
+import { vatTreatment, type ClientLocation } from './invoiceVat'
 
 export interface InvoiceSeller {
   name?:    string
@@ -42,6 +43,8 @@ export interface InvoiceItem {
   title:    string
   quantity: number
   price:    number   // unit price incl. BTW
+  /** Percentage op deze regel. Ontbreekt hij, dan geldt 9%. */
+  vatRate?: number | string
 }
 
 export interface InvoiceData {
@@ -57,6 +60,8 @@ export interface InvoiceData {
     country?:    string
   }
   items:          InvoiceItem[]
+  /** nl / eu / export — bepaalt of er BTW wordt gerekend. */
+  clientLocation?: ClientLocation
   shippingCost?:  number
   totalAmount:    number
   /** Uit Site Settings → Invoice & business. Ontbrekende velden vallen terug. */
@@ -235,12 +240,29 @@ export async function generateInvoicePdf(data: InvoiceData): Promise<Uint8Array>
   y -= 16
 
   // ── Totals breakdown ─────────────────────────────────────────────────────────
-  const vatRate   = 9
-  const subtotal  = data.totalAmount / (1 + vatRate / 100)
-  const vatAmount = data.totalAmount - subtotal
+  // Hier stond `const vatRate = 9`, vast. Elk werk met 21% werd dus als 9%
+  // gefactureerd, en een EU- of exportklant kreeg alsnog Nederlandse BTW —
+  // terwijl de webversie van dezelfde factuur wél per regel rekende.
+  const vatRule = vatTreatment(data.clientLocation)
 
+  let subtotal = 0
+  let vatAmount = 0
+  const perRate = new Map<number, number>()
+
+  for (const item of data.items) {
+    const base = item.vatRate != null ? Number(item.vatRate) : 9
+    const rate = vatRule.rate(isNaN(base) ? 9 : base)
+    const gross = item.price * item.quantity
+    // De regelprijs staat incl. BTW; bij 0% is netto gelijk aan bruto.
+    const net = gross / (1 + rate / 100)
+    subtotal  += net
+    vatAmount += gross - net
+    perRate.set(rate, (perRate.get(rate) ?? 0) + (gross - net))
+  }
+
+  const rates = [...perRate.keys()].sort((a, b) => a - b)
   const subtotalLabel = `Subtotal excl. BTW`
-  const vatLabel      = `BTW ${vatRate}%`
+  const vatLabel      = rates.length === 1 ? `BTW ${rates[0]}%` : 'BTW'
 
   const subtotalW  = regular.widthOfTextAtSize(euro(subtotal),  9.5)
   const vatAmountW = regular.widthOfTextAtSize(euro(vatAmount), 9.5)
@@ -259,6 +281,13 @@ export async function generateInvoicePdf(data: InvoiceData): Promise<Uint8Array>
   const totalW = bold.widthOfTextAtSize(euro(data.totalAmount), 11)
   drawText(page, 'TOTAL',               COL_PRICE - 60,    y, { font: bold, size: 10 })
   drawText(page, euro(data.totalAmount), R - totalW,        y, { font: bold, size: 11 })
+
+  // Zonder deze regel staat er 0% BTW zonder uitleg.
+  if (vatRule.note) {
+    y -= 14
+    const noteW = regular.widthOfTextAtSize(vatRule.note.nl, 8)
+    drawText(page, vatRule.note.nl, R - noteW, y, { font: regular, size: 8, color: GREY })
+  }
 
   // ── Footer ───────────────────────────────────────────────────────────────────
   const footerY = 52

@@ -58,7 +58,8 @@ export async function POST(request: NextRequest) {
     trackingCarrier?: string
     shippingEmailSentAt?: string
     createdAt?:      string
-    items?:          Array<{ title: string; quantity: number; price: number }>
+    items?:          Array<{ title: string; quantity: number; price: number; vatRate?: number | string }>
+    clientLocation?: 'nl' | 'eu' | 'export'
     shippingCost?:   number
     totalAmount?:    number
     shippingAddress?: {
@@ -71,7 +72,8 @@ export async function POST(request: NextRequest) {
     `*[_type == "order" && _id == $orderId][0]{
       _id, orderNumber, invoiceNumber, customerName, customerEmail, status, fulfilment,
       trackingNumber, trackingCarrier, shippingEmailSentAt, createdAt,
-      items[]{ title, quantity, price },
+      items[]{ title, quantity, price, vatRate },
+      "clientLocation": contact->clientLocation,
       shippingCost, totalAmount, shippingAddress
     }`,
     { orderId }
@@ -111,6 +113,7 @@ export async function POST(request: NextRequest) {
     customerEmail:  order.customerEmail,
     shippingAddress: order.shippingAddress,
     items:          order.items ?? [],
+    clientLocation: order.clientLocation,
     shippingCost:   order.shippingCost,
     totalAmount:    order.totalAmount ?? 0,
     seller: {

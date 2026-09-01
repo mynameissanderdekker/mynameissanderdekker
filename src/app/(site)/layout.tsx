@@ -29,6 +29,13 @@ export default async function SiteLayout({
   // meestal eerder aan dan de opening, en haalt hem eerder weg dan de expositie
   // voorbij is. Beide velden mogen leeg — dan begint hij meteen, of blijft hij
   // tot je het vinkje uitzet.
+  // Socials en het contactadres voor de footer — stonden daar hardcoded.
+  const footerSettings = await client
+    .fetch<{ social?: Record<string, string>; email?: string } | null>(
+      `*[_type == "siteSettings"][0]{ social, email }`
+    )
+    .catch(() => null)
+
   const today = new Date().toISOString().slice(0, 10)
   const announced = await client
     .fetch<AnnouncedExhibition | null>(
@@ -57,7 +64,7 @@ export default async function SiteLayout({
       <main className="site-main">
         {children}
       </main>
-      <Footer />
+      <Footer social={footerSettings?.social ?? {}} contactEmail={footerSettings?.email ?? ''} />
     </>
   )
 }

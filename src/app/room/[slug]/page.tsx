@@ -19,6 +19,7 @@ interface ArtworkData {
   status: string
   priceOnRequest?: boolean
   priceExclVAT?: number
+  priceIncVat?: number
   vatRate?: number
   editionTotal?: number
   editionAP?: number
@@ -36,6 +37,7 @@ interface RoomArtwork {
 }
 
 interface Room {
+  siteEmail?: string
   title: string
   description?: string
   showPrices: boolean
@@ -283,8 +285,8 @@ export default function RoomPage() {
           <p>
             Deze selectie is persoonlijk samengesteld en vertrouwelijk.
             Vragen?{' '}
-            <a href="mailto:hello@mynameissanderdekker.com">
-              hello@mynameissanderdekker.com
+            <a href={`mailto:${room?.siteEmail ?? ''}`}>
+              {room?.siteEmail ?? ''}
             </a>
           </p>
         </footer>

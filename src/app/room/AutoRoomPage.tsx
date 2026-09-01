@@ -31,6 +31,7 @@ interface RoomArtwork {
 }
 
 interface Room {
+  siteEmail?: string
   title: string
   gallery?: string
   fair?: string
@@ -243,7 +244,7 @@ export default function AutoRoomPage({ apiPath }: { apiPath: string }) {
         <footer className="room-footer no-print">
           <p>
             Vragen?{' '}
-            <a href="mailto:hello@mynameissanderdekker.com">hello@mynameissanderdekker.com</a>
+            <a href={`mailto:${room?.siteEmail ?? ''}`}>{room?.siteEmail ?? ''}</a>
           </p>
         </footer>
       </div>
