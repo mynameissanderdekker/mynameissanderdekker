@@ -1,3 +1,5 @@
+import { DashboardIcon } from '@sanity/icons'
+import { DashboardTool } from './components/DashboardTool'
 import type { StructureBuilder, StructureResolver } from 'sanity/structure'
 import React from 'react'
 import { OrderCountBadge } from './components/OrderCountBadge'
@@ -275,6 +277,15 @@ export const structure: StructureResolver = async (S, { getClient }) => {
   return S.list()
     .title('Content')
     .items([
+
+      // Bovenaan de lijst, niet als losse tab in de balk. Een dashboard dat je
+      // alleen vindt door langs Analytics te scrollen wordt niet gebruikt; dit
+      // is de eerste plek waar je kijkt als je de Studio opent.
+      S.listItem()
+        .title('Dashboard')
+        .id('dashboard')
+        .icon(DashboardIcon)
+        .child(S.component().title('Dashboard').component(DashboardTool)),
 
       // ── SITE ──────────────────────────────────────────────────────────────
       S.divider().title('SITE'),
