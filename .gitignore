@@ -49,3 +49,4 @@ backup-*.json
 dist/
 .sanity/
 Uploads/
+scripts/sanity-backup.plist
