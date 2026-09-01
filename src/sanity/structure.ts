@@ -287,14 +287,6 @@ export const structure: StructureResolver = async (S, { getClient }) => {
         .icon(DashboardIcon)
         .child(S.component().title('Dashboard').component(DashboardTool)),
 
-      // ── SITE ──────────────────────────────────────────────────────────────
-      S.divider().title('SITE'),
-
-      S.listItem()
-        .title('Site Settings')
-        .id('siteSettings')
-        .child(S.document().schemaType('siteSettings').documentId('siteSettings').title('Site Settings')),
-
       // ── PAGES ─────────────────────────────────────────────────────────────
       S.divider().title('PAGES'),
 
@@ -533,6 +525,17 @@ export const structure: StructureResolver = async (S, { getClient }) => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .child(S.component(MailingListExport as any).title('Mailing lists')),
       S.documentTypeListItem('pressRelease').title('Press releases'),
+
+      // ── WEBSITE ───────────────────────────────────────────────────────────
+      // Onderaan en 'WEBSITE' genoemd, gelijk aan de gallery-template. Dit zijn
+      // instellingen die je één keer invult, geen dagelijks werk — bovenaan
+      // stonden ze in de weg van waar je wél elke dag bent.
+      S.divider().title('WEBSITE'),
+
+      S.listItem()
+        .title('Site Settings')
+        .id('siteSettings')
+        .child(S.document().schemaType('siteSettings').documentId('siteSettings').title('Site Settings')),
 
     ])
 }
