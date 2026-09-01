@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useCallback, useEffect, useState, useMemo } from 'react'
-import { useClient } from 'sanity'
+import { useListClient } from './useListClient'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -215,7 +215,7 @@ function SourceBadge({ source }: { source: string }) {
 // ── Main component ────────────────────────────────────────────────────────────
 
 function SalesTab() {
-  const client = useClient({ apiVersion: '2024-01-01' })
+  const client = useListClient()
 
   const [orders, setOrders]   = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
@@ -436,7 +436,7 @@ interface VatBucket { rate: string; netTotal: number; vatTotal: number; grossTot
  * grootboek. Geannuleerd en terugbetaald tellen niet mee.
  */
 function VatTab() {
-  const client = useClient({ apiVersion: '2024-01-01' })
+  const client = useListClient()
   const currentYear = new Date().getFullYear()
   const [year, setYear] = useState(String(currentYear))
   const [loading, setLoading] = useState(true)
@@ -616,7 +616,7 @@ function Bars({ data, empty }: { data: [string, number][]; empty: string }) {
  * zonder datum; die staan per contact onder History.
  */
 function AnalyticsTab() {
-  const client = useClient({ apiVersion: '2024-01-01' })
+  const client = useListClient()
   const currentYear = new Date().getFullYear()
   const [year, setYear] = useState(String(currentYear))
   const [loading, setLoading] = useState(true)

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useCallback } from 'react'
-import { useClient } from 'sanity'
+import { useListClient } from './useListClient'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -80,7 +80,7 @@ const s = {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function RegisterSaleTool() {
-  const client = useClient({ apiVersion: '2024-01-01' })
+  const client = useListClient()
   const [saleMode, setSaleMode] = useState<SaleMode>('make')
   const [alreadyPaid, setAlreadyPaid] = useState(false)
   const [step, setStep] = useState<Step>(1)

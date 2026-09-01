@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useClient } from 'sanity'
+import { useListClient } from './useListClient'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 import type { StringInputProps } from 'sanity'
 import { set, unset } from 'sanity'
@@ -14,7 +14,7 @@ import { set, unset } from 'sanity'
 export function CategoryMultiInput(props: any) {
   const { value = [], onChange } = props
   const selected: string[] = Array.isArray(value) ? value : []
-  const client = useClient({ apiVersion: '2024-01-01' })
+  const client = useListClient()
   const [existing, setExisting] = useState<string[] | null>(null)
 
   useEffect(() => {
@@ -90,7 +90,7 @@ const DEFAULT_CATEGORIES = ['Artwork', 'Special Edition', 'Wallpaper', 'Zine', '
  */
 export function CategoryInput(props: StringInputProps) {
   const { value, onChange } = props
-  const client = useClient({ apiVersion: '2024-01-01' })
+  const client = useListClient()
   const [extra, setExtra] = useState<string[]>([])
   const [draft, setDraft] = useState('')
 

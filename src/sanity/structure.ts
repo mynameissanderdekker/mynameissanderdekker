@@ -1,6 +1,7 @@
 import { AddIcon, BasketIcon, DashboardIcon } from '@sanity/icons'
 import { DashboardTool } from './components/DashboardTool'
 import { makeNewDocumentRedirect } from './components/NewDocumentRedirect'
+import { BulkAssignTool } from './components/BulkAssignTool'
 
 /**
  * Eén vorm voor "iets nieuws maken", overal hetzelfde: bovenaan de lijst, met
@@ -62,6 +63,12 @@ function artworkListItem(S: StructureBuilder, categories: string[], customFilter
         .title('Artworks')
         .items([
           addNewItem(S, 'artwork', 'artwork'),
+
+          S.listItem()
+            .title('Bulk edit artworks')
+            .id('bulk-assign')
+            .child(S.component(BulkAssignTool).title('Bulk edit artworks')),
+
           S.divider(),
           S.listItem()
             .title('All works')

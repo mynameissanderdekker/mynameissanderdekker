@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useState, useCallback } from 'react'
-import { useClient } from 'sanity'
+import { useListClient } from './useListClient'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -57,7 +57,7 @@ function Pill({ label, color }: { label: string; color?: string }) {
 // ── Main component ────────────────────────────────────────────────────────────
 
 export function TorchSyncTool() {
-  const client = useClient({ apiVersion: '2024-01-01' })
+  const client = useListClient()
   const [artworks, setArtworks]   = useState<ArtworkRow[]>([])
   const [loading, setLoading]     = useState(true)
   const [selected, setSelected]   = useState<Set<string>>(new Set())

@@ -1,5 +1,5 @@
 'use client'
-import { useClient } from 'sanity'
+import { useListClient } from './useListClient'
 import type { ArrayOfObjectsInputProps } from 'sanity'
 import { insert, setIfMissing, PatchEvent } from 'sanity'
 import { useState, useCallback } from 'react'
@@ -114,7 +114,7 @@ const s = {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function QuickAddArtworks(props: ArrayOfObjectsInputProps) {
-  const client = useClient({ apiVersion: '2024-01-01' })
+  const client = useListClient()
 
   const [mode, setMode] = useState<Mode>(null)
   const [entities, setEntities] = useState<EntityOption[]>([])

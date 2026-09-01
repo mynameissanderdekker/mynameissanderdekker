@@ -1,7 +1,8 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { useClient, set, unset, type StringInputProps } from 'sanity'
+import { set, unset, type StringInputProps } from 'sanity'
+import { useListClient } from './useListClient'
 
 /**
  * Kiest waar een expositie plaatsvindt.
@@ -28,7 +29,7 @@ interface Space {
 
 export function VenuePicker(props: StringInputProps) {
   const { value, onChange, readOnly } = props
-  const client = useClient({ apiVersion: '2024-01-01' })
+  const client = useListClient()
   const [spaces, setSpaces] = useState<Space[]>([])
   const [loading, setLoading] = useState(true)
 

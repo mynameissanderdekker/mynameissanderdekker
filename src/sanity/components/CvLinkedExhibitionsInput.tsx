@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useClient, useFormValue } from 'sanity'
+import { useFormValue } from 'sanity'
+import { useListClient } from './useListClient'
 
 interface LinkedItem {
   _id: string
@@ -21,7 +22,7 @@ const TYPE_LABEL: Record<string, string> = {
 }
 
 export function CvLinkedExhibitionsInput() {
-  const client = useClient({ apiVersion: '2024-01-01' })
+  const client = useListClient()
   const rawId = useFormValue(['_id']) as string | undefined
   const documentId = rawId?.replace('drafts.', '')
 

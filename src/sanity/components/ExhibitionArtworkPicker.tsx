@@ -1,6 +1,7 @@
 'use client'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { useClient, set, PatchEvent } from 'sanity'
+import { set, PatchEvent } from 'sanity'
+import { useListClient } from './useListClient'
 import type { ArrayOfObjectsInputProps } from 'sanity'
 
 interface Artwork {
@@ -22,7 +23,7 @@ interface Artist {
 }
 
 export function ExhibitionArtworkPicker(props: ArrayOfObjectsInputProps) {
-  const client = useClient({ apiVersion: '2024-01-01' })
+  const client = useListClient()
 
   const [artworks, setArtworks] = useState<Artwork[]>([])
   const [loading, setLoading] = useState(false)

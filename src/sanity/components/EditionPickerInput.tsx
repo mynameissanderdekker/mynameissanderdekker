@@ -9,12 +9,13 @@
  */
 
 import React, { useEffect, useState } from 'react'
-import { set, unset, useClient, useFormValue } from 'sanity'
+import { set, unset, useFormValue } from 'sanity'
+import { useListClient } from './useListClient'
 import type { StringInputProps } from 'sanity'
 
 export function EditionPickerInput(props: StringInputProps) {
   const { value, onChange, path } = props
-  const client = useClient({ apiVersion: '2024-01-01' })
+  const client = useListClient()
 
   // path = [..., 'copyNumber'] — go up one level to get the purchase object, then read artwork
   const parentPath  = path.slice(0, -1)

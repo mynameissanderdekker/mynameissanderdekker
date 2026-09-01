@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { useClient } from 'sanity'
+import { useListClient } from './useListClient'
 import type { ObjectInputProps } from 'sanity'
 import { set } from 'sanity'
 
@@ -26,7 +26,7 @@ interface WorksPageValue {
  */
 export function SectionOrderInput(props: ObjectInputProps<WorksPageValue>) {
   const { value, onChange } = props
-  const client = useClient({ apiVersion: '2024-01-01' })
+  const client = useListClient()
   const [artworkCats, setArtworkCats] = useState<string[]>([])
 
   useEffect(() => {

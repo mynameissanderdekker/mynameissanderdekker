@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useState, useCallback, useRef } from 'react'
-import { useClient } from 'sanity'
+import { useListClient } from './useListClient'
 import { useLang } from '../hooks/useLang'
 import { HELP_FAQS } from '../helpContent'
 
@@ -298,7 +298,7 @@ function HelpWidget({ nudges, hasOrders, lang, setLang }: { nudges: SmartNudge[]
 // ── Main component ────────────────────────────────────────────────────────────
 
 export function DashboardTool() {
-  const client = useClient({ apiVersion: '2024-01-01' })
+  const client = useListClient()
   const { lang, setLang } = useLang()
   const isNl = lang === 'nl'
 

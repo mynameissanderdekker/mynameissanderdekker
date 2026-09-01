@@ -1,6 +1,6 @@
 'use client'
 import React, { useEffect, useState } from 'react'
-import { useClient } from 'sanity'
+import { useListClient } from './useListClient'
 
 interface OrderSummary {
   _id: string
@@ -33,7 +33,7 @@ const STATUS_LABELS: Record<string, string> = {
 }
 
 export function OrderReports(_props: Record<string, unknown>) {
-  const client = useClient({ apiVersion: '2024-01-01' })
+  const client = useListClient()
   const [stats, setStats]     = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
   const [period, setPeriod]   = useState<'7d' | '30d' | '90d' | 'all'>('30d')

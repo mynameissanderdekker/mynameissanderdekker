@@ -1,7 +1,8 @@
 'use client'
 
 import React, { useState } from 'react'
-import { useFormValue, useDocumentOperation, useClient } from 'sanity'
+import { useFormValue, useDocumentOperation } from 'sanity'
+import { useListClient } from './useListClient'
 
 /**
  * Reserveren in één handeling, bovenaan het artwork.
@@ -31,7 +32,7 @@ export function ArtworkReservation() {
   const rawId = useFormValue(['_id']) as string | undefined
   const id = (rawId ?? '').replace(/^drafts\./, '')
   const { patch, publish } = useDocumentOperation(id, 'artwork')
-  const client = useClient({ apiVersion: '2024-01-01' })
+  const client = useListClient()
 
   const status = useFormValue(['status']) as string | undefined
   const reservedFor = useFormValue(['reservedFor']) as { _ref?: string } | undefined

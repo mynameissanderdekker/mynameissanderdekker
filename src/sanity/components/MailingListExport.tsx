@@ -1,6 +1,6 @@
 'use client'
 import React, { useEffect, useState } from 'react'
-import { useClient } from 'sanity'
+import { useListClient } from './useListClient'
 import { SEGMENTS } from '../schemas/campaign'
 
 interface Contact {
@@ -41,7 +41,7 @@ function buildCsv(contacts: Contact[]): string {
 }
 
 export function MailingListExport(_props: Record<string, unknown>) {
-  const client = useClient({ apiVersion: '2024-01-01' })
+  const client = useListClient()
   const [segments, setSegments] = useState<SegmentCount[]>(
     SEGMENTS.map(s => ({ segment: s, count: 0, loading: true }))
   )
