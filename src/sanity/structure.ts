@@ -287,8 +287,12 @@ export const structure: StructureResolver = async (S, { getClient }) => {
         .icon(DashboardIcon)
         .child(S.component().title('Dashboard').component(DashboardTool)),
 
-      // ── PAGES ─────────────────────────────────────────────────────────────
-      S.divider().title('PAGES'),
+      // ── WEBSITE ───────────────────────────────────────────────────────────
+      // Zelfde naam als in de gallery-template, andere plek: bij een galerie
+      // staat dit onderaan, hier bovenaan. Voor een kunstenaar ís de site de
+      // etalage; voor een galerie is het een visitekaartje naast het echte werk.
+      // Eén woord dat beide templates delen, met de volgorde als verschil.
+      S.divider().title('WEBSITE'),
 
       S.listItem()
         .title('About & CV')
@@ -342,6 +346,11 @@ export const structure: StructureResolver = async (S, { getClient }) => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .child(S.component(() => HardcodedPage({ title: 'Contact', url: 'https://www.mynameissanderdekker.com/contact' }) as any).title('Contact')),
 
+      S.listItem()
+        .title('Site Settings')
+        .id('siteSettings')
+        .child(S.document().schemaType('siteSettings').documentId('siteSettings').title('Site Settings')),
+
       // ── WORKS ─────────────────────────────────────────────────────────────
       S.divider().title('WORKS'),
 
@@ -360,7 +369,7 @@ export const structure: StructureResolver = async (S, { getClient }) => {
             .title('Where is my work?')
             .items([
               S.listItem()
-                .title('Active loans (Bruikleen)')
+                .title('Active loans')
                 .id('loans-active')
                 .child(
                   S.documentTypeList('loan')
@@ -525,17 +534,6 @@ export const structure: StructureResolver = async (S, { getClient }) => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .child(S.component(MailingListExport as any).title('Mailing lists')),
       S.documentTypeListItem('pressRelease').title('Press releases'),
-
-      // ── WEBSITE ───────────────────────────────────────────────────────────
-      // Onderaan en 'WEBSITE' genoemd, gelijk aan de gallery-template. Dit zijn
-      // instellingen die je één keer invult, geen dagelijks werk — bovenaan
-      // stonden ze in de weg van waar je wél elke dag bent.
-      S.divider().title('WEBSITE'),
-
-      S.listItem()
-        .title('Site Settings')
-        .id('siteSettings')
-        .child(S.document().schemaType('siteSettings').documentId('siteSettings').title('Site Settings')),
 
     ])
 }
