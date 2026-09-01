@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import { useClient } from 'sanity'
+import { FolderIcon } from '@sanity/icons'
 import { apiVersion } from '../env'
 
 /**
@@ -58,7 +59,10 @@ export function attentionBadge(
       }
     }, [client])
 
-    if (!count) return null
+    // Niets te melden: het gewone mapicoon, niet niks. Sanity vult geen
+    // standaardicoon aan zodra je er zelf een meegeeft, dus `null` liet de
+    // regel inspringen ten opzichte van de rest van de lijst.
+    if (!count) return <FolderIcon />
 
     return (
       <span
