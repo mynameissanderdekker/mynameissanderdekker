@@ -118,7 +118,10 @@ export default async function InvoicePage({ params, searchParams }: Props) {
 
   const [order, settings] = await Promise.all([
     client.fetch<Order | null>(
-      `*[_type == "order" && orderNumber == $n][0]{
+      // Op béide velden zoeken: een handmatige verkoop zet het nummer in
+      // `orderNumber`, een webshopfactuur in `invoiceNumber`. Alleen op de
+      // eerste zoeken maakte webshopfacturen onvindbaar.
+      `*[_type == "order" && (orderNumber == $n || invoiceNumber == $n)][0]{
         orderNumber, createdAt, status, notes, statusHistory,
         customerName, customerEmail, customerPhone, companyName, vatNumber,
         shippingAddress, shippingCost, discount, totalAmount,
@@ -341,7 +344,7 @@ export default async function InvoicePage({ params, searchParams }: Props) {
             ))}
             {shippingCost > 0 && (
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#6b7280', marginBottom: 6 }}>
-                <span>{t.vat} 21% ({t.shipping.toLowerCase()})</span>
+                <span>{t.vat} {vatRule.rate(21)}% ({t.shipping.toLowerCase()})</span>
                 <span>€ {fmtEur(shippingVat)}</span>
               </div>
             )}

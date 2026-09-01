@@ -542,7 +542,7 @@ export const structure: StructureResolver = async (S, { getClient }) => {
 
       S.listItem()
         .title('Make or Register a Sale')
-        .id('registerSale')
+        .id('register-sale')
         .icon(BasketIcon)
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .child(S.component(RegisterSaleTool as any).title('Make or Register a Sale')),

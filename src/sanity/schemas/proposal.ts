@@ -1,11 +1,34 @@
 import { defineField, defineType } from 'sanity'
 import { ShareProposalLink } from '../components/ShareProposalLink'
+import { ProposalCompletion } from '../components/ProposalCompletion'
+import { AutoProposalNumber } from '../components/AutoProposalNumber'
 
 export const proposal = defineType({
   name: 'proposal',
   title: 'Proposal',
   type: 'document',
   fields: [
+    // Bovenaan: wat er nog moet gebeuren. Een offerte doorloopt drie dingen —
+    // hij gaat naar de klant, de klant reageert, en bij een ja wordt het een
+    // verkoop. Zelfde vorm als het paneel op de order.
+    defineField({
+      name: 'completion',
+      title: 'To do',
+      type: 'string',
+      readOnly: true,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      components: { field: ProposalCompletion as any },
+    }),
+    defineField({
+      // Deelt zijn reeks met de facturen: PROP-SDK-26-001 wordt SDK-26-001
+      // zodra de offerte een verkoop wordt.
+      name: 'proposalNumber',
+      title: 'Proposal number',
+      type: 'string',
+      description: 'E.g. PROP-SDK-26-001. Shares its sequence with invoices.',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      components: { input: AutoProposalNumber as any },
+    }),
     defineField({
       name: 'title',
       title: 'Proposal title',

@@ -128,7 +128,7 @@ export function OrderCompletion(props: { documentId?: string }) {
           ) : (
             <>
               <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 8 }}>
-                Still in the studio
+                Not handed over yet
               </div>
               {/* Alleen de manier vastleggen. Geen datum van vandaag erbij:
                   een order wordt zelden geregistreerd op het moment dat de

@@ -32,7 +32,7 @@ export function ContactLinkedSelections() {
     let mounted = true
 
     const query = `*[_type == "privateSale" && contact._ref == $id] | order(_createdAt desc) {
-      _id, _type, title, slug, token, occasion, isPublished, isActive, _createdAt
+      _id, _type, title, slug, token, occasion, isActive, _createdAt
     }`
 
     const fetch = () => {
@@ -67,7 +67,7 @@ export function ContactLinkedSelections() {
   if (items.length === 0) {
     return (
       <div style={{ fontSize: 13, color: 'var(--card-muted-fg-color, #888)', padding: '8px 0' }}>
-        Geen gekoppelde viewing rooms of private sales.
+        Geen gekoppelde private sales.
       </div>
     )
   }

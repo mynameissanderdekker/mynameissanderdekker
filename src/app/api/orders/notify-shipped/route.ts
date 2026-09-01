@@ -22,7 +22,13 @@ async function nextInvoiceNumber(sanity: SanityClient): Promise<string> {
   )) ?? 'SDK'
   const base = `${prefix}-${yy}-`
 
-  const [lastOrder, lastProposal] = await Promise.all([
+  // Béide velden: de verkooptool zet het nummer in `orderNumber`, deze route
+  // in `invoiceNumber`.
+  const [lastOrder, lastInvoice, lastProposal] = await Promise.all([
+    sanity.fetch<string | null>(
+      `*[_type == "order" && orderNumber match $p] | order(orderNumber desc)[0].orderNumber`,
+      { p: `${base}*` }
+    ),
     sanity.fetch<string | null>(
       `*[_type == "order" && invoiceNumber match $p] | order(invoiceNumber desc)[0].invoiceNumber`,
       { p: `${base}*` }
@@ -36,7 +42,7 @@ async function nextInvoiceNumber(sanity: SanityClient): Promise<string> {
     const n = parseInt(v?.split('-').pop() ?? '0', 10)
     return isNaN(n) ? 0 : n
   }
-  return `${base}${String(Math.max(seqFrom(lastOrder), seqFrom(lastProposal)) + 1).padStart(3, '0')}`
+  return `${base}${String(Math.max(seqFrom(lastOrder), seqFrom(lastInvoice), seqFrom(lastProposal)) + 1).padStart(3, '0')}`
 }
 
 export async function POST(request: NextRequest) {

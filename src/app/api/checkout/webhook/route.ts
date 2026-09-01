@@ -4,6 +4,7 @@ import { getStripeClient } from '@/lib/stripe'
 import { getResendClient } from '@/lib/resend'
 import { getSanityWriteClient } from '@/lib/sanityClient'
 import { syncToMailchimp } from '@/lib/mailchimp'
+import { markSold } from '@/lib/markSold'
 // Terugval als Shop Settings nog niet is ingevuld. De instelling wint, zodat
 // je het adres kunt wijzigen zonder de code aan te raken.
 const FROM_FALLBACK   = 'Sander Dekker <hello@mynameissanderdekker.com>'
@@ -199,6 +200,16 @@ export async function POST(req: NextRequest) {
             .catch(err => console.error('[webhook] purchases append mislukt:', err))
         } else {
           console.log('[webhook] geen artworkIds gevonden in parsedItems:', JSON.stringify(parsedItems))
+        }
+
+        // Verkocht werk bijwerken — gebeurde hier niet, dus een verkocht stuk
+        // bleef in de webshop liggen en kon nog een keer besteld worden.
+        for (const i of artworkItems) {
+          try {
+            await markSold(sanity, i.artworkId!, i.quantity ?? 1)
+          } catch (err) {
+            console.error('[webhook] kon artwork niet bijwerken', i.artworkId, err)
+          }
         }
 
         // Sync naar Mailchimp — webshop klanten worden automatisch ingeschreven

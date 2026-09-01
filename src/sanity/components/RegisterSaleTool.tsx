@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useCallback } from 'react'
+import { PROPOSAL_HANDOFF_KEY } from './ProposalToSale'
 import { useListClient } from './useListClient'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -44,7 +45,9 @@ function isPublication(artwork: ArtworkResult) {
   return !artwork.editionTotal || PUBLICATION_CATEGORIES.includes(artwork.category ?? '')
 }
 
-function generateInvoiceNumber() {
+// Terugval: alleen als de nummerroute onbereikbaar is. Een willekeurig getal
+// kan botsen en deelt geen reeks met de offertes — daarom niet meer de norm.
+function fallbackInvoiceNumber() {
   const now = new Date()
   const y = now.getFullYear()
   const m = String(now.getMonth() + 1).padStart(2, '0')
@@ -107,7 +110,7 @@ export function RegisterSaleTool() {
   const [saleDate, setSaleDate]             = useState(new Date().toISOString().slice(0, 10))
 
   // Step 3 — invoice
-  const [invoiceNumber, setInvoiceNumber] = useState(generateInvoiceNumber)
+  const [invoiceNumber, setInvoiceNumber] = useState(fallbackInvoiceNumber)
   const [termDays, setTermDays]           = useState('14')
   const [notes, setNotes]                 = useState('')
   const [sendConf, setSendConf]           = useState(true)
@@ -115,6 +118,70 @@ export function RegisterSaleTool() {
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone]             = useState<{ invoiceNumber: string; paid: boolean } | null>(null)
   const [error, setError]           = useState('')
+
+  // Volgnummer uit de gedeelde reeks met de offertes.
+  useEffect(() => {
+    fetch('/api/admin/generate-number?type=invoice')
+      .then(r => (r.ok ? r.json() : null))
+      .then(d => { if (d?.number) setInvoiceNumber(d.number) })
+      .catch(() => { /* de terugval staat er al in */ })
+  }, [])
+
+  // Komt de bezoeker van de knop op een offerte, dan staan contact en werken
+  // klaar — overtypen is precies waar het verschil ontstaat tussen wat de klant
+  // is toegezegd en wat er op de factuur komt.
+  const [fromProposal, setFromProposal] = useState<{ id: string; number: string | null } | null>(null)
+
+  useEffect(() => {
+    let raw: string | null = null
+    try { raw = sessionStorage.getItem(PROPOSAL_HANDOFF_KEY) } catch { return }
+    if (!raw) return
+    try { sessionStorage.removeItem(PROPOSAL_HANDOFF_KEY) } catch {}
+
+    let handoff: { proposalId?: string; proposalNumber?: string | null }
+    try { handoff = JSON.parse(raw) } catch { return }
+    if (!handoff.proposalId) return
+
+    client.fetch<{
+      contact?: ContactResult
+      items?: Array<{ priceOverride?: number; artwork?: ArtworkResult }>
+    } | null>(
+      `*[_type == "proposal" && _id == $id][0]{
+        "contact": contact->{ _id, firstName, lastName, email, company },
+        "items": items[]{
+          priceOverride,
+          "artwork": artwork->{ _id, title, year, medium, category, editionTotal, editionAP, priceExclVAT, vatRate }
+        }
+      }`,
+      { id: handoff.proposalId }
+    ).then(p => {
+      if (!p) return
+      if (p.contact) setSelectedContact(p.contact)
+      const prefilled = (p.items ?? [])
+        .filter(it => it.artwork?._id)
+        .map(it => {
+          const a = it.artwork as ArtworkResult
+          const vat = a.vatRate ?? 9
+          // De prijs uit de offerte wint — dat is wat de klant is toegezegd.
+          // Die staat incl. BTW, de regel hier excl.
+          const excl = it.priceOverride != null
+            ? Math.round((it.priceOverride / (1 + vat / 100)) * 100) / 100
+            : a.priceExclVAT ?? 0
+          return {
+            artwork: a,
+            copyNumber: '',
+            priceExcl: excl,
+            vatRate: vat,
+            availableEditions: [] as string[],
+          }
+        })
+      if (prefilled.length) {
+        setCart(prefilled)
+        setStep(2)
+      }
+      setFromProposal({ id: handoff.proposalId!, number: handoff.proposalNumber ?? null })
+    }).catch(() => { /* stil falen — de tool blijft leeg bruikbaar */ })
+  }, [client])
 
   // ── Contact search ──────────────────────────────────────────────────────────
 
@@ -303,7 +370,13 @@ export function RegisterSaleTool() {
     setNewContact({ firstName: '', lastName: '', email: '', phone: '', company: '', vatNumber: '', street: '', postalCode: '', city: '', country: '' })
     setArtworkQuery(''); setArtworkResults([]); setPendingArtwork(null); setPendingEdition(''); setPendingEditions([])
     setCart([]); setSoldVia('direct'); setSaleDate(new Date().toISOString().slice(0, 10))
-    setInvoiceNumber(generateInvoiceNumber()); setTermDays('14'); setNotes(''); setSendConf(true)
+    setTermDays('14'); setNotes(''); setSendConf(true)
+    setFromProposal(null)
+    // Na een verkoop is het volgende nummer een hoger nummer, dus opnieuw halen.
+    fetch('/api/admin/generate-number?type=invoice')
+      .then(r => (r.ok ? r.json() : null))
+      .then(d => setInvoiceNumber(d?.number ?? fallbackInvoiceNumber()))
+      .catch(() => setInvoiceNumber(fallbackInvoiceNumber()))
   }
 
   const stepLabels = ['Buyer', 'Items', 'Invoice']
@@ -335,6 +408,18 @@ export function RegisterSaleTool() {
     <div style={s.wrap}>
       <h1 style={s.h1}>Make or Register a Sale</h1>
       <p style={s.sub}>Manual sale — no Stripe involved</p>
+
+      {/* Kwam de bezoeker van een offerte, dan mag hij dat zien: de prijzen
+          hieronder zijn die van de offerte, niet de standaardprijzen. */}
+      {fromProposal && (
+        <div style={{
+          marginBottom: 20, padding: '10px 14px', borderRadius: 8,
+          background: '#eff6ff', border: '1px solid #bfdbfe',
+          fontSize: 13, color: '#1e40af',
+        }}>
+          From proposal{fromProposal.number ? ` ${fromProposal.number}` : ''} — contact and works are prefilled, prices are the ones quoted.
+        </div>
+      )}
 
       {/* Mode toggle */}
       <div style={{ display: 'flex', marginBottom: 24, borderRadius: 6, overflow: 'hidden', border: '1px solid #d1d5db', width: 'fit-content' }}>

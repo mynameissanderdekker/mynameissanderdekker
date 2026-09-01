@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSanityWriteClient } from '@/lib/sanityClient'
 import { getResendClient } from '@/lib/resend'
 import { syncToMailchimp } from '@/lib/mailchimp'
+import { markSold } from '@/lib/markSold'
 
 const FROM = 'Sander Dekker <hello@mynameissanderdekker.com>'
 
@@ -158,6 +159,21 @@ export async function POST(req: NextRequest) {
       note:      `Handmatige verkoop — ${body.soldVia}`,
     }],
   })
+
+  // ── Verkocht werk bijwerken ────────────────────────────────────────────
+  // Gebeurde hier niet: een verkocht werk bleef op 'available' staan, zichtbaar
+  // in de webshop en opnieuw te koop. De regel staat in `lib/markSold.ts`,
+  // gedeeld met de webshop-webhook en met de gallery-template.
+  await Promise.all(
+    body.items.map(async (item) => {
+      try {
+        await markSold(sanity, item.artworkId)
+      } catch (err) {
+        // Niet fataal: de verkoop zelf is al vastgelegd.
+        console.error('[manual-sale] kon artwork niet bijwerken', item.artworkId, err)
+      }
+    })
+  )
 
   // ── Mailchimp sync ─────────────────────────────────────────────────────
   try {
