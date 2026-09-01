@@ -4,7 +4,27 @@ import { getStripeClient } from '@/lib/stripe'
 import { getResendClient } from '@/lib/resend'
 import { getSanityWriteClient } from '@/lib/sanityClient'
 import { syncToMailchimp } from '@/lib/mailchimp'
-const FROM    = 'Sander Dekker <hello@mynameissanderdekker.com>'
+// Terugval als Shop Settings nog niet is ingevuld. De instelling wint, zodat
+// je het adres kunt wijzigen zonder de code aan te raken.
+const FROM_FALLBACK   = 'Sander Dekker <hello@mynameissanderdekker.com>'
+const NOTIFY_FALLBACK = 'hello@mynameissanderdekker.com'
+
+/** Afzender en notificatieadres uit Shop Settings, met terugval. */
+async function mailSettings(sanity: ReturnType<typeof getSanityWriteClient>) {
+  try {
+    const s = await sanity.fetch<{ fromEmail?: string; orderNotificationEmail?: string } | null>(
+      `*[_type == "shopSettings"][0]{ fromEmail, orderNotificationEmail }`
+    )
+    return {
+      // Resend wil een afzender met naam; staat er alleen een adres, dan zetten
+      // we die er zelf omheen.
+      from: s?.fromEmail ? `Sander Dekker <${s.fromEmail}>` : FROM_FALLBACK,
+      notify: s?.orderNotificationEmail || NOTIFY_FALLBACK,
+    }
+  } catch {
+    return { from: FROM_FALLBACK, notify: NOTIFY_FALLBACK }
+  }
+}
 
 function buildStatusEntry(status: string, note?: string) {
   return {
@@ -191,6 +211,9 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Eén keer ophalen, beide mails gebruiken hem.
+    const mail = await mailSettings(sanity)
+
     // ── Bevestigingsmail naar koper ───────────────────────────────────────
     if (email && process.env.RESEND_API_KEY) {
       const resend = getResendClient()
@@ -199,7 +222,7 @@ export async function POST(req: NextRequest) {
         .join('')
 
       await resend.emails.send({
-        from: FROM,
+        from: mail.from,
         to:   email,
         subject: 'Thank you for your order — Sander Dekker',
         html: `
@@ -222,8 +245,8 @@ export async function POST(req: NextRequest) {
     if (!process.env.RESEND_API_KEY) { return NextResponse.json({ received: true }) }
     const resend = getResendClient()
     await resend.emails.send({
-      from: FROM,
-      to:   'hello@mynameissanderdekker.com',
+      from: mail.from,
+      to:   mail.notify,
       subject: `Nieuwe bestelling ${orderNumber} van ${name}`,
       html: `
         <p><strong>Nieuwe betaalde bestelling!</strong></p>

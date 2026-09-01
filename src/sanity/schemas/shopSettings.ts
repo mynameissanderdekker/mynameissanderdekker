@@ -1,5 +1,17 @@
 import { defineField, defineType } from 'sanity'
 
+/**
+ * Alleen wat de webshop zelf nodig heeft: waar bestellingen binnenkomen en
+ * onder welk adres ze de deur uit gaan.
+ *
+ * Hier stonden ook BTW-nummer, KvK-nummer en de URL's naar de voorwaarden. Die
+ * zijn verhuisd naar **Site Settings → Invoice & business**, waar de factuur ze
+ * al leest. Ze stonden op twee plekken en de winkelversie werd nergens
+ * opgevraagd — dus je kon hem invullen zonder dat er iets veranderde.
+ *
+ * Verzendtarieven horen hier evenmin: die staan per zone onder
+ * Webshop → Settings → Shipping Zones, en dat is wat het afrekenen gebruikt.
+ */
 export const shopSettings = defineType({
   name: 'shopSettings',
   title: 'Shop Settings',
@@ -21,27 +33,7 @@ export const shopSettings = defineType({
       title: 'From email',
       description: 'Sender address for order confirmation emails — must be verified in Resend',
       type: 'string',
-    }),
-    defineField({
-      name: 'vatNumber',
-      title: 'BTW number',
-      type: 'string',
-    }),
-    defineField({
-      name: 'kvkNumber',
-      title: 'KvK number',
-      type: 'string',
-    }),
-    defineField({
-      name: 'termsUrl',
-      title: 'Terms & Conditions URL',
-      description: 'Shown in checkout footer',
-      type: 'url',
-    }),
-    defineField({
-      name: 'privacyUrl',
-      title: 'Privacy Policy URL',
-      type: 'url',
+      validation: Rule => Rule.email(),
     }),
   ],
 })

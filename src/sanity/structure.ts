@@ -282,6 +282,43 @@ function orderArchiveListItem(S: StructureBuilder) {
     )
 }
 
+// Order matters here: DocumentTypeListBuilder.clone() re-infers
+// initialValueTemplates from the schema on every subsequent chained call, so
+// initialValueTemplates([]) must be called LAST, after canHandleIntent() —
+// otherwise canHandleIntent()'s own clone() silently resets it back to a
+// non-empty (inferred) value and the create button reappears.
+const noCreateIntent = () => false
+function noCreate<T extends { canHandleIntent(fn: typeof noCreateIntent): T; initialValueTemplates(templates: never[]): T }>(list: T): T {
+  return list.canHandleIntent(noCreateIntent).initialValueTemplates([])
+}
+
+/**
+ * Webshopbestellingen: dezelfde orders, gefilterd op kanaal.
+ *
+ * Het is bewust een tweede weergave en geen ander documenttype. Een bestelling
+ * komt binnen terwijl je slaapt en vraagt inpakken en versturen — een andere
+ * reflex dan een verkoop die je zelf vastlegt. Geen aanmaakknop: die orders
+ * ontstaan bij het afrekenen, nooit met de hand.
+ */
+function webshopOrderListItem(S: StructureBuilder) {
+  return S.listItem()
+    .title('Webshop orders')
+    .id('webshop-orders')
+    .icon(attentionBadge(
+      `count(*[_type == "order" && status == "awaiting-payment" && (defined(stripeSessionId) || channel == "webshop")])`,
+      { label: 'webshopbestellingen', listenOn: 'order' }
+    ))
+    .child(
+      noCreate(
+        S.documentList()
+          .title('Webshop orders')
+          .schemaType('order')
+          .filter('_type == "order" && (defined(stripeSessionId) || channel == "webshop")')
+          .defaultOrdering([{ field: 'createdAt', direction: 'desc' }])
+      )
+    )
+}
+
 // Settings: singleton + shipping zones
 function shopSettingsListItem(S: StructureBuilder) {
   return S.listItem()
@@ -539,6 +576,7 @@ export const structure: StructureResolver = async (S, { getClient }) => {
         .id('worksPage')
         .child(S.document().schemaType('worksPage').documentId('worksPage').title('Shop Layout')),
 
+      webshopOrderListItem(S),
       S.documentTypeListItem('coupon').title('Coupons'),
       shopSettingsListItem(S),
 
