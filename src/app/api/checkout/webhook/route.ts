@@ -72,7 +72,9 @@ export async function POST(req: NextRequest) {
         _type:           'order',
         orderNumber,
         stripeSessionId: session.id,
-        status:          'new',
+        // De webhook vuurt pas ná een geslaagde betaling, dus dit is 'paid'.
+        status:          'paid',
+        channel:         'webshop',
         customerName:    name,
         customerEmail:   email,
         customerPhone:   phone || undefined,
@@ -92,7 +94,7 @@ export async function POST(req: NextRequest) {
         })),
         totalAmount: total,
         createdAt:   new Date().toISOString(),
-        statusHistory: [buildStatusEntry('new', `Betaling ontvangen via Stripe (${session.id})`)],
+        statusHistory: [buildStatusEntry('paid', `Betaling ontvangen via Stripe (${session.id})`)],
       })
     } catch (err) {
       console.error('[webhook] Sanity order aanmaken mislukt:', err)

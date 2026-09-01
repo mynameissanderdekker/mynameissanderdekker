@@ -125,7 +125,10 @@ export async function POST(req: NextRequest) {
   await sanity.create({
     _type:         'order',
     orderNumber:   body.invoiceNumber,
-    status:        body.paid ? 'delivered' : 'new',
+    // Betaald of niet — de levering is een aparte vraag (fulfilment) en wordt
+    // in de Studio gezet. Eerder stond hier 'delivered' om betaald te bedoelen.
+    status:        body.paid ? 'paid' : 'awaiting-payment',
+    channel:       'direct',
     customerName:  `${body.firstName} ${body.lastName}`,
     customerEmail: body.email,
     customerPhone: body.phone || undefined,
@@ -149,7 +152,7 @@ export async function POST(req: NextRequest) {
     statusHistory: [{
       _key:      crypto.randomUUID(),
       _type:     'statusHistoryEntry',
-      status:    'new',
+      status:    body.paid ? 'paid' : 'awaiting-payment',
       changedAt: new Date().toISOString(),
       changedBy: 'admin',
       note:      `Handmatige verkoop — ${body.soldVia}`,

@@ -3,6 +3,7 @@ import type { DocumentActionComponent, DocumentActionProps } from 'sanity'
 
 interface OrderDoc {
   status?: string
+  fulfilment?: string
   trackingNumber?: string
   shippingEmailSentAt?: string
 }
@@ -18,7 +19,7 @@ function buildEntry(status: string, changedBy: string, note?: string) {
   }
 }
 
-/** Stuurt automatisch een verzend-email als status → 'shipped' met een track & trace nummer */
+/** Stuurt een verzend-email zodra fulfilment → 'shipped' met een track & trace nummer */
 export function withShippedNotification(
   originalAction: DocumentActionComponent
 ): DocumentActionComponent {
@@ -30,9 +31,9 @@ export function withShippedNotification(
     const published = props.published as OrderDoc | null
     const next      = draft ?? published
     const willTrigger =
-      next?.status === 'shipped' &&
+      next?.fulfilment === 'shipped' &&
       !!next?.trackingNumber &&
-      published?.status !== 'shipped' &&
+      published?.fulfilment !== 'shipped' &&
       !next?.shippingEmailSentAt
 
     return {

@@ -1,4 +1,4 @@
-import { AddIcon, DashboardIcon } from '@sanity/icons'
+import { AddIcon, BasketIcon, DashboardIcon } from '@sanity/icons'
 import { DashboardTool } from './components/DashboardTool'
 import { makeNewDocumentRedirect } from './components/NewDocumentRedirect'
 
@@ -16,7 +16,8 @@ function addNewItem(S: StructureBuilder, type: string, label: string) {
 }
 import type { StructureBuilder, StructureResolver } from 'sanity/structure'
 import React from 'react'
-import { OrderCountBadge } from './components/OrderCountBadge'
+import { attentionBadge } from './components/AttentionBadge'
+import { OPEN_ORDER_FILTER, DONE_ORDER_FILTER } from '../lib/orderStatus'
 import { MailingListExport } from './components/MailingListExport'
 import { RegisterSaleTool } from './components/RegisterSaleTool'
 import { SalesOverviewTool } from './components/SalesOverviewTool'
@@ -216,6 +217,12 @@ function contactsListItem(S: StructureBuilder) {
             .child(S.documentTypeList('contact').title('Webshop customers').filter('_type == "contact" && type == "webshop_customer"').defaultOrdering([{ field: 'lastName', direction: 'asc' }])),
           S.divider(),
           S.listItem()
+            .title('Export mailing list')
+            .id('contacts-mailing-export')
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .child(S.component(MailingListExport as any).title('Export mailing list')),
+          S.divider(),
+          S.listItem()
             .title('By country')
             .id('contacts-by-country')
             .child(
@@ -238,15 +245,39 @@ function contactsListItem(S: StructureBuilder) {
     )
 }
 
-// Orders with live new-order badge
+/**
+ * Orders splitsen in "vraagt actie" en "klaar".
+ *
+ * Eén lange lijst waarin een afgeronde verkoop van vorig jaar tussen de
+ * openstaande staat, laat je niet zien wat je moet doen. De filters staan in
+ * `lib/orderStatus.ts` — nooit een tweede kopie maken.
+ */
 function orderListItem(S: StructureBuilder) {
   return S.listItem()
     .title('Orders')
     .id('order')
-    .icon(() => React.createElement(OrderCountBadge) || React.createElement('span', null, '📦'))
+    .icon(attentionBadge(
+      `count(*[_type == "order" && ${OPEN_ORDER_FILTER}])`,
+      { label: 'open orders', listenOn: 'order' }
+    ))
     .child(
-      S.documentTypeList('order')
+      S.documentList()
         .title('Orders')
+        .schemaType('order')
+        .filter(`_type == "order" && ${OPEN_ORDER_FILTER}`)
+        .defaultOrdering([{ field: 'createdAt', direction: 'desc' }])
+    )
+}
+
+function orderArchiveListItem(S: StructureBuilder) {
+  return S.listItem()
+    .title('Archive')
+    .id('order-archive')
+    .child(
+      S.documentList()
+        .title('Archive')
+        .schemaType('order')
+        .filter(`_type == "order" && ${DONE_ORDER_FILTER}`)
         .defaultOrdering([{ field: 'createdAt', direction: 'desc' }])
     )
 }
@@ -298,20 +329,222 @@ export const structure: StructureResolver = async (S, { getClient }) => {
     .title('Content')
     .items([
 
-      // Bovenaan de lijst, niet als losse tab in de balk. Een dashboard dat je
-      // alleen vindt door langs Analytics te scrollen wordt niet gebruikt; dit
-      // is de eerste plek waar je kijkt als je de Studio opent.
       S.listItem()
         .title('Dashboard')
         .id('dashboard')
         .icon(DashboardIcon)
         .child(S.component().title('Dashboard').component(DashboardTool)),
 
+      // ── PROGRAMME ─────────────────────────────────────────────────────────
+      // Wat je doet en waar je hangt. Bij een galerie is dit het programma dat
+      // je samenstelt; hier is het je loopbaan. Zelfde kop, andere betekenis.
+      S.divider().title('PROGRAMME'),
+
+      S.listItem()
+        .title('Exhibitions')
+        .id('exhibition')
+        .child(
+          S.list()
+            .id('exhibitions-list')
+            .title('Exhibitions')
+            .items([
+              addNewItem(S, 'exhibition', 'exhibition'),
+              S.divider(),
+              S.listItem()
+                .title('All exhibitions')
+                .id('exhibition-all')
+                .child(
+                  S.documentTypeList('exhibition')
+                    .title('All exhibitions')
+                    .defaultOrdering([{ field: 'startDate', direction: 'desc' }])
+                ),
+              S.listItem()
+                .title('No project linked')
+                .id('exhibition-no-project')
+                .child(
+                  S.documentTypeList('exhibition')
+                    .title('No project linked')
+                    .filter('_type == "exhibition" && !defined(cvProject)')
+                    .defaultOrdering([{ field: 'startDate', direction: 'desc' }])
+                ),
+              S.divider(),
+              ...cvProjects.map(p =>
+                S.listItem()
+                  .title(p.title)
+                  .id(`exhibition-project-${p._id}`)
+                  .child(
+                    S.documentTypeList('exhibition')
+                      .title(p.title)
+                      .filter('_type == "exhibition" && cvProject._ref == $projectId')
+                      .params({ projectId: p._id })
+                      .defaultOrdering([{ field: 'startDate', direction: 'desc' }])
+                  )
+              ),
+            ])
+        ),
+
+      S.listItem()
+        .title('Art Fairs')
+        .id('artFair')
+        .child(
+          S.list()
+            .id('artfairs-list')
+            .title('Art Fairs')
+            .items([
+              addNewItem(S, 'artFair', 'art fair'),
+              S.divider(),
+              S.listItem()
+                .title('All art fairs')
+                .id('artfair-all')
+                .child(
+                  S.documentTypeList('artFair')
+                    .title('All art fairs')
+                    .defaultOrdering([{ field: 'startDate', direction: 'desc' }])
+                ),
+              S.listItem()
+                .title('No project linked')
+                .id('artfair-no-project')
+                .child(
+                  S.documentTypeList('artFair')
+                    .title('No project linked')
+                    .filter('_type == "artFair" && !defined(cvProject)')
+                    .defaultOrdering([{ field: 'startDate', direction: 'desc' }])
+                ),
+              S.divider(),
+              ...cvProjects.map(p =>
+                S.listItem()
+                  .title(p.title)
+                  .id(`artfair-project-${p._id}`)
+                  .child(
+                    S.documentTypeList('artFair')
+                      .title(p.title)
+                      .filter('_type == "artFair" && cvProject._ref == $projectId')
+                      .params({ projectId: p._id })
+                      .defaultOrdering([{ field: 'startDate', direction: 'desc' }])
+                  )
+              ),
+            ])
+        ),
+
+      // ── COLLECTION ────────────────────────────────────────────────────────
+      // Het werk zelf en waar het is. Heette WORKS met LOGISTICS als losse kop
+      // ernaast — maar waar een werk hangt is een eigenschap van het werk,
+      // geen apart onderwerp.
+      S.divider().title('COLLECTION'),
+
+      artworkListItem(S, categories ?? [], customFilters),
+      publicationsListItem(S),
+      S.documentTypeListItem('projectSeries').title('Project Series'),
+      S.listItem()
+        .title('Where is my work?')
+        .id('where-is-my-work')
+        .child(
+          S.list()
+            .id('logistics-list')
+            .title('Where is my work?')
+            .items([
+              S.listItem()
+                .title('Active loans')
+                .id('loans-active')
+                .child(
+                  S.documentTypeList('loan')
+                    .title('Active loans')
+                    .filter('_type == "loan" && (!defined(endDate) || endDate >= $today)')
+                    .params({ today: new Date().toISOString().slice(0, 10) })
+                    .defaultOrdering([{ field: 'startDate', direction: 'desc' }])
+                ),
+              S.listItem()
+                .title('All loans')
+                .id('loans-all')
+                .child(
+                  S.documentTypeList('loan')
+                    .title('All loans')
+                    .defaultOrdering([{ field: 'startDate', direction: 'desc' }])
+                ),
+              S.divider(),
+              S.documentTypeListItem('location').title('Manage locations'),
+            ])
+        ),
+
+      // ── SALES ─────────────────────────────────────────────────────────────
+      // In de volgorde waarin een verkoop ontstaat: eerst de handeling, dan
+      // prijslijst → offerte → order → afgerond, en pas daarna de cijfers.
+      S.divider().title('SALES'),
+
+      S.listItem()
+        .title('Make or Register a Sale')
+        .id('registerSale')
+        .icon(BasketIcon)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .child(S.component(RegisterSaleTool as any).title('Make or Register a Sale')),
+
+      S.documentTypeListItem('privateSale').title('Price Lists'),
+
+      S.listItem()
+        .title('Proposals / Offertes')
+        .id('proposals')
+        .icon(attentionBadge(
+          `count(*[_type == "proposal" && status == "sent" && defined(expiryDate) && expiryDate < $today])`,
+          { color: 'amber', label: 'expired proposals', listenOn: 'proposal' }
+        ))
+        .child(
+          S.list()
+            .id('proposals-list')
+            .title('Proposals / Offertes')
+            .items([
+              addNewItem(S, 'proposal', 'proposal'),
+              S.divider(),
+              S.listItem()
+                .title('All proposals')
+                .id('proposals-all')
+                .child(S.documentTypeList('proposal').title('All proposals').defaultOrdering([{ field: '_createdAt', direction: 'desc' }])),
+              S.divider(),
+              S.listItem()
+                .title('📤 Sent')
+                .id('proposals-sent')
+                .child(S.documentList().title('Sent').filter('_type == "proposal" && status == "sent"').defaultOrdering([{ field: '_createdAt', direction: 'desc' }])),
+              S.listItem()
+                .title('✅ Accepted')
+                .id('proposals-accepted')
+                .child(S.documentList().title('Accepted').filter('_type == "proposal" && status == "accepted"').defaultOrdering([{ field: '_createdAt', direction: 'desc' }])),
+              S.listItem()
+                .title('⬜ Drafts')
+                .id('proposals-drafts')
+                .child(S.documentList().title('Drafts').filter('_type == "proposal" && status == "draft"').defaultOrdering([{ field: '_createdAt', direction: 'desc' }])),
+            ])
+        ),
+
+      orderListItem(S),
+      orderArchiveListItem(S),
+
+      S.listItem()
+        .title('Sales Overview')
+        .id('sales-overview')
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .child(S.component(SalesOverviewTool as any).title('Sales Overview')),
+
+      // ── WEBSHOP ───────────────────────────────────────────────────────────
+      S.divider().title('WEBSHOP'),
+
+      // Heet bij Torch ook Shop Layout: het is de indeling van de winkel, niet
+      // de winkel zelf.
+      S.listItem()
+        .title('Shop Layout')
+        .id('worksPage')
+        .child(S.document().schemaType('worksPage').documentId('worksPage').title('Shop Layout')),
+
+      S.documentTypeListItem('coupon').title('Coupons'),
+      shopSettingsListItem(S),
+
+      // ── CRM ───────────────────────────────────────────────────────────────
+      S.divider().title('CRM'),
+
+      contactsListItem(S),
+
       // ── WEBSITE ───────────────────────────────────────────────────────────
-      // Zelfde naam als in de gallery-template, andere plek: bij een galerie
-      // staat dit onderaan, hier bovenaan. Voor een kunstenaar ís de site de
-      // etalage; voor een galerie is het een visitekaartje naast het echte werk.
-      // Eén woord dat beide templates delen, met de volgorde als verschil.
+      // Blijft hier onderaan staan, net als bij Torch. Voor een kunstenaar is
+      // de site wel de etalage, maar je opent de Studio om werk of een verkoop
+      // in te voeren — niet om een pagina te herschrijven.
       S.divider().title('WEBSITE'),
 
       S.listItem()
@@ -355,11 +588,7 @@ export const structure: StructureResolver = async (S, { getClient }) => {
             )
         ),
 
-      S.listItem()
-        .title('Available (webshop)')
-        .id('worksPage')
-        .child(S.document().schemaType('worksPage').documentId('worksPage').title('Available (webshop)')),
-
+      S.documentTypeListItem('press').title('Press'),
       S.listItem()
         .title('Contact (hardcoded)')
         .id('contactPage')
@@ -370,196 +599,6 @@ export const structure: StructureResolver = async (S, { getClient }) => {
         .title('Site Settings')
         .id('siteSettings')
         .child(S.document().schemaType('siteSettings').documentId('siteSettings').title('Site Settings')),
-
-      // ── WORKS ─────────────────────────────────────────────────────────────
-      S.divider().title('WORKS'),
-
-      artworkListItem(S, categories ?? [], customFilters),
-      publicationsListItem(S),
-      S.documentTypeListItem('projectSeries').title('Project Series'),
-      // ── LOGISTICS ────────────────────────────────────────────────────────
-      S.divider().title('LOGISTICS'),
-
-      S.listItem()
-        .title('Where is my work?')
-        .id('where-is-my-work')
-        .child(
-          S.list()
-            .id('logistics-list')
-            .title('Where is my work?')
-            .items([
-              S.listItem()
-                .title('Active loans')
-                .id('loans-active')
-                .child(
-                  S.documentTypeList('loan')
-                    .title('Active loans')
-                    .filter('_type == "loan" && (!defined(endDate) || endDate >= $today)')
-                    .params({ today: new Date().toISOString().slice(0, 10) })
-                    .defaultOrdering([{ field: 'startDate', direction: 'desc' }])
-                ),
-              S.listItem()
-                .title('All loans')
-                .id('loans-all')
-                .child(
-                  S.documentTypeList('loan')
-                    .title('All loans')
-                    .defaultOrdering([{ field: 'startDate', direction: 'desc' }])
-                ),
-              S.divider(),
-              S.documentTypeListItem('location').title('Manage locations'),
-            ])
-        ),
-
-      // ── TRADE ────────────────────────────────────────────────────────────
-      S.divider().title('TRADE'),
-
-      S.documentTypeListItem('privateSale').title('Viewing Rooms'),
-      S.listItem()
-        .title('Make or Register a Sale')
-        .id('registerSale')
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .child(S.component(RegisterSaleTool as any).title('Make or Register a Sale')),
-      S.listItem()
-        .title('Sales Overview')
-        .id('sales-overview')
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .child(S.component(SalesOverviewTool as any).title('Sales Overview')),
-      S.listItem()
-        .title('Proposals / Offertes')
-        .id('proposals')
-        .child(
-          S.list()
-            .id('proposals-list')
-            .title('Proposals / Offertes')
-            .items([
-              addNewItem(S, 'proposal', 'proposal'),
-              S.divider(),
-              S.listItem()
-                .title('All proposals')
-                .id('proposals-all')
-                .child(S.documentTypeList('proposal').title('All proposals').defaultOrdering([{ field: '_createdAt', direction: 'desc' }])),
-              S.divider(),
-              S.listItem()
-                .title('📤 Sent')
-                .id('proposals-sent')
-                .child(S.documentList().title('Sent').filter('_type == "proposal" && status == "sent"').defaultOrdering([{ field: '_createdAt', direction: 'desc' }])),
-              S.listItem()
-                .title('✅ Accepted')
-                .id('proposals-accepted')
-                .child(S.documentList().title('Accepted').filter('_type == "proposal" && status == "accepted"').defaultOrdering([{ field: '_createdAt', direction: 'desc' }])),
-              S.listItem()
-                .title('⬜ Drafts')
-                .id('proposals-drafts')
-                .child(S.documentList().title('Drafts').filter('_type == "proposal" && status == "draft"').defaultOrdering([{ field: '_createdAt', direction: 'desc' }])),
-            ])
-        ),
-      S.listItem()
-        .title('Exhibitions')
-        .id('exhibition')
-        .child(
-          S.list()
-            .id('exhibitions-list')
-            .title('Exhibitions')
-            .items([
-              addNewItem(S, 'exhibition', 'exhibition'),
-              S.divider(),
-              S.listItem()
-                .title('All exhibitions')
-                .id('exhibition-all')
-                .child(
-                  S.documentTypeList('exhibition')
-                    .title('All exhibitions')
-                    .defaultOrdering([{ field: 'startDate', direction: 'desc' }])
-                ),
-              S.listItem()
-                .title('No project linked')
-                .id('exhibition-no-project')
-                .child(
-                  S.documentTypeList('exhibition')
-                    .title('No project linked')
-                    .filter('_type == "exhibition" && !defined(cvProject)')
-                    .defaultOrdering([{ field: 'startDate', direction: 'desc' }])
-                ),
-              S.divider(),
-              ...cvProjects.map(p =>
-                S.listItem()
-                  .title(p.title)
-                  .id(`exhibition-project-${p._id}`)
-                  .child(
-                    S.documentTypeList('exhibition')
-                      .title(p.title)
-                      .filter('_type == "exhibition" && cvProject._ref == $projectId')
-                      .params({ projectId: p._id })
-                      .defaultOrdering([{ field: 'startDate', direction: 'desc' }])
-                  )
-              ),
-            ])
-        ),
-      S.listItem()
-        .title('Art Fairs')
-        .id('artFair')
-        .child(
-          S.list()
-            .id('artfairs-list')
-            .title('Art Fairs')
-            .items([
-              addNewItem(S, 'artFair', 'art fair'),
-              S.divider(),
-              S.listItem()
-                .title('All art fairs')
-                .id('artfair-all')
-                .child(
-                  S.documentTypeList('artFair')
-                    .title('All art fairs')
-                    .defaultOrdering([{ field: 'startDate', direction: 'desc' }])
-                ),
-              S.listItem()
-                .title('No project linked')
-                .id('artfair-no-project')
-                .child(
-                  S.documentTypeList('artFair')
-                    .title('No project linked')
-                    .filter('_type == "artFair" && !defined(cvProject)')
-                    .defaultOrdering([{ field: 'startDate', direction: 'desc' }])
-                ),
-              S.divider(),
-              ...cvProjects.map(p =>
-                S.listItem()
-                  .title(p.title)
-                  .id(`artfair-project-${p._id}`)
-                  .child(
-                    S.documentTypeList('artFair')
-                      .title(p.title)
-                      .filter('_type == "artFair" && cvProject._ref == $projectId')
-                      .params({ projectId: p._id })
-                      .defaultOrdering([{ field: 'startDate', direction: 'desc' }])
-                  )
-              ),
-            ])
-        ),
-      // ── NETWORK ──────────────────────────────────────────────────────────
-      S.divider().title('NETWORK'),
-
-      contactsListItem(S),
-      S.documentTypeListItem('press').title('Press'),
-
-      // ── WEBSHOP ───────────────────────────────────────────────────────────
-      S.divider().title('WEBSHOP'),
-
-      orderListItem(S),
-      S.documentTypeListItem('coupon').title('Coupons'),
-      shopSettingsListItem(S),
-
-      // ── CAMPAIGNS ─────────────────────────────────────────────────────────
-      S.divider().title('CAMPAIGNS'),
-
-      S.listItem()
-        .title('Mailing lists')
-        .id('mailingLists')
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .child(S.component(MailingListExport as any).title('Mailing lists')),
-      S.documentTypeListItem('pressRelease').title('Press releases'),
 
     ])
 }

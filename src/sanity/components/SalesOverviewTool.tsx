@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useCallback, useEffect, useState, useMemo } from 'react'
 import { useClient } from 'sanity'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -16,6 +16,8 @@ interface Order {
   orderNumber: string
   createdAt: string
   status: string
+  channel?: string
+  stripeSessionId?: string
   customerName: string
   customerEmail?: string
   items: OrderItem[]
@@ -25,11 +27,19 @@ interface Order {
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 /**
- * Gallery (manual) sales: SD-YYMM-xxxx (two hyphens, 4-digit year-month block)
- * Webshop orders: SD-{timestamp} (one hyphen, long digit string)
+ * Waar de verkoop vandaan komt. Sinds `channel` op de order staat is dat een
+ * feit; oudere orders hebben het veld niet en worden herkend aan een
+ * Stripe-sessie, anders is het een handmatige verkoop.
  */
-function getSource(orderNumber: string): 'gallery' | 'webshop' {
-  return /^SD-\d{4}-/.test(orderNumber) ? 'gallery' : 'webshop'
+function getSource(o: { channel?: string; stripeSessionId?: string }): string {
+  return o.channel ?? (o.stripeSessionId ? 'webshop' : 'direct')
+}
+
+const CHANNEL_LABEL: Record<string, string> = {
+  direct: 'Studio / direct',
+  gallery: 'Via a gallery',
+  artfair: 'Art Fair',
+  webshop: 'Webshop',
 }
 
 function fmt(n: number) {
@@ -182,23 +192,29 @@ function StatusBadge({ status }: { status: string }) {
   )
 }
 
-function SourceBadge({ source }: { source: 'gallery' | 'webshop' }) {
-  const isGallery = source === 'gallery'
+const CHANNEL_COLORS: Record<string, [string, string]> = {
+  direct:  ['#f3e8ff', '#7c3aed'],
+  gallery: ['#fef3c7', '#92400e'],
+  artfair: ['#dcfce7', '#166534'],
+  webshop: ['#dbeafe', '#1d4ed8'],
+}
+
+function SourceBadge({ source }: { source: string }) {
+  const [bg, fg] = CHANNEL_COLORS[source] ?? ['#f3f4f6', '#4b5563']
   return (
     <span style={{
-      background: isGallery ? '#f3e8ff' : '#dbeafe',
-      color:      isGallery ? '#7c3aed'  : '#1d4ed8',
+      background: bg, color: fg,
       fontSize: 11, padding: '2px 8px', borderRadius: 10,
-      fontWeight: 500, letterSpacing: '0.03em',
+      fontWeight: 500, letterSpacing: '0.03em', whiteSpace: 'nowrap',
     }}>
-      {isGallery ? 'Gallery' : 'Webshop'}
+      {CHANNEL_LABEL[source] ?? source}
     </span>
   )
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export function SalesOverviewTool() {
+function SalesTab() {
   const client = useClient({ apiVersion: '2024-01-01' })
 
   const [orders, setOrders]   = useState<Order[]>([])
@@ -206,7 +222,7 @@ export function SalesOverviewTool() {
   const [error, setError]     = useState<string | null>(null)
   const [hoverId, setHoverId] = useState<string | null>(null)
 
-  const [source, setSource] = useState<'all' | 'gallery' | 'webshop'>('all')
+  const [source, setSource] = useState<string>('all')
   const [status, setStatus] = useState('all')
   const [year, setYear]     = useState('all')
   const [month, setMonth]   = useState('all')
@@ -215,8 +231,9 @@ export function SalesOverviewTool() {
   useEffect(() => {
     client.fetch<Order[]>(`
       *[_type == "order" && !(_id in path("drafts.**"))] | order(createdAt desc) {
-        _id, orderNumber, createdAt, status,
-        customerName, customerEmail,
+        _id, orderNumber, createdAt, status, channel, stripeSessionId,
+        "customerName": coalesce(contact->firstName + " " + contact->lastName, customerName),
+        "customerEmail": coalesce(contact->email, customerEmail),
         items, totalAmount
       }
     `).then(data => { setOrders(data ?? []); setLoading(false) })
@@ -229,7 +246,7 @@ export function SalesOverviewTool() {
 
   const filtered = useMemo(() => {
     return orders.filter(o => {
-      if (source !== 'all' && getSource(o.orderNumber) !== source) return false
+      if (source !== 'all' && getSource(o) !== source) return false
       if (status !== 'all' && o.status !== status) return false
       const d = new Date(o.createdAt)
       if (year !== 'all' && d.getFullYear() !== Number(year)) return false
@@ -254,7 +271,7 @@ export function SalesOverviewTool() {
   if (error)   return <div style={{ ...s.wrap, color: '#ef4444' }}>Error: {error}</div>
 
   const MONTHS   = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
-  const STATUSES = ['new','processing','shipped','delivered','paid','cancelled']
+  const STATUSES = ['awaiting-payment','paid','cancelled','refunded']
 
   return (
     <div style={s.wrap}>
@@ -280,9 +297,9 @@ export function SalesOverviewTool() {
       {/* Filters */}
       <div style={s.filters}>
         <div style={{ display: 'flex', gap: 4 }}>
-          {(['all', 'gallery', 'webshop'] as const).map(v => (
+          {['all', 'direct', 'gallery', 'artfair', 'webshop'].map(v => (
             <button key={v} style={s.filterBtn(source === v)} onClick={() => setSource(v)}>
-              {v === 'all' ? 'All' : v.charAt(0).toUpperCase() + v.slice(1)}
+              {v === 'all' ? 'All' : CHANNEL_LABEL[v] ?? v}
             </button>
           ))}
         </div>
@@ -292,7 +309,7 @@ export function SalesOverviewTool() {
         <select style={s.select} value={status} onChange={e => setStatus(e.target.value)}>
           <option value="all">All statuses</option>
           {STATUSES.map(st => (
-            <option key={st} value={st}>{st.charAt(0).toUpperCase() + st.slice(1)}</option>
+            <option key={st} value={st}>{st === 'awaiting-payment' ? 'Awaiting payment' : st.charAt(0).toUpperCase() + st.slice(1)}</option>
           ))}
         </select>
 
@@ -335,7 +352,7 @@ export function SalesOverviewTool() {
           </thead>
           <tbody>
             {filtered.map(order => {
-              const src = getSource(order.orderNumber)
+              const src = getSource(order)
               const isHovered = hoverId === order._id
               return (
                 <tr
@@ -391,6 +408,348 @@ export function SalesOverviewTool() {
         {filtered.length} order{filtered.length !== 1 ? 's' : ''}
         {filtered.length !== orders.length ? ` (${orders.length} total)` : ''}
       </div>
+    </div>
+  )
+}
+
+// ── BTW / Tax ─────────────────────────────────────────────────────────────────
+
+interface VatRow {
+  date: string
+  description: string
+  net: number
+  rate: string
+  vat: number
+  gross: number
+  source: string
+}
+
+interface VatBucket { rate: string; netTotal: number; vatTotal: number; grossTotal: number; count: number }
+
+/**
+ * De aangifte leest uitsluitend `order`.
+ *
+ * `purchases[]` op het contact beschrijft dezelfde verkoop nog een keer — de
+ * verkooptool schrijft beide weg — dus meetellen zou elke handmatige verkoop
+ * verdubbelen. Bovendien heeft een purchase-regel geen BTW-tarief en bij ruim
+ * de helft ook geen datum: het is verkoopgeschiedenis voor het CRM, geen
+ * grootboek. Geannuleerd en terugbetaald tellen niet mee.
+ */
+function VatTab() {
+  const client = useClient({ apiVersion: '2024-01-01' })
+  const currentYear = new Date().getFullYear()
+  const [year, setYear] = useState(String(currentYear))
+  const [loading, setLoading] = useState(true)
+  const [rows, setRows] = useState<VatRow[]>([])
+  const [buckets, setBuckets] = useState<VatBucket[]>([])
+
+  useEffect(() => {
+    setLoading(true)
+    const y = parseInt(year)
+    client.fetch<Array<{
+      orderNumber?: string; customerName?: string; createdAt?: string; _createdAt?: string
+      channel?: string; stripeSessionId?: string
+      items?: Array<{ title?: string; quantity?: number; priceExcl?: number; price?: number; vatRate?: number }>
+    }>>(
+      `*[_type == "order" && status in ["awaiting-payment", "paid"]
+         && !(_id in path("drafts.**"))
+         && (createdAt >= $from && createdAt < $to)] | order(createdAt asc) {
+        orderNumber, createdAt, _createdAt, channel, stripeSessionId,
+        "customerName": coalesce(contact->firstName + " " + contact->lastName, customerName),
+        items[]{ title, quantity, priceExcl, price, vatRate }
+      }`,
+      { from: `${y}-01-01`, to: `${y + 1}-01-01` },
+    ).then(orders => {
+      const all: VatRow[] = []
+      for (const o of orders) {
+        const raw = o.createdAt || o._createdAt
+        const date = raw ? new Date(raw).toLocaleDateString('nl-NL') : '—'
+        for (const item of o.items ?? []) {
+          const rate = item.vatRate ?? 9
+          // Staat er alleen een brutoprijs, dan rekenen we terug — beter een
+          // benadering dan de regel laten vallen.
+          const net = item.priceExcl != null
+            ? item.priceExcl * (item.quantity ?? 1)
+            : ((item.price ?? 0) / (1 + rate / 100)) * (item.quantity ?? 1)
+          const vat = net * (rate / 100)
+          all.push({
+            date,
+            description: item.title || `Order ${o.orderNumber ?? ''}`.trim(),
+            net, rate: String(rate), vat, gross: net + vat,
+            source: `${CHANNEL_LABEL[getSource(o)] ?? '—'} · ${o.customerName || o.orderNumber || '—'}`,
+          })
+        }
+      }
+      const map: Record<string, VatBucket> = {}
+      for (const r of all) {
+        map[r.rate] ??= { rate: r.rate, netTotal: 0, vatTotal: 0, grossTotal: 0, count: 0 }
+        map[r.rate].netTotal += r.net
+        map[r.rate].vatTotal += r.vat
+        map[r.rate].grossTotal += r.gross
+        map[r.rate].count++
+      }
+      setRows(all)
+      setBuckets(Object.values(map).sort((a, b) => parseInt(a.rate) - parseInt(b.rate)))
+      setLoading(false)
+    }).catch(() => setLoading(false))
+  }, [client, year])
+
+  const totalNet = buckets.reduce((t, b) => t + b.netTotal, 0)
+  const totalVat = buckets.reduce((t, b) => t + b.vatTotal, 0)
+  const years = Array.from({ length: 6 }, (_, i) => currentYear - i)
+
+  return (
+    <div>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 20 }}>
+        <select style={s.select} value={year} onChange={e => setYear(e.target.value)}>
+          {years.map(y => <option key={y} value={y}>{y}</option>)}
+        </select>
+        <span style={{ fontSize: 12, color: '#9ca3af' }}>
+          Paid and awaiting payment. Cancelled and refunded are excluded.
+        </span>
+      </div>
+
+      {loading ? <div style={{ color: '#9ca3af' }}>Loading…</div> : (
+        <>
+          <div style={s.stats}>
+            <div style={s.statCard}>
+              <div style={s.statLabel}>Net (excl. BTW)</div>
+              <div style={s.statValue}>{fmt(totalNet)}</div>
+            </div>
+            <div style={s.statCard}>
+              <div style={s.statLabel}>BTW to declare</div>
+              <div style={s.statValue}>{fmt(totalVat)}</div>
+            </div>
+            <div style={s.statCard}>
+              <div style={s.statLabel}>Gross</div>
+              <div style={s.statValue}>{fmt(totalNet + totalVat)}</div>
+            </div>
+          </div>
+
+          <table style={s.table}>
+            <thead>
+              <tr>
+                <th style={s.th}>Rate</th>
+                <th style={s.th}>Lines</th>
+                <th style={{ ...s.th, textAlign: 'right' }}>Net</th>
+                <th style={{ ...s.th, textAlign: 'right' }}>BTW</th>
+                <th style={{ ...s.th, textAlign: 'right' }}>Gross</th>
+              </tr>
+            </thead>
+            <tbody>
+              {buckets.map(b => (
+                <tr key={b.rate}>
+                  <td style={s.td}>{b.rate}%</td>
+                  <td style={{ ...s.td, color: '#6b7280' }}>{b.count}</td>
+                  <td style={{ ...s.td, textAlign: 'right' }}>{fmt(b.netTotal)}</td>
+                  <td style={{ ...s.td, textAlign: 'right' }}>{fmt(b.vatTotal)}</td>
+                  <td style={{ ...s.td, textAlign: 'right', fontWeight: 500 }}>{fmt(b.grossTotal)}</td>
+                </tr>
+              ))}
+              {buckets.length === 0 && (
+                <tr><td style={{ ...s.td, color: '#9ca3af' }} colSpan={5}>No orders in {year}.</td></tr>
+              )}
+            </tbody>
+          </table>
+
+          {rows.length > 0 && (
+            <>
+              <div style={{ ...s.statLabel, margin: '28px 0 8px' }}>Per line</div>
+              <table style={s.table}>
+                <thead>
+                  <tr>
+                    <th style={s.th}>Date</th>
+                    <th style={s.th}>Description</th>
+                    <th style={s.th}>Source</th>
+                    <th style={{ ...s.th, textAlign: 'right' }}>Net</th>
+                    <th style={{ ...s.th, textAlign: 'right' }}>Rate</th>
+                    <th style={{ ...s.th, textAlign: 'right' }}>BTW</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((r, i) => (
+                    <tr key={i}>
+                      <td style={{ ...s.td, whiteSpace: 'nowrap', color: '#6b7280' }}>{r.date}</td>
+                      <td style={s.td}>{r.description}</td>
+                      <td style={{ ...s.td, color: '#6b7280', fontSize: 12 }}>{r.source}</td>
+                      <td style={{ ...s.td, textAlign: 'right' }}>{fmt(r.net)}</td>
+                      <td style={{ ...s.td, textAlign: 'right', color: '#6b7280' }}>{r.rate}%</td>
+                      <td style={{ ...s.td, textAlign: 'right' }}>{fmt(r.vat)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </>
+          )}
+        </>
+      )}
+    </div>
+  )
+}
+
+// ── Analytics ─────────────────────────────────────────────────────────────────
+
+function Bars({ data, empty }: { data: [string, number][]; empty: string }) {
+  const max = Math.max(...data.map(d => d[1]), 1)
+  if (data.length === 0) return <div style={{ color: '#9ca3af', fontSize: 13 }}>{empty}</div>
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {data.map(([label, value]) => (
+        <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ width: 150, fontSize: 13, color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</div>
+          <div style={{ flex: 1, background: '#f3f4f6', borderRadius: 3, height: 18, position: 'relative' }}>
+            <div style={{ width: `${(value / max) * 100}%`, background: '#111', height: '100%', borderRadius: 3 }} />
+          </div>
+          <div style={{ width: 90, textAlign: 'right', fontSize: 13, fontVariantNumeric: 'tabular-nums' }}>{fmt(value)}</div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/**
+ * Omzet uitgesplitst, per regel geteld — niet per order. Een order met vier
+ * werken erin zou anders als één verkoop tellen.
+ *
+ * Leest alleen orders, om dezelfde reden als de BTW-tab. De 660 regels in
+ * `purchases[]` zijn oudere verkoopgeschiedenis zonder BTW-tarief en vaak
+ * zonder datum; die staan per contact onder History.
+ */
+function AnalyticsTab() {
+  const client = useClient({ apiVersion: '2024-01-01' })
+  const currentYear = new Date().getFullYear()
+  const [year, setYear] = useState(String(currentYear))
+  const [loading, setLoading] = useState(true)
+  const [lines, setLines] = useState<Array<{ amount: number; channel: string; buyer: string; category?: string; month: number }>>([])
+
+  useEffect(() => {
+    setLoading(true)
+    const y = parseInt(year)
+    client.fetch<Array<{
+      createdAt?: string; channel?: string; stripeSessionId?: string; customerName?: string
+      items?: Array<{ priceExcl?: number; price?: number; quantity?: number; category?: string }>
+    }>>(
+      `*[_type == "order" && status in ["awaiting-payment", "paid"]
+         && !(_id in path("drafts.**"))
+         && createdAt >= $from && createdAt < $to] {
+        createdAt, channel, stripeSessionId,
+        "customerName": coalesce(contact->firstName + " " + contact->lastName, customerName),
+        "items": items[]{ priceExcl, price, quantity, "category": item->category }
+      }`,
+      { from: `${y}-01-01`, to: `${y + 1}-01-01` },
+    ).then(orders => {
+      setLines(orders.flatMap(o => (o.items ?? []).map(it => ({
+        amount: (it.priceExcl ?? it.price ?? 0) * (it.quantity ?? 1),
+        channel: getSource(o),
+        buyer: o.customerName || '—',
+        category: it.category,
+        month: o.createdAt ? new Date(o.createdAt).getMonth() : 0,
+      }))))
+      setLoading(false)
+    }).catch(() => setLoading(false))
+  }, [client, year])
+
+  const sumBy = useCallback((key: (l: typeof lines[number]) => string | undefined) => {
+    const map: Record<string, number> = {}
+    for (const l of lines) {
+      const k = key(l)
+      if (k) map[k] = (map[k] ?? 0) + l.amount
+    }
+    return Object.entries(map).sort((a, b) => b[1] - a[1])
+  }, [lines])
+
+  const byChannel   = useMemo(() => sumBy(l => CHANNEL_LABEL[l.channel] ?? l.channel), [sumBy])
+  const byCategory  = useMemo(() => sumBy(l => l.category), [sumBy])
+  const byCollector = useMemo(() => sumBy(l => l.buyer).slice(0, 10), [sumBy])
+  const byMonth = useMemo(() => {
+    const arr = Array(12).fill(0)
+    for (const l of lines) arr[l.month] += l.amount
+    return arr
+  }, [lines])
+
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+  const maxMonth = Math.max(...byMonth, 1)
+  const years = Array.from({ length: 6 }, (_, i) => currentYear - i)
+  const total = lines.reduce((t, l) => t + l.amount, 0)
+
+  return (
+    <div>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 20 }}>
+        <select style={s.select} value={year} onChange={e => setYear(e.target.value)}>
+          {years.map(y => <option key={y} value={y}>{y}</option>)}
+        </select>
+        <span style={{ fontSize: 12, color: '#9ca3af' }}>
+          Amounts excl. BTW, counted per line.
+        </span>
+      </div>
+
+      {loading ? <div style={{ color: '#9ca3af' }}>Loading…</div> : (
+        <>
+          <div style={s.stats}>
+            <div style={s.statCard}>
+              <div style={s.statLabel}>Revenue {year}</div>
+              <div style={s.statValue}>{fmt(total)}</div>
+            </div>
+            <div style={s.statCard}>
+              <div style={s.statLabel}>Works sold</div>
+              <div style={s.statValue}>{lines.length}</div>
+            </div>
+          </div>
+
+          <div style={{ ...s.statLabel, margin: '28px 0 12px' }}>Per month</div>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 120 }}>
+            {byMonth.map((v, i) => (
+              <div key={i} style={{ flex: 1, textAlign: 'center' }} title={fmt(v)}>
+                <div style={{ height: `${(v / maxMonth) * 100}px`, background: v ? '#111' : '#e5e7eb', borderRadius: 2, minHeight: 2 }} />
+                <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 4 }}>{MONTHS[i]}</div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ ...s.statLabel, margin: '32px 0 12px' }}>Per channel</div>
+          <Bars data={byChannel} empty={`No sales in ${year}.`} />
+
+          <div style={{ ...s.statLabel, margin: '32px 0 12px' }}>Per category</div>
+          <Bars data={byCategory} empty="No categories on the sold items." />
+
+          <div style={{ ...s.statLabel, margin: '32px 0 12px' }}>Top collectors</div>
+          <Bars data={byCollector} empty={`No sales in ${year}.`} />
+        </>
+      )}
+    </div>
+  )
+}
+
+// ── Wrapper ───────────────────────────────────────────────────────────────────
+
+export function SalesOverviewTool() {
+  const [tab, setTab] = useState<'sales' | 'analytics' | 'btw'>('sales')
+
+  return (
+    <div>
+      <div style={{ display: 'flex', gap: 4, padding: '20px 32px 0', borderBottom: '1px solid #e5e7eb' }}>
+        {([['sales', 'Sales'], ['analytics', 'Analytics'], ['btw', 'BTW / Tax']] as const).map(([key, label]) => (
+          <button
+            key={key}
+            onClick={() => setTab(key)}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              padding: '8px 14px', fontSize: 13, fontFamily: 'inherit',
+              color: tab === key ? '#111' : '#6b7280',
+              fontWeight: tab === key ? 600 : 400,
+              borderBottom: tab === key ? '2px solid #111' : '2px solid transparent',
+              marginBottom: -1,
+            }}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {tab === 'sales' && <SalesTab />}
+      {(tab === 'analytics' || tab === 'btw') && (
+        <div style={s.wrap}>{tab === 'btw' ? <VatTab /> : <AnalyticsTab />}</div>
+      )}
     </div>
   )
 }

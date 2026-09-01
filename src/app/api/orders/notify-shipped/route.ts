@@ -32,6 +32,7 @@ export async function POST(request: NextRequest) {
     customerName?:   string
     customerEmail?:  string
     status:          string
+    fulfilment?:     string
     trackingNumber?: string
     trackingCarrier?: string
     shippingEmailSentAt?: string
@@ -47,7 +48,7 @@ export async function POST(request: NextRequest) {
     }
   } | null>(
     `*[_type == "order" && _id == $orderId][0]{
-      _id, orderNumber, invoiceNumber, customerName, customerEmail, status,
+      _id, orderNumber, invoiceNumber, customerName, customerEmail, status, fulfilment,
       trackingNumber, trackingCarrier, shippingEmailSentAt, createdAt,
       items[]{ title, quantity, price },
       shippingCost, totalAmount, shippingAddress
@@ -57,7 +58,8 @@ export async function POST(request: NextRequest) {
 
   if (!order)                    return Response.json({ error: 'Order not found' }, { status: 404 })
   if (order.shippingEmailSentAt) return Response.json({ sent: false, reason: 'already_sent' })
-  if (order.status !== 'shipped' || !order.trackingNumber)
+  // Hangt aan de manier van leveren, niet aan de betaalstatus.
+  if (order.fulfilment !== 'shipped' || !order.trackingNumber)
                                  return Response.json({ sent: false, reason: 'not_shipped' })
   if (!order.customerEmail)      return Response.json({ sent: false, reason: 'no_email' })
 
