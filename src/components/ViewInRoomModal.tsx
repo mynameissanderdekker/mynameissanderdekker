@@ -17,7 +17,7 @@ interface Props {
  * - artWPct = (widthCm / 275) × 100  →  breedte als % van de foto
  * - Hoogte via CSS aspect-ratio (widthCm : heightCm)  →  geen PHOTO_H_CM nodig
  *
- * widthCm/heightCm komen uit framedDimensions (incl. lijst + passe-partout).
+ * widthCm/heightCm komen uit roomImageWidth (incl. lijst + passe-partout).
  */
 export default function ViewInRoomModal({ imageUrl, title, widthCm, heightCm, onClose }: Props) {
   const overlayRef = useRef<HTMLDivElement>(null)

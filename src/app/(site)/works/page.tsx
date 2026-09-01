@@ -80,6 +80,8 @@ interface ArtworkCard {
   isVariantCard?: boolean
   variantBadge?: string
   variantNote?: string
+  variantOnSale?: boolean
+  variantSalePrice?: number
 }
 
 interface SectionConfig {
@@ -106,22 +108,22 @@ async function getWorksData(): Promise<{ config: WorksPageConfig | null; works: 
       { next: { revalidate: 0 } },
     ),
     client.fetch<ArtworkCard[]>(
-      `*[_type == "artwork" && defined(slug.current) && showInWebshop == true] | order(featured desc, order asc, year desc){
-        _id, _type, title, year, slug, order,
+      `*[_type == "artwork" && defined(slug.current) && availableInShop == true] | order(shopFeatured desc, shopOrder asc, year desc){
+        _id, _type, title, year, slug, "order": shopOrder,
         "mainImage": { "url": coalesce(images[0].asset->url, coverImageUrl) },
-        priceIncVat, vatRate, status, category, featured, buyUrl,
+        priceIncVat, vatRate, status, category, "featured": shopFeatured, buyUrl,
         medium, dimensions
       }`,
       {},
       { next: { revalidate: 0 } },
     ),
     client.fetch<(ArtworkCard & { priceExclVAT?: number; shopVariants?: { badge: string; available?: boolean; status?: string; priceExclVAT?: number; buyUrl?: string; note?: string }[] })[]>(
-      `*[_type == "zine" && defined(category)] | order(featured desc, order asc){
-        _id, _type, title, category, status, priceIncVat, priceExclVAT, vatRate, featured, order,
+      `*[_type == "zine" && defined(category)] | order(shopFeatured desc, order asc){
+        _id, _type, title, category, status, priceIncVat, priceExclVAT, vatRate, "featured": shopFeatured, order,
         "year": null,
         "slug": { "current": coalesce(slug.current, projectSlug) },
         "mainImage": { "url": coalesce(coverImage.asset->url, coverImageUrl) },
-        shopVariants[]{ badge, available, status, priceExclVAT, buyUrl, note }
+        shopVariants[]{ badge, available, status, priceExclVAT, onSale, salePriceExclVAT, buyUrl, note, "variantImages": images[]{ asset->{ url } } }
       }`,
       {},
       { next: { revalidate: 0 } },
@@ -141,6 +143,10 @@ async function getWorksData(): Promise<{ config: WorksPageConfig | null; works: 
           const priceIncVat = v.priceExclVAT != null
             ? Math.round(v.priceExclVAT * (1 + vatRate(z) / 100) * 100) / 100
             : z.priceIncVat
+          const variantSalePrice = v.salePriceExclVAT != null
+            ? Math.round(v.salePriceExclVAT * (1 + vatRate(z) / 100) * 100) / 100
+            : undefined
+          const variantImage = v.variantImages?.[0]
           return {
             _id: `${z._id}-variant-${i}`,
             _type: z._type,
@@ -152,11 +158,13 @@ async function getWorksData(): Promise<{ config: WorksPageConfig | null; works: 
             featured: z.featured,
             order: z.order,
             slug: z.slug,
-            mainImage: z.mainImage,
+            mainImage: variantImage ? { url: variantImage.asset.url } : z.mainImage,
             buyUrl: v.buyUrl ?? z.buyUrl,
             isVariantCard: true,
             variantBadge: v.badge,
             variantNote: v.note,
+            variantOnSale: v.onSale,
+            variantSalePrice,
           } satisfies ArtworkCard
         })
       return [z as ArtworkCard, ...variants]
@@ -226,6 +234,7 @@ function WorkCard({ w }: { w: ArtworkCard }) {
   // Badge style per type
   const BADGE_STYLES: Record<string, { bg: string; color: string; icon: string }> = {
     'Signed':          { bg: '#1a1a1a', color: '#fff', icon: '✦' },
+    'Limited Edition': { bg: '#6b4f12', color: '#fff', icon: '◈' },
     'Special Edition': { bg: '#1a56c4', color: '#fff', icon: '★' },
   }
   const badgeStyle = badge ? (BADGE_STYLES[badge] ?? { bg: '#333', color: '#fff', icon: '' }) : null
@@ -256,6 +265,11 @@ function WorkCard({ w }: { w: ArtworkCard }) {
             {badgeStyle.icon && `${badgeStyle.icon} `}{badge?.toUpperCase()}
           </span>
         )}
+        {isVariant && !soldOut && w.variantOnSale && w.variantSalePrice && (
+          <span className="works-badge works-badge-sale" style={{ top: badgeStyle ? '1.6rem' : undefined, background: '#dc2626', color: '#fff', fontSize: '0.65rem', letterSpacing: '0.08em' }}>
+            SALE
+          </span>
+        )}
         {soldOut && <span className="works-badge works-badge-sold">SOLD OUT</span>}
         <div className="works-hover-overlay">{overlayLabel}</div>
       </div>
@@ -280,7 +294,14 @@ function WorkCard({ w }: { w: ArtworkCard }) {
           ].filter(Boolean).join(' · ')}
         </p>
       )}
-      {price && <p className="works-price">{price}</p>}
+      {isVariant && w.variantOnSale && w.variantSalePrice ? (
+        <p className="works-price">
+          <span style={{ color: '#dc2626' }}>{formatPrice(w.variantSalePrice)}</span>
+          {w.priceIncVat && <span style={{ color: '#999', textDecoration: 'line-through', marginLeft: '0.4em', fontSize: '0.9em' }}>{formatPrice(w.priceIncVat)}</span>}
+        </p>
+      ) : price ? (
+        <p className="works-price">{price}</p>
+      ) : null}
     </>
   )
 

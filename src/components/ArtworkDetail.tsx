@@ -20,13 +20,13 @@ export interface ArtworkData {
   images?: Array<{ asset?: { _ref: string; _id?: string; url?: string }; hotspot?: object; crop?: object }>
   roomImageUrl?: string
   showViewOnWall?: boolean
-  framedDimensions?: { widthCm?: number }
+  roomImageWidth?: number
   priceExclVAT?: number
   priceIncVat?: number
   vatRate?: number | string
   options?: Array<{ label: string; sku?: string; priceExclVAT: number; buyUrl?: string }>
   status?: string
-  showInWebshop?: boolean
+  availableInShop?: boolean
   buyUrl?: string
   editionTotal?: number
   editionAP?: number
@@ -85,7 +85,7 @@ export default function ArtworkDetail({ artwork }: { artwork: ArtworkData }) {
 
   const isSoldOut       = artwork.status === 'sold_out'
   const isEnquire       = artwork.status === 'enquire'
-  const sellInWebshop   = artwork.showInWebshop === true
+  const sellInWebshop   = artwork.availableInShop === true
   const descText        = blockText(artwork.description)
 
   // EnquirePanel expects this shape — pass clean base URL (no transform params), panel adds its own
@@ -246,7 +246,7 @@ export default function ArtworkDetail({ artwork }: { artwork: ArtworkData }) {
               <p className="text-sm text-gray-500 uppercase tracking-widest">Price on request</p>
             )}
 
-            {/* Buy — showInWebshop aan → voeg toe aan cart en ga naar /cart */}
+            {/* Buy — availableInShop aan → voeg toe aan cart en ga naar /cart */}
             {!isSoldOut && sellInWebshop && effectivePriceExclVAT && (
               <button
                 onClick={() => {
@@ -269,7 +269,7 @@ export default function ArtworkDetail({ artwork }: { artwork: ArtworkData }) {
               </button>
             )}
 
-            {/* Enquire — showInWebshop uit → slide-in contactformulier */}
+            {/* Enquire — availableInShop uit → slide-in contactformulier */}
             {!isSoldOut && !sellInWebshop && (
               <button
                 onClick={() => setEnquireOpen(true)}
@@ -303,7 +303,7 @@ export default function ArtworkDetail({ artwork }: { artwork: ArtworkData }) {
         <ViewInRoomModal
           imageUrl={artwork.roomImageUrl ?? mainUrl}
           title={artwork.title}
-          widthCm={artwork.framedDimensions?.widthCm ?? artwork.dimensions?.widthCm}
+          widthCm={artwork.roomImageWidth ?? artwork.dimensions?.widthCm}
           onClose={() => setRoomOpen(false)}
         />
       )}

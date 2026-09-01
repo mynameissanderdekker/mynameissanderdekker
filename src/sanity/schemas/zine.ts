@@ -329,7 +329,7 @@ export const zine = defineType({
 
     // ── Webshop ───────────────────────────────────────────────────────────────
     defineField({
-      name: 'showInWebshop',
+      name: 'availableInShop',
       title: 'Sell in webshop',
       type: 'boolean',
       group: 'webshop',
@@ -337,9 +337,9 @@ export const zine = defineType({
       initialValue: false,
     }),
     defineField({
-      name: 'featured',
+      name: 'shopFeatured',
       title: 'Featured (in webshop)',
-      description: 'Show in the featured grid (top section)',
+      description: 'Show in the featured grid at the top',
       type: 'boolean',
       group: 'webshop',
       initialValue: false,

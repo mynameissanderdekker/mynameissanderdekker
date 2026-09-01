@@ -21,11 +21,11 @@ export interface ArtworkItem {
 async function getAllWorks(): Promise<{ works: ArtworkItem[]; categories: string[] }> {
   const [works, categories] = await Promise.all([
     client.fetch<ArtworkItem[]>(
-      `*[_type == "artwork" && defined(slug.current) && showInWebshop == true] | order(featured desc, year desc){
+      `*[_type == "artwork" && defined(slug.current) && availableInShop == true] | order(shopFeatured desc, year desc){
         _id, title, year, slug,
         "mainImage": images[0].asset->{ url },
         "priceExclVAT": select(defined(priceIncVat) => round(priceIncVat / (1 + select(vatRate == "21" => 21, vatRate == "0" => 0, 9) / 100) * 100) / 100, priceExclVAT),
-        priceIncVat, vatRate, "options": options[]{priceExclVAT}, status, category, featured,
+        priceIncVat, vatRate, "options": options[]{priceExclVAT}, status, category, "featured": shopFeatured,
         medium, dimensions
       }`,
       {},

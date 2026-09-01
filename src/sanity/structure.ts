@@ -1,5 +1,19 @@
-import { DashboardIcon } from '@sanity/icons'
+import { AddIcon, DashboardIcon } from '@sanity/icons'
 import { DashboardTool } from './components/DashboardTool'
+import { makeNewDocumentRedirect } from './components/NewDocumentRedirect'
+
+/**
+ * Eén vorm voor "iets nieuws maken", overal hetzelfde: bovenaan de lijst, met
+ * een plus-icoon, en een klik opent meteen een leeg formulier. Overgenomen uit
+ * de gallery-template, waar dit bij artworks al zo werkte.
+ */
+function addNewItem(S: StructureBuilder, type: string, label: string) {
+  return S.listItem()
+    .title(`Add new ${label}`)
+    .id(`new-${type}`)
+    .icon(AddIcon)
+    .child(S.component(makeNewDocumentRedirect(type, label)).title(`New ${label}`))
+}
 import type { StructureBuilder, StructureResolver } from 'sanity/structure'
 import React from 'react'
 import { OrderCountBadge } from './components/OrderCountBadge'
@@ -46,6 +60,8 @@ function artworkListItem(S: StructureBuilder, categories: string[], customFilter
         .id('artwork-list')
         .title('Artworks')
         .items([
+          addNewItem(S, 'artwork', 'artwork'),
+          S.divider(),
           S.listItem()
             .title('All works')
             .id('artwork-all')
@@ -99,16 +115,16 @@ function artworkListItem(S: StructureBuilder, categories: string[], customFilter
             .child(
               S.documentTypeList('artwork')
                 .title('In webshop')
-                .filter('_type == "artwork" && showInWebshop == true && !(category in $pubCats)')
+                .filter('_type == "artwork" && availableInShop == true && !(category in $pubCats)')
                 .params({ pubCats: PUBLICATION_CATEGORIES })
-                .defaultOrdering([{ field: 'featured', direction: 'desc' }, { field: 'order', direction: 'asc' }])
+                .defaultOrdering([{ field: 'shopFeatured', direction: 'desc' }, { field: 'shopOrder', direction: 'asc' }])
             ),
           ...(customFilters.length > 0 ? [S.divider()] : []),
           ...customFilters.map(f => {
             const parts: string[] = ['_type == "artwork"']
             if (f.status) parts.push(`status == "${f.status}"`)
             if (f.category) parts.push(`category == "${f.category}"`)
-            if (f.inWebshop) parts.push('showInWebshop == true')
+            if (f.inWebshop) parts.push('availableInShop == true')
             return S.listItem()
               .title(`★ ${f.title}`)
               .id(f._id)
@@ -138,6 +154,8 @@ function publicationsListItem(S: StructureBuilder) {
         .id('publications-list')
         .title('Publications')
         .items([
+          addNewItem(S, 'publication', 'publication'),
+          S.divider(),
           S.listItem()
             .title('All publications')
             .id('publications-all')
@@ -152,8 +170,8 @@ function publicationsListItem(S: StructureBuilder) {
             .child(
               S.documentTypeList('zine')
                 .title('In webshop')
-                .filter('_type == "zine" && showInWebshop == true')
-                .defaultOrdering([{ field: 'featured', direction: 'desc' }, { field: 'title', direction: 'asc' }])
+                .filter('_type == "zine" && availableInShop == true')
+                .defaultOrdering([{ field: 'shopFeatured', direction: 'desc' }, { field: 'title', direction: 'asc' }])
             ),
         ])
     )
@@ -169,6 +187,8 @@ function contactsListItem(S: StructureBuilder) {
         .id('contacts-list')
         .title('Contacts')
         .items([
+          addNewItem(S, 'contact', 'contact'),
+          S.divider(),
           S.listItem()
             .title('All contacts')
             .id('contacts-all')
@@ -413,6 +433,8 @@ export const structure: StructureResolver = async (S, { getClient }) => {
             .id('proposals-list')
             .title('Proposals / Offertes')
             .items([
+              addNewItem(S, 'proposal', 'proposal'),
+              S.divider(),
               S.listItem()
                 .title('All proposals')
                 .id('proposals-all')
@@ -440,6 +462,8 @@ export const structure: StructureResolver = async (S, { getClient }) => {
             .id('exhibitions-list')
             .title('Exhibitions')
             .items([
+              addNewItem(S, 'exhibition', 'exhibition'),
+              S.divider(),
               S.listItem()
                 .title('All exhibitions')
                 .id('exhibition-all')
@@ -480,6 +504,8 @@ export const structure: StructureResolver = async (S, { getClient }) => {
             .id('artfairs-list')
             .title('Art Fairs')
             .items([
+              addNewItem(S, 'artFair', 'art fair'),
+              S.divider(),
               S.listItem()
                 .title('All art fairs')
                 .id('artfair-all')

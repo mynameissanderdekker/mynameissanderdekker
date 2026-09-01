@@ -18,6 +18,7 @@ import Link from 'next/link'
 
 export interface AnnouncedExhibition {
   _id: string
+  _type?: 'exhibition' | 'artFair'
   title: string
   slug?: string
   hasPage?: boolean
@@ -63,7 +64,9 @@ export default function ExhibitionAnnouncement({ exhibition }: { exhibition: Ann
   }
 
   const dates = [fmt(exhibition.startDate), fmt(exhibition.endDate)].filter(Boolean).join(' – ')
-  const href = exhibition.hasPage && exhibition.slug ? `/exhibitions/${exhibition.slug}` : null
+  // Een beurs woont op een andere route dan een expositie.
+  const base = exhibition._type === 'artFair' ? '/art-fairs' : '/exhibitions'
+  const href = exhibition.hasPage && exhibition.slug ? `${base}/${exhibition.slug}` : null
 
   return (
     <div
@@ -108,7 +111,7 @@ export default function ExhibitionAnnouncement({ exhibition }: { exhibition: Ann
 
         <div style={{ padding: '20px 22px 24px' }}>
           <p style={{ margin: 0, fontSize: 11, letterSpacing: '.18em', textTransform: 'uppercase', color: '#9ca3af' }}>
-            Now on view
+            {exhibition._type === 'artFair' ? 'At the fair' : 'Now on view'}
           </p>
           <h2 style={{ margin: '8px 0 6px', fontSize: 21, fontWeight: 500, lineHeight: 1.25 }}>
             {exhibition.title}

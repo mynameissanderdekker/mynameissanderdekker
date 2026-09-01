@@ -36,6 +36,7 @@ const client = createClient({
 
 const MOCKUP_DIR = resolve(__dir, 'artwork-images-mockup')
 const PHOTO_DIR  = resolve(__dir, 'artwork-images')
+const UPLOADS_DIR = resolve(__dir, '../Uploads')
 
 const IMAGE_EXTS = ['.jpg', '.jpeg', '.png', '.webp']
 
@@ -74,7 +75,10 @@ console.log(`\n📦  ${artworks.length} artworks in Sanity`)
 
 const mockups = await readImageDir(MOCKUP_DIR)
 const photos  = await readImageDir(PHOTO_DIR)
-console.log(`🖼️   ${mockups.size} mockups  |  ${photos.size} raw photos\n`)
+const uploads = await readImageDir(UPLOADS_DIR)
+// Merge uploads into photos (uploads act as fallback for missing raw photos)
+for (const [key, val] of uploads) { if (!photos.has(key)) photos.set(key, val) }
+console.log(`🖼️   ${mockups.size} mockups  |  ${photos.size} raw photos (incl. ${uploads.size} from Uploads/)\n`)
 
 let updated = 0, skipped = 0, noMatch = 0
 
@@ -87,8 +91,8 @@ for (const aw of artworks) {
 
   const hasImages = (aw.images?.length ?? 0) > 0
 
-  // Auto-force when a mockup is available (mockup must become images[0])
-  const shouldUpdate = !hasImages || mockup || FORCE
+  // Only upload if artwork has no images yet, or if --force is passed
+  const shouldUpdate = !hasImages || FORCE
   if (!shouldUpdate) {
     console.log(`  ⏭️   Skip  "${aw.title}"`)
     skipped++
