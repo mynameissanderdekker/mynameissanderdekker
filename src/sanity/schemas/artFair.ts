@@ -1,9 +1,14 @@
 import { defineField, defineType } from 'sanity'
+import { ShareArtFairRoomLink } from '../components/ShareRoomLink'
 
 export const artFair = defineType({
   name: 'artFair',
   title: 'Art Fair',
   type: 'document',
+  // Begin- en einddatum horen bij elkaar en passen naast elkaar.
+  fieldsets: [
+    { name: 'dates', title: ' ', options: { columns: 2, collapsible: false } },
+  ],
   fields: [
     defineField({
       name: 'name',
@@ -39,11 +44,13 @@ export const artFair = defineType({
     }),
     defineField({
       name: 'startDate',
+      fieldset: 'dates',
       title: 'Start date',
       type: 'date',
     }),
     defineField({
       name: 'endDate',
+      fieldset: 'dates',
       title: 'End date',
       type: 'date',
     }),
@@ -107,6 +114,14 @@ export const artFair = defineType({
       title: 'Notes',
       type: 'text',
       rows: 2,
+    }),
+    defineField({
+      name: 'roomLink',
+      title: 'Deel prijslijst met klant',
+      type: 'string',
+      readOnly: true,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      components: { field: ShareArtFairRoomLink as any },
     }),
   ],
   preview: {

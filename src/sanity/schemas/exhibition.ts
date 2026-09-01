@@ -1,4 +1,5 @@
 import { defineField, defineType } from 'sanity'
+import { ShareExhibitionRoomLink } from '../components/ShareRoomLink'
 
 export const exhibition = defineType({
   name: 'exhibition',
@@ -15,6 +16,10 @@ export const exhibition = defineType({
       name: 'startDateAsc',
       by: [{ field: 'startDate', direction: 'asc' }],
     },
+  ],
+  // Begin- en einddatum horen bij elkaar en passen naast elkaar.
+  fieldsets: [
+    { name: 'dates', title: ' ', options: { columns: 2, collapsible: false } },
   ],
   fields: [
     defineField({
@@ -43,11 +48,13 @@ export const exhibition = defineType({
     }),
     defineField({
       name: 'startDate',
+      fieldset: 'dates',
       title: 'Start date',
       type: 'date',
     }),
     defineField({
       name: 'endDate',
+      fieldset: 'dates',
       title: 'End date',
       type: 'date',
     }),
@@ -120,6 +127,14 @@ export const exhibition = defineType({
       description: 'Press articles about this exhibition. Tip: also link from the Press document itself (press.exhibitions[]) — keep both in sync.',
       type: 'array',
       of: [{ type: 'reference', to: [{ type: 'press' }], options: { disableNew: true } }],
+    }),
+    defineField({
+      name: 'roomLink',
+      title: 'Deel prijslijst met klant',
+      type: 'string',
+      readOnly: true,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      components: { field: ShareExhibitionRoomLink as any },
     }),
   ],
   preview: {

@@ -10,7 +10,7 @@ export default defineType({
   groups: [
     { name: 'site',    title: 'Site', default: true },
     { name: 'social',  title: 'Social'  },
-    { name: 'contact', title: 'Contact' },
+    { name: 'contact', title: 'Locations' },
     { name: 'invoice', title: 'Invoice & business' },
     { name: 'legal',   title: 'Legal'   },
   ],
@@ -77,8 +77,6 @@ export default defineType({
             options: {
               list: [
                 { title: 'Studio',   value: 'studio'  },
-                { title: 'Gallery',  value: 'gallery' },
-                { title: 'Pop-up',   value: 'popup'   },
                 { title: 'Office',   value: 'office'  },
                 { title: 'Storage',  value: 'storage' },
               ],
@@ -118,7 +116,7 @@ export default defineType({
         preview: {
           select: { label: 'label', name: 'name', street: 'street', city: 'city', inv: 'useForInvoices', web: 'showOnWebsite' },
           prepare({ label, name, street, city, inv, web }: any) {
-            const KIND: Record<string, string> = { gallery: 'Gallery', studio: 'Studio', popup: 'Pop-up', office: 'Office', storage: 'Storage' }
+            const KIND: Record<string, string> = { studio: 'Studio', office: 'Office', storage: 'Storage' }
             const marks = [inv ? 'invoices' : null, web ? 'website' : null].filter(Boolean).join(' \u00b7 ')
             return {
               title: name || KIND[label] || 'Address',
@@ -151,10 +149,9 @@ export default defineType({
       ],
     }),
 
-    // ── Contact ─────────────────────────────────────────────────────────────
     defineField({
       name: 'email',
-      group: 'contact',
+      group: 'site',
       title: 'Contact email',
       type: 'string',
     }),
