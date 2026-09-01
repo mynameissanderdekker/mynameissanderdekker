@@ -5,17 +5,38 @@ import type { SanityClient } from '@sanity/client'
 import { buildShippedEmail } from '@/lib/orderEmails'
 import { generateInvoicePdf } from '@/lib/generateInvoicePdf'
 
-const FROM   = 'Sander Dekker <hello@mynameissanderdekker.com>'
+const FROM_FALLBACK = 'Sander Dekker <hello@mynameissanderdekker.com>'
 
-// Generate invoice number: INV-YYYY-NNNN
+/**
+ * Volgend factuurnummer.
+ *
+ * Telde eerder de bestaande facturen en deed +1 — dan levert een verwijderde
+ * order hetzelfde nummer nog een keer op. Nu het hóógste bestaande nummer als
+ * vertrekpunt, en gedeeld met de offertes zodat een nummer nooit twee keer
+ * wordt uitgegeven.
+ */
 async function nextInvoiceNumber(sanity: SanityClient): Promise<string> {
-  const year  = new Date().getFullYear()
-  const count = await sanity.fetch<number>(
-    `count(*[_type == "order" && defined(invoiceNumber) && invoiceNumber match $prefix])`,
-    { prefix: `INV-${year}-*` }
-  )
-  const seq = String(count + 1).padStart(4, '0')
-  return `INV-${year}-${seq}`
+  const yy = String(new Date().getFullYear()).slice(-2)
+  const prefix = (await sanity.fetch<string | null>(
+    `*[_type == "siteSettings"][0].invoiceSettings.invoicePrefix`
+  )) ?? 'SDK'
+  const base = `${prefix}-${yy}-`
+
+  const [lastOrder, lastProposal] = await Promise.all([
+    sanity.fetch<string | null>(
+      `*[_type == "order" && invoiceNumber match $p] | order(invoiceNumber desc)[0].invoiceNumber`,
+      { p: `${base}*` }
+    ),
+    sanity.fetch<string | null>(
+      `*[_type == "proposal" && proposalNumber match $p] | order(proposalNumber desc)[0].proposalNumber`,
+      { p: `PROP-${base}*` }
+    ),
+  ])
+  const seqFrom = (v: string | null) => {
+    const n = parseInt(v?.split('-').pop() ?? '0', 10)
+    return isNaN(n) ? 0 : n
+  }
+  return `${base}${String(Math.max(seqFrom(lastOrder), seqFrom(lastProposal)) + 1).padStart(3, '0')}`
 }
 
 export async function POST(request: NextRequest) {
@@ -66,6 +87,21 @@ export async function POST(request: NextRequest) {
   // ── Generate invoice number (if not already set) ─────────────────────────
   const invoiceNumber = order.invoiceNumber ?? await nextInvoiceNumber(sanity)
 
+  // Afzender uit Shop Settings, met de oude waarde als terugval.
+  const fromEmail = await sanity.fetch<string | null>(
+    `*[_type == "shopSettings"][0].fromEmail`
+  )
+  const from = fromEmail ? `Sander Dekker <${fromEmail}>` : FROM_FALLBACK
+
+  // ── Verkopersgegevens uit Site Settings ──────────────────────────────────
+  // Stonden hardcoded in de PDF-generator. Ontbrekende velden vallen daar
+  // terug op de oude waarden, dus een lege instelling breekt niets.
+  const seller = await sanity.fetch<{
+    legalName?: string; address?: string; postalCode?: string; city?: string
+    country?: string; kvkNumber?: string; vatNumber?: string
+    iban?: string; bic?: string; website?: string
+  } | null>(`*[_type == "siteSettings"][0].invoiceSettings`)
+
   // ── Generate PDF ─────────────────────────────────────────────────────────
   const pdfBytes = await generateInvoicePdf({
     invoiceNumber,
@@ -77,6 +113,18 @@ export async function POST(request: NextRequest) {
     items:          order.items ?? [],
     shippingCost:   order.shippingCost,
     totalAmount:    order.totalAmount ?? 0,
+    seller: {
+      name:    seller?.legalName,
+      attn:    seller?.legalName,
+      street:  seller?.address,
+      postal:  [seller?.postalCode, seller?.city].filter(Boolean).join(' '),
+      country: seller?.country,
+      website: seller?.website,
+      iban:    seller?.iban,
+      bic:     seller?.bic,
+      btw:     seller?.vatNumber,
+      kvk:     seller?.kvkNumber,
+    },
   })
 
   // ── Upload PDF to Sanity as file asset ────────────────────────────────────
@@ -102,7 +150,7 @@ export async function POST(request: NextRequest) {
   })
 
   await resend.emails.send({
-    from:    FROM,
+    from,
     to:      order.customerEmail,
     subject,
     text,

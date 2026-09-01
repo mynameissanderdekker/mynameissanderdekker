@@ -96,6 +96,7 @@ interface Settings {
     legalName?: string; address?: string; postalCode?: string; city?: string
     country?: string; phone?: string; kvkNumber?: string; vatNumber?: string
     iban?: string; bic?: string; invoicePrefix?: string; paymentTerms?: number; invoiceNote?: string
+    website?: string
   }
   logoUrl?: string
 }
@@ -191,6 +192,7 @@ export default async function InvoicePage({ params, searchParams }: Props) {
     iban      ? `IBAN: ${iban}`      : null,
     bic       ? `BIC: ${bic}`        : null,
     senderEmail || null,
+    is.website || null,
   ].filter(Boolean)
 
   // ── Render ───────────────────────────────────────────────────────────────

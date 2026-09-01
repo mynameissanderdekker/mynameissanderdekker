@@ -1,12 +1,31 @@
 /**
  * Invoice PDF generator — pdf-lib
  *
- * Sander Dekker · Leliendaalstraat 1 · 1013BP Amsterdam · Nederland
- * IBAN: NL54 BUNQ 2105 4317 20  ·  BTW: NL002124967B84  ·  KvK: 52124819
+ * De verkopersgegevens stonden hier hardcoded. De webfactuur las ze al uit
+ * Site Settings → Invoice & business; de PDF die de klant krijgt niet. Twee
+ * bronnen voor dezelfde gegevens, en de PDF won.
+ *
+ * Nu komen ze mee als `seller` uit de aanroeper. De oude waarden blijven als
+ * terugval, zodat er niets breekt zolang `invoiceSettings` nog niet is
+ * ingevuld — maar zodra dat wel zo is, wint de instelling.
  */
 import { PDFDocument, PDFPage, rgb, StandardFonts } from 'pdf-lib'
 
-const SELLER = {
+export interface InvoiceSeller {
+  name?:    string
+  attn?:    string
+  street?:  string
+  postal?:  string
+  country?: string
+  email?:   string
+  website?: string
+  iban?:    string
+  bic?:     string
+  btw?:     string
+  kvk?:     string
+}
+
+const SELLER_FALLBACK = {
   name:    'My name is Sander Dekker',
   attn:    'Sander Dekker',
   street:  'Leliendaalstraat 1',
@@ -40,6 +59,8 @@ export interface InvoiceData {
   items:          InvoiceItem[]
   shippingCost?:  number
   totalAmount:    number
+  /** Uit Site Settings → Invoice & business. Ontbrekende velden vallen terug. */
+  seller?:        InvoiceSeller
 }
 
 // ── helpers ────────────────────────────────────────────────────────────────────
@@ -71,6 +92,21 @@ function drawLine(page: PDFPage, x1: number, y1: number, x2: number, y2: number,
 // ── main ───────────────────────────────────────────────────────────────────────
 
 export async function generateInvoicePdf(data: InvoiceData): Promise<Uint8Array> {
+  // Per veld terugvallen, niet per blok: heeft iemand alleen een IBAN
+  // ingevuld, dan hoort de rest niet ineens leeg te zijn.
+  const SELLER = {
+    name:    data.seller?.name    || SELLER_FALLBACK.name,
+    attn:    data.seller?.attn    || SELLER_FALLBACK.attn,
+    street:  data.seller?.street  || SELLER_FALLBACK.street,
+    postal:  data.seller?.postal  || SELLER_FALLBACK.postal,
+    country: data.seller?.country || SELLER_FALLBACK.country,
+    email:   data.seller?.email   || SELLER_FALLBACK.email,
+    iban:    data.seller?.iban    || SELLER_FALLBACK.iban,
+    bic:     data.seller?.bic     || SELLER_FALLBACK.bic,
+    btw:     data.seller?.btw     || SELLER_FALLBACK.btw,
+    kvk:     data.seller?.kvk     || SELLER_FALLBACK.kvk,
+  }
+
   const doc    = await PDFDocument.create()
   const page   = doc.addPage([595.28, 841.89]) // A4
   const { height } = page.getSize()

@@ -219,6 +219,7 @@ export default defineType({
         defineField({ name: 'vatNumber', title: 'BTW-nummer', type: 'string', description: 'e.g. NL000000000B01' }),
         defineField({ name: 'iban', title: 'IBAN', type: 'string' }),
         defineField({ name: 'bic', title: 'BIC / SWIFT', type: 'string' }),
+        defineField({ name: 'website', title: 'Website on documents', type: 'string', description: 'Shown in the footer of invoices and PDFs. E.g. mynameissanderdekker.com' }),
         defineField({ name: 'invoicePrefix', title: 'Invoice number prefix', type: 'string', initialValue: 'SDK', description: 'Prefix for invoice numbers, e.g. "SDK"' }),
         defineField({ name: 'paymentTerms', title: 'Payment terms (days)', type: 'number', initialValue: 14 }),
         defineField({ name: 'invoiceNote', title: 'Invoice footer note', type: 'string', description: 'Optional extra note shown in payment box' }),

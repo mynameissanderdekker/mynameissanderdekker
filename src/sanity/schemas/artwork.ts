@@ -357,12 +357,31 @@ export const artwork = defineType({
       group: 'logistics',
       hidden: ({ document }) => !document?.currentLocation,
     }),
+    // Achter een toggle: dit speelt pas zodra een werk verzekerd of in
+    // consignatie is. Zonder die schakelaar staan er drie velden op Logistics
+    // die bij verreweg de meeste werken leeg blijven.
+    defineField({
+      name: 'trackValue',
+      title: 'Track insurance and commission',
+      type: 'boolean',
+      group: 'logistics',
+      initialValue: false,
+    }),
+    defineField({
+      name: 'insuranceValue',
+      title: 'Insured value (€)',
+      description: 'Used on the packing list when the work travels.',
+      type: 'number',
+      group: 'logistics',
+      hidden: ({ document }) => !document?.trackValue,
+    }),
     defineField({
       name: 'commissionPct',
       title: 'Gallery commission (%)',
-      description: 'E.g. 50 = gallery keeps 50%, artist receives 50%',
+      description: 'E.g. 50 = gallery keeps 50%, you receive 50%',
       type: 'number',
-      group: 'details',
+      group: 'logistics',
+      hidden: ({ document }) => !document?.trackValue,
     }),
     defineField({
       name: 'additionalStatusInfo',

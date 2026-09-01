@@ -47,6 +47,32 @@ export const privateSale = defineType({
       type: 'boolean',
       initialValue: true,
     }),
+    // Bepaalt hoe de prijs op de gedeelde lijst wordt getoond: incl. BTW,
+    // excl. BTW, of 0% bij export. Zelfde keuze als op het contact — daar heet
+    // de derde waarde `export`. De gallery-template gebruikt op dit ene veld
+    // `world` en op het contact `export`; twee namen voor hetzelfde geval.
+    defineField({
+      name: 'clientLocation',
+      title: 'Client location',
+      type: 'string',
+      initialValue: 'nl',
+      hidden: ({ document }) => !document?.showPrices,
+      options: {
+        list: [
+          { title: 'Netherlands (incl. BTW)', value: 'nl' },
+          { title: 'EU (excl. BTW)', value: 'eu' },
+          { title: 'Outside EU (0%)', value: 'export' },
+        ],
+        layout: 'radio',
+        direction: 'horizontal',
+      },
+    }),
+    defineField({
+      name: 'occasion',
+      title: 'Occasion',
+      type: 'string',
+      description: 'E.g. "Art Rotterdam 2026" — shown as the subtitle on the shared list.',
+    }),
     defineField({
       name: 'password',
       title: 'Password',
