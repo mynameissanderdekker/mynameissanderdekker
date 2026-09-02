@@ -178,3 +178,24 @@ Nog niet gelijkgetrokken met de gallery-template, bewust: `purchases[]` heet
 hier `soldVia`/`price`/`editionNumber` tegenover `channel`/`priceExVat` daar.
 Dat is echte data en dus een migratie.
 
+---
+
+## Uitrollen: `./scripts/ship.sh`
+
+Schrijven en testen gebeurt in de sessie; committen, pushen en Vercel hebben
+sleutels nodig die alleen op Sanders machine staan. Dat laatste is één commando:
+
+```bash
+./scripts/ship.sh "wat je hebt gedaan"   # add (alleen gewijzigde bestanden), commit, push
+./scripts/ship.sh --env                  # ook de Turnstile-sleutels naar Vercel
+./scripts/ship.sh --dry                  # eerst laten zien wat er zou gebeuren
+```
+
+De push naar `main` start de productiebuild — `vercel --prod` is alleen nodig
+als je buiten git om iets wilt uitrollen, of nadat je een env-variabele hebt
+gewijzigd.
+
+Het script doet bewust **geen** `git add -A`: nieuwe bestanden worden getoond en
+apart bevestigd. Staat je tak niet op `main`, dan stopt hij en zegt hoe je
+samenvoegt. `--env` weigert een sleutelpaar dat niet van hetzelfde widget komt
+of dat Cloudflare zelf afkeurt.
