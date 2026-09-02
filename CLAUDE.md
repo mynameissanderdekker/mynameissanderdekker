@@ -104,3 +104,41 @@ prijslijsten, verkoop registreren, contact toevoegen en werk reserveren. Voor ee
 kunstenaar is het equivalent een open studio of een eigen presentatie; de
 tegenhanger van "work submissions" is hier `loan` — werk dat je uitleent aan
 galeries.
+
+---
+
+## Webshop: de server bepaalt prijs, voorraad en korting
+
+`src/lib/checkoutPricing.ts` — `priceCart()` en `applyCoupon()`. De browser
+stuurt alleen `id` (eventueel `<id>::<sku of label>` voor een uitvoering) en
+`quantity`; prijs, tarief, voorraad en de kortingscode bepaalt de server, tegen
+het servertotaal. `create-session` zet netto, tarief, variant en `artworkId` in
+de Stripe-metadata; de webhook schrijft ze op de orderregel, mét `item`-verwijzing.
+
+Waarom: `priceIncl` uit de winkelwagen ging rechtstreeks naar Stripe, en de
+kortingscode kwam als kant-en-klaar bedrag binnen — een verzonnen coupon van
+100% werd gewoon toegepast. `scripts/testrun-webshop.mts` probeert beide.
+
+---
+
+## Admin-toegang en ordertotalen
+
+Zelfde `adminAuth.ts` als de gallery-template, gedeeld via `sync-shared.mjs`:
+fail closed zonder `ADMIN_PASSWORD`, HMAC in de cookie in plaats van het
+wachtwoord. Alle routes die `admin_session` lazen gebruiken nu
+`isValidAdminCookie()` of `isAdminRequest()`.
+
+`src/middleware.ts` doet hetzelfde als de gallery-template, maar staat **niet**
+in `sync-shared.mjs`: daar is de admin-auth samengevoegd met site-eigen dingen
+in `proxy.ts` (Next.js 16 staat geen aparte `middleware.ts` ernaast toe). Een
+wijziging aan de admin-logica daar komt hier dus niet vanzelf aan — met de hand
+overnemen.
+
+`manual-sale` rekent `totalAmount` met het tarief van de **klant**
+(`vatTreatment(clientLocation)`), schrijft `totalExcl`, en zet per regel
+`item`, `priceExcl` en `vatRate`.
+
+Nog niet gelijkgetrokken met de gallery-template, bewust: `purchases[]` heet
+hier `soldVia`/`price`/`editionNumber` tegenover `channel`/`priceExVat` daar.
+Dat is echte data en dus een migratie.
+
