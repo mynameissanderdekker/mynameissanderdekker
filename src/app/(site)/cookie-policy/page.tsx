@@ -24,7 +24,25 @@ export default function CookiePolicyPage() {
 
       <h3 style={{ fontSize: '1rem', fontWeight: 700, marginTop: '1.5rem', marginBottom: '0.4rem' }}>Essential cookies</h3>
       <p>
-        These cookies are necessary for the website to function. They cannot be switched off. They include cookies that enable bot-detection (via Cloudflare Turnstile) when you use the newsletter sign-up form.
+        These cookies are necessary for the website to function. They cannot be switched off. They include cookies that enable bot-detection (via Cloudflare Turnstile) on the newsletter sign-up, contact and artwork enquiry forms.
+      </p>
+
+      {/* Cloudflare vereist deze vermelding zodra het widget in Invisible-modus
+          draait: de bezoeker ziet dan niets, dus moet hier staan wat er gebeurt. */}
+      <h2 style={{ fontSize: '1.1rem', fontWeight: 700, marginTop: '2rem', marginBottom: '0.5rem' }}>Bot protection (Cloudflare Turnstile)</h2>
+      <p>
+        To keep our forms free of automated abuse, we use Cloudflare Turnstile on the newsletter sign-up,
+        contact and artwork enquiry forms. Turnstile runs invisibly in the background: you do not need to
+        solve a puzzle or tick a box. To determine whether a submission comes from a person, Cloudflare
+        processes technical data such as your IP address and characteristics of your browser and device.
+      </p>
+      <p style={{ marginTop: '0.5rem' }}>
+        This data is used only to detect automated abuse. It is not used for advertising, and no profile
+        of you is built. See Cloudflare&apos;s{' '}
+        <a href="https://www.cloudflare.com/turnstile-privacy-policy/" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'underline' }}>
+          Turnstile Privacy Addendum
+        </a>{' '}
+        for details.
       </p>
 
       <h3 style={{ fontSize: '1rem', fontWeight: 700, marginTop: '1.5rem', marginBottom: '0.4rem' }}>Payment cookies (third-party)</h3>

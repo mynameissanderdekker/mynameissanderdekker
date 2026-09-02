@@ -70,6 +70,14 @@ function toegestaneHosts(): Set<string> {
     hosts.add('localhost')
     hosts.add('127.0.0.1')
   }
+
+  // `www.` erbij, en andersom. Een bezoeker die op www.<site> binnenkomt op een
+  // domein dat niet doorstuurt, levert een token met die hostname — en dat zou
+  // hier stranden terwijl er niets mis is. Beide vormen zijn hetzelfde domein.
+  for (const h of [...hosts]) {
+    if (h.startsWith('www.')) hosts.add(h.slice(4))
+    else if (h.includes('.')) hosts.add(`www.${h}`)
+  }
   return hosts
 }
 
