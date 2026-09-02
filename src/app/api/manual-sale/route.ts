@@ -125,8 +125,12 @@ export async function POST(req: NextRequest) {
     .commit()
 
   // ── Order document aanmaken ───────────────────────────────────────────
-  const totalIncl = body.items.reduce((sum, i) => sum + i.priceExclVAT * (1 + i.vatRate / 100), 0)
-  const totalExcl = body.items.reduce((sum, i) => sum + i.priceExclVAT, 0)
+  // Op centen afronden. Zonder dit belandt er drijvende-komma-ruis in een
+  // boekhoudbedrag — €3000 excl. plus 9% werd €3270.0000000000005 — en die
+  // ruis telt door in de omzet- en BTW-overzichten.
+  const cent = (n: number) => Math.round(n * 100) / 100
+  const totalIncl = cent(body.items.reduce((sum, i) => sum + i.priceExclVAT * (1 + i.vatRate / 100), 0))
+  const totalExcl = cent(body.items.reduce((sum, i) => sum + i.priceExclVAT, 0))
 
   await sanity.create({
     _type:         'order',
@@ -155,7 +159,7 @@ export async function POST(req: NextRequest) {
       _key:     crypto.randomUUID(),
       title:    `${item.artworkTitle}${item.artworkYear ? ` (${item.artworkYear})` : ''}${item.copyNumber ? ` — ${item.copyNumber}` : ''}`,
       quantity: 1,
-      price:    item.priceExclVAT * (1 + item.vatRate / 100),
+      price:    cent(item.priceExclVAT * (1 + item.vatRate / 100)),
       vatRate:  item.vatRate,
     })),
     totalAmount: totalIncl,

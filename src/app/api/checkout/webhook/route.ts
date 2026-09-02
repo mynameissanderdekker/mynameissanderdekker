@@ -5,6 +5,7 @@ import { getResendClient } from '@/lib/resend'
 import { getSanityWriteClient } from '@/lib/sanityClient'
 import { syncToMailchimp } from '@/lib/mailchimp'
 import { markSold } from '@/lib/markSold'
+import { nextNumber } from '@/lib/nextNumber'
 // Terugval als Shop Settings nog niet is ingevuld. De instelling wint, zodat
 // je het adres kunt wijzigen zonder de code aan te raken.
 const FROM_FALLBACK   = 'Sander Dekker <hello@mynameissanderdekker.com>'
@@ -75,7 +76,11 @@ export async function POST(req: NextRequest) {
       parsedItems = titles.map(title => ({ title, price: 0, quantity: 1 }))
     }
 
-    const orderNumber = `SD-${Date.now()}`
+    // Hetzelfde nummer als de verkooptool en de offerte gebruiken. Hier stond
+    // `SD-${Date.now()}`, dus webshopbestellingen kregen een tijdstempel naast
+    // de doorlopende factuurnummering — twee reeksen, waarvan er één niet aan
+    // de nummeringseis voldoet.
+    const orderNumber = await nextNumber(sanity, { type: 'invoice' })
 
     // ── Verhoog coupon usageCount indien gebruikt ─────────────────────────
     const couponSanityId = session.metadata?.couponSanityId

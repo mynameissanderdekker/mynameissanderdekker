@@ -54,10 +54,10 @@ export function ProposalCompletion() {
    *
    * Het nummer kwam alleen van de knop "Genereer nummer" op het veld zelf.
    * Vergat iemand die, dan ging de offerte naamloos de deur uit en viel de
-   * koppeling met de factuur stil weg: `/api/manual-sale` laat de factuur de
-   * reeks van de offerte volgen (PROP-<prefix>-26-003 → <prefix>-26-003), maar
-   * zonder nummer valt hij terug op het eerstvolgende vrije. Belt de klant
-   * over "offerte 003", dan is er niets te vinden.
+   * koppeling met de factuur stil weg: de verkoop laat de factuur de reeks
+   * van de offerte volgen (PROP-<prefix>-26-003 → <prefix>-26-003), maar zonder
+   * nummer valt hij terug op het eerstvolgende vrije. Belt de klant over
+   * "offerte 003", dan is er niets te vinden.
    *
    * Versturen is het moment waarop het nummer moet bestaan — daarvoor is een
    * offerte een klad, daarna een stuk waar de klant naar verwijst.
