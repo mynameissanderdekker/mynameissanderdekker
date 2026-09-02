@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "@marsidev/react-turnstile": "^1.5.3",
-    "@mollie/api-client": "^4.6.0",
     "@next/third-parties": "^16.2.12",
     "@sanity/image-url": "^2.1.1",
     "@sanity/vision": "^4.22.0",

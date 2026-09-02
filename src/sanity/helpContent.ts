@@ -59,11 +59,11 @@ export const HELP_FAQS: HelpFAQ[] = [
     id: 'webshop',
     nl: {
       q: 'Hoe zet ik een werk in de webshop?',
-      a: 'Open het kunstwerk → Webshop-tab. Zet "Sell in webshop" aan en voeg een kooplink (Mollie/Stripe) toe. Sla op en publiceer.',
+      a: 'Open het kunstwerk → Webshop-tab. Zet "Sell in webshop" aan en voeg een kooplink (Stripe) toe. Sla op en publiceer.',
     },
     en: {
       q: 'How do I put an artwork in the webshop?',
-      a: 'Open the artwork → Webshop tab. Enable "Sell in webshop" and add a buy link (Mollie/Stripe). Save and publish.',
+      a: 'Open the artwork → Webshop tab. Enable "Sell in webshop" and add a buy link (Stripe). Save and publish.',
     },
   },
   {
