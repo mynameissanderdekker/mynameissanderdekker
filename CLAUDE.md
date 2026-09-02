@@ -119,6 +119,23 @@ Waarom: `priceIncl` uit de winkelwagen ging rechtstreeks naar Stripe, en de
 kortingscode kwam als kant-en-klaar bedrag binnen — een verzonnen coupon van
 100% werd gewoon toegepast. `scripts/testrun-webshop.mts` probeert beide.
 
+**De korting hoort óók op de order.** Stripe trok hem van het betaalbedrag af,
+maar het orderdocument bewaarde alleen de code: de regels telden op tot méér dan
+er betaald was, zonder dat ergens stond waarom. `create-session` zet nu soort,
+waarde en bedrag in de metadata; de webhook schrijft `discountPercent` (bij een
+percentage) en `discount`. Let op: **`discount` is exclusief BTW** — de coupon
+rekent op het bedrag inclusief, dus de webhook rekent evenredig terug. De
+factuurpagina trekt `discount` van het nettobedrag af, dus alleen zo komt de
+factuur uit op wat Stripe heeft afgeschreven.
+
+**`totalExcl` staat naast `totalAmount`**, met dezelfde betekenis als in de
+verkooptool: netto, ná korting, zonder verzending.
+
+**Een bestaand contact wordt aangevuld, niet overschreven.** Het bezorgadres van
+één bestelling ging over het adres in het CRM heen — ook bij een cadeau naar
+iemand anders. De webhook vult nu alleen lege velden, inclusief `clientLocation`
+en `invoiceLanguage` (`'nl'`, want de webshop rekent inclusief BTW af).
+
 ---
 
 ## Admin-toegang en ordertotalen

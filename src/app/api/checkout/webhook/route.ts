@@ -76,6 +76,30 @@ export async function POST(req: NextRequest) {
       parsedItems = titles.map(title => ({ title, price: 0, quantity: 1 }))
     }
 
+    // ── Netto en korting ──────────────────────────────────────────────────
+    // `totalAmount` is wat de klant betaalt (incl. BTW). Het nettobedrag stond
+    // er niet naast, terwijl de verkooptool het wél schrijft: de omzetcijfers
+    // lazen `null` voor precies de bestellingen die vanzelf binnenkomen.
+    //
+    // De korting hoort er ook bij. Stripe trok hem van het betaalbedrag af,
+    // maar de order bewaarde alleen de code — de regels telden dus op tot een
+    // hoger bedrag dan er betaald was, zonder dat ergens stond waarom.
+    const cent = (n: number) => Math.round(n * 100) / 100
+    const brutoSubtotaal = parsedItems.reduce((s, i) => s + (i.price ?? 0) * (i.quantity ?? 1), 0)
+    const nettoSubtotaal = parsedItems.reduce((s, i) => {
+      const netto = i.priceExcl ?? (i.price ?? 0) / (1 + (i.vatRate ?? 9) / 100)
+      return s + netto * (i.quantity ?? 1)
+    }, 0)
+    const couponType = session.metadata?.couponType
+    const couponValue = Number(session.metadata?.couponValue ?? 0)
+    const brutoKorting = Number(session.metadata?.couponAmount ?? 0)
+    // De korting is op het bedrag inclusief BTW berekend; netto is hij naar
+    // rato kleiner. Evenredig omrekenen houdt order en factuur gelijk.
+    const nettoKorting = brutoKorting > 0 && brutoSubtotaal > 0
+      ? cent(brutoKorting * (nettoSubtotaal / brutoSubtotaal))
+      : 0
+    const totalExcl = cent(nettoSubtotaal - nettoKorting)
+
     // Hetzelfde nummer als de verkooptool en de offerte gebruiken. Hier stond
     // `SD-${Date.now()}`, dus webshopbestellingen kregen een tijdstempel naast
     // de doorlopende factuurnummering — twee reeksen, waarvan er één niet aan
@@ -130,6 +154,13 @@ export async function POST(req: NextRequest) {
           ...(item.vatRate != null ? { vatRate: item.vatRate } : {}),
         })),
         totalAmount: total,
+        totalExcl,
+        ...(nettoKorting > 0 ? {
+          discount: nettoKorting,
+          // Een percentage is wat er is afgesproken en blijft kloppen bij elk
+          // bedrag; een vast bedrag leggen we alleen als bedrag vast.
+          ...(couponType === 'percentage' ? { discountPercent: couponValue } : {}),
+        } : {}),
         createdAt:   new Date().toISOString(),
         statusHistory: [buildStatusEntry('paid', `Betaling ontvangen via Stripe (${session.id})`)],
       })
@@ -148,8 +179,17 @@ export async function POST(req: NextRequest) {
         const country   = shipping?.country ?? undefined
 
         // Check of contact al bestaat
-        const existing = await sanity.fetch<{ _id: string } | null>(
-          `*[_type == "contact" && email == $email][0]{ _id }`,
+        const existing = await sanity.fetch<{
+          _id: string
+          company?: string | null; vatNumber?: string | null
+          street?: string | null; postalCode?: string | null
+          city?: string | null; country?: string | null
+          clientLocation?: string | null; invoiceLanguage?: string | null
+        } | null>(
+          `*[_type == "contact" && email == $email][0]{
+             _id, company, vatNumber, street, postalCode, city, country,
+             clientLocation, invoiceLanguage
+           }`,
           { email }
         )
 
@@ -167,13 +207,34 @@ export async function POST(req: NextRequest) {
 
         let contactId: string
         if (existing) {
+          // Een bestaand contact wordt aangevuld, niet overschreven.
+          //
+          // Hier ging het adres van deze ene bestelling over het adres in het
+          // CRM heen — ook een bezorgadres bij iemand anders, of een tweede
+          // bestelling naar een vakantieadres. Wat er in het contact staat is
+          // vrijwel altijd completer dan wat er bij een afrekening wordt
+          // getypt; het bezorgadres van déze order staat bovendien al op de
+          // order zelf. Alleen lege plekken vullen we.
+          const vulAan: Record<string, string> = {}
+          const leeg = (v?: string | null) => v == null || v === ''
+          if (companyName && leeg(existing.company)) vulAan.company = companyName
+          if (vatNumber && leeg(existing.vatNumber)) vulAan.vatNumber = vatNumber
+          if (contactAddress.street && leeg(existing.street)) vulAan.street = contactAddress.street
+          if (contactAddress.postalCode && leeg(existing.postalCode)) vulAan.postalCode = contactAddress.postalCode
+          if (contactAddress.city && leeg(existing.city)) vulAan.city = contactAddress.city
+          if (contactAddress.country && leeg(existing.country)) vulAan.country = contactAddress.country
+          // Bepaalt de BTW op de factuur. De webshop rekent prijzen inclusief
+          // BTW af, dus 'nl' beschrijft wat er werkelijk is gebeurd; een
+          // buitenlandse zakelijke koper past de eigenaar zelf aan, en die
+          // keuze blijft daarna staan.
+          if (leeg(existing.clientLocation)) vulAan.clientLocation = 'nl'
+          if (leeg(existing.invoiceLanguage)) vulAan.invoiceLanguage = 'nl'
+
           await sanity.patch(existing._id)
             .setIfMissing({ type: 'webshop_customer' })
             .set({
-              ...(companyName ? { company: companyName } : {}),
-              ...(vatNumber   ? { vatNumber }            : {}),
               ...(newsletterOptIn ? { subscribed: true } : {}),
-              ...contactAddress,
+              ...vulAan,
             })
             .commit()
           contactId = existing._id
@@ -187,6 +248,10 @@ export async function POST(req: NextRequest) {
             company:     companyName,
             vatNumber:   vatNumber,
             type:        'webshop_customer',
+            // Bepaalt de BTW op de factuur — daarom meteen invullen in plaats
+            // van de factuurcode later te laten raden.
+            clientLocation: 'nl',
+            invoiceLanguage: 'nl',
             subscribed:  newsletterOptIn,
             ...(newsletterOptIn ? { subscribedAt: new Date().toISOString() } : {}),
             source:      `webshop — ${orderNumber}`,

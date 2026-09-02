@@ -89,7 +89,17 @@ export async function POST(req: NextRequest) {
           artworkId: i.artworkId,
           ...(i.variantLabel ? { variant: i.variantLabel } : {}),
         }))),
-        ...(coupon ? { couponCode: coupon.code, couponSanityId: coupon.sanityId } : {}),
+        // Soort, waarde én bedrag van de korting mee, niet alleen de code: de
+        // webhook moet de korting op de order kunnen vastleggen. Stripe trok
+        // hem wel van het betaalbedrag af, maar het orderdocument wist er
+        // niets van — de regels telden dan op tot méér dan er betaald was.
+        ...(coupon ? {
+          couponCode: coupon.code,
+          couponSanityId: coupon.sanityId,
+          couponType: coupon.type,
+          couponValue: String(coupon.value),
+          couponAmount: String(coupon.discountAmount),
+        } : {}),
       },
     })
 
