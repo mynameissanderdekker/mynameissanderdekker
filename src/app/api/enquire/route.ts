@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getResendClient } from '@/lib/resend'
 import { getSanityWriteClient } from '@/lib/sanityClient'
+import { verifyTurnstile, clientIp } from '@/lib/verifyTurnstile'
 
 const TO = 'Sander Dekker <hello@mynameissanderdekker.com>'
 
@@ -8,12 +9,18 @@ export async function POST(req: NextRequest) {
   try {
     const resend = getResendClient()
     const sanity = getSanityWriteClient('2026-07-24')
-    const { name, email, phone, message, newsletter, artworkTitle, artworkSlug, priceListSlug } =
+    const { name, email, phone, message, newsletter, artworkTitle, artworkSlug, priceListSlug, turnstileToken } =
       await req.json()
 
     if (!name || !email || !message) {
       return NextResponse.json({ error: 'Naam, e-mail en bericht zijn verplicht' }, { status: 400 })
     }
+
+    // Dit formulier stuurt rechtstreeks mail naar de studio en stond volledig
+    // open: geen widget op de pagina, geen controle op de server. Gemeten met
+    // scripts/testrun-turnstile.mts — een verzonnen inzending kwam er zo door.
+    const check = await verifyTurnstile(turnstileToken, { action: 'enquire', ip: clientIp(req) })
+    if (!check.ok) return NextResponse.json({ error: check.error }, { status: check.status })
 
     const subject = artworkTitle
       ? `Interesse: ${artworkTitle}`

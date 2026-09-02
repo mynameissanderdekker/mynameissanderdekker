@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getResendClient } from '@/lib/resend'
 import { getSanityWriteClient } from '@/lib/sanityClient'
+import { verifyTurnstile, clientIp } from '@/lib/verifyTurnstile'
 
 const TO = 'Sander Dekker <hello@mynameissanderdekker.com>'
 
@@ -37,22 +38,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Name, email, subject and message are required.' }, { status: 400 })
     }
 
-    // ── Cloudflare Turnstile verification ────────────────────────────────────
-    const secretKey = process.env.TURNSTILE_SECRET_KEY
-    if (secretKey) {
-      if (!turnstileToken) {
-        return NextResponse.json({ error: 'Turnstile token missing' }, { status: 400 })
-      }
-      const verifyRes = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ secret: secretKey, response: turnstileToken }),
-      })
-      const verifyData = await verifyRes.json() as { success: boolean }
-      if (!verifyData.success) {
-        return NextResponse.json({ error: 'Security check failed. Please try again.' }, { status: 400 })
-      }
-    }
+    // ── Cloudflare Turnstile ─────────────────────────────────────────────────
+    // Zie src/lib/verifyTurnstile.ts: dicht bij twijfel, en met controle op
+    // action en hostname. Zonder de sleutel in de omgeving werd hier niets
+    // gecontroleerd.
+    const check = await verifyTurnstile(turnstileToken, { action: 'contact', ip: clientIp(req) })
+    if (!check.ok) return NextResponse.json({ error: check.error }, { status: check.status })
 
     const subjectLabel = SUBJECT_LABELS[subject] ?? subject
 

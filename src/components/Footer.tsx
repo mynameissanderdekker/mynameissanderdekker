@@ -110,7 +110,10 @@ export default function Footer({ social = {}, contactEmail = '' }: { social?: Fo
                 onSuccess={setToken}
                 onError={() => setToken(null)}
                 onExpire={() => setToken(null)}
-                options={{ size: 'invisible' }}
+                // De `action` komt terug uit siteverify en wordt daar
+                // gecontroleerd: een token van het contactformulier kan zo
+                // niet gebruikt worden om de nieuwsbrief te spammen.
+                options={{ size: 'invisible', action: 'newsletter' }}
               />
               <button type="submit" disabled={state === 'loading' || !turnstileToken}>
                 {state === 'loading' ? '…' : 'Sign up'}

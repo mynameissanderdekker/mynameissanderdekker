@@ -11,6 +11,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSanityWriteClient } from '@/lib/sanityClient'
 import { syncToMailchimp } from '@/lib/mailchimp'
+import { verifyTurnstile, clientIp } from '@/lib/verifyTurnstile'
 
 export async function POST(req: NextRequest) {
   const sanity = getSanityWriteClient()
@@ -25,23 +26,16 @@ export async function POST(req: NextRequest) {
   const firstName = body.firstName?.trim()
   const lastName  = body.lastName?.trim()
 
-  // ── Cloudflare Turnstile verification ─────────────────────────────────────
-  const secretKey = process.env.TURNSTILE_SECRET_KEY
-  if (secretKey) {
-    const token = body.turnstileToken
-    if (!token) {
-      return NextResponse.json({ error: 'Turnstile token missing' }, { status: 400 })
-    }
-    const verifyRes = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ secret: secretKey, response: token }),
-    })
-    const verifyData = await verifyRes.json() as { success: boolean }
-    if (!verifyData.success) {
-      return NextResponse.json({ error: 'Turnstile verificatie mislukt' }, { status: 400 })
-    }
-  }
+  // ── Cloudflare Turnstile ──────────────────────────────────────────────────
+  // Zie src/lib/verifyTurnstile.ts. Hier stond `if (secretKey) { ... }`:
+  // ontbrak de sleutel in de omgeving, dan werd er niets gecontroleerd en kon
+  // een bot rechtstreeks op deze route inschrijven. Cloudflare zag precies dat
+  // — tokens uitgegeven, siteverify nooit aangeroepen.
+  const check = await verifyTurnstile(body.turnstileToken, {
+    action: 'newsletter',
+    ip: clientIp(req),
+  })
+  if (!check.ok) return NextResponse.json({ error: check.error }, { status: check.status })
 
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return NextResponse.json({ error: 'Ongeldig e-mailadres' }, { status: 400 })

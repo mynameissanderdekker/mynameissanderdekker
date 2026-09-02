@@ -329,7 +329,9 @@ export default function ContactPage() {
                 onSuccess={token => setTurnstileToken(token)}
                 onExpire={() => setTurnstileToken(null)}
                 onError={() => setTurnstileToken(null)}
-                options={{ theme: 'light' }}
+                // De `action` wordt server-side gecontroleerd; zo hoort een
+                // token bij dít formulier en niet bij de nieuwsbrief.
+                options={{ theme: 'light', action: 'contact' }}
               />
 
               <button

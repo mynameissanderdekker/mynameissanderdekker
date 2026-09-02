@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { Turnstile, type TurnstileInstance } from '@marsidev/react-turnstile'
 
 interface Artwork {
   _id: string
@@ -25,6 +26,8 @@ export default function EnquirePanel({ artwork, priceListSlug, onClose }: Enquir
   const [newsletter, setNewsletter] = useState(false)
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [errorMsg, setErrorMsg] = useState('')
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
+  const turnstileRef = useRef<TurnstileInstance>(null)
   const panelRef = useRef<HTMLDivElement>(null)
 
   // Animate in
@@ -82,12 +85,17 @@ export default function EnquirePanel({ artwork, priceListSlug, onClose }: Enquir
           artworkTitle: artwork?.title,
           artworkSlug: artwork?.slug,
           priceListSlug,
+          turnstileToken,
         }),
       })
       const data = await res.json()
       if (res.ok) {
         setStatus('success')
       } else {
+        // Een token is eenmalig. Na een geweigerde poging moet de widget een
+        // nieuwe ophalen, anders blijft de knop uit staan.
+        setTurnstileToken(null)
+        turnstileRef.current?.reset()
         setStatus('error')
         setErrorMsg(data.error ?? 'Something went wrong.')
       }
@@ -212,9 +220,20 @@ export default function EnquirePanel({ artwork, priceListSlug, onClose }: Enquir
               <p className="enquire-error">{errorMsg}</p>
             )}
 
+            {/* Botbeveiliging: dit paneel stuurt rechtstreeks mail naar de
+                studio en stond nergens achter. */}
+            <Turnstile
+              ref={turnstileRef}
+              siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? ''}
+              onSuccess={setTurnstileToken}
+              onExpire={() => setTurnstileToken(null)}
+              onError={() => setTurnstileToken(null)}
+              options={{ size: 'invisible', action: 'enquire' }}
+            />
+
             <button
               type="submit"
-              disabled={status === 'loading' || !name || !email || !message}
+              disabled={status === 'loading' || !name || !email || !message || !turnstileToken}
               className="enquire-submit"
             >
               {status === 'loading' ? 'Sending…' : 'Send message'}

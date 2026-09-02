@@ -138,6 +138,25 @@ en `invoiceLanguage` (`'nl'`, want de webshop rekent inclusief BTW af).
 
 ---
 
+## Botbeveiliging: `src/lib/verifyTurnstile.ts`
+
+Gedeeld met de gallery-template (staat in `sync-shared.mjs`). De uitleg staat
+daar; hier alleen wat voor deze repo geldt.
+
+Drie publieke formulieren lopen erlangs: nieuwsbrief in de footer
+(`action: 'newsletter'`), contact (`action: 'contact'`) en het werk-aanvraagpaneel
+(`action: 'enquire'`). Dat laatste stond volledig open — geen widget, geen
+controle, en het stuurt rechtstreeks mail naar de studio.
+
+De aanleiding was een melding van Cloudflare: siteverify werd niet aangeroepen
+voor de nieuwsbrief. De code léék te kloppen, maar zat achter
+`if (secretKey)` — zonder sleutel in de omgeving gebeurde er niets. Staat
+`TURNSTILE_SECRET_KEY` niet op Vercel, dan is dat precies wat je ziet.
+
+`scripts/testrun-turnstile.mts` draait alle drie de routes na.
+
+---
+
 ## Admin-toegang en ordertotalen
 
 Zelfde `adminAuth.ts` als de gallery-template, gedeeld via `sync-shared.mjs`:
