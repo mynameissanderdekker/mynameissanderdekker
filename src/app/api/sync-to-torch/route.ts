@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { isValidAdminCookie } from '@/lib/adminAuth'
 import { createClient } from '@sanity/client'
 
 const MNSDK_PROJECT_ID  = 'u11u127q'
@@ -10,7 +11,7 @@ async function isAuthorized(req: NextRequest): Promise<boolean> {
   const session     = req.cookies.get('admin_session')?.value
   const sanityToken = req.headers.get('x-sanity-token')
 
-  if (session === process.env.ADMIN_PASSWORD) return true
+  if (isValidAdminCookie(session)) return true
 
   if (sanityToken) {
     try {

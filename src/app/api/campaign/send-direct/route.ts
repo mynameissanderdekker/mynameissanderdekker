@@ -4,6 +4,7 @@
  * Fetches contacts for a segment, sends emails via Resend, returns sent count.
  */
 import { NextRequest, NextResponse } from 'next/server'
+import { isValidAdminCookie } from '@/lib/adminAuth'
 import { getResendClient } from '@/lib/resend'
 import { getSanityWriteClient } from '@/lib/sanityClient'
 
@@ -34,7 +35,7 @@ export async function POST(req: NextRequest) {
   const sanity = getSanityWriteClient()
   // Simple auth via cookie (set by /api/admin/login)
   const session = req.cookies.get('admin_session')?.value
-  if (session !== process.env.ADMIN_PASSWORD) {
+  if (!isValidAdminCookie(session)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

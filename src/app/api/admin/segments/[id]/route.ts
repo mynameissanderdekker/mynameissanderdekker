@@ -2,10 +2,11 @@
  * DELETE /api/admin/segments/[id]
  */
 import { NextRequest, NextResponse } from 'next/server'
+import { isValidAdminCookie } from '@/lib/adminAuth'
 import { getSanityWriteClient } from '@/lib/sanityClient'
 
 function auth(req: NextRequest) {
-  return req.cookies.get('admin_session')?.value === process.env.ADMIN_PASSWORD
+  return isValidAdminCookie(req.cookies.get('admin_session')?.value)
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {

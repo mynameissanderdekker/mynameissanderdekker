@@ -193,15 +193,15 @@ const { vatTreatment } = await import('../src/lib/invoiceVat')
 for (const [cid, land, gezien] of [
   [ID.contactNl, 'nl', AFGESPROKEN_INCL], [ID.contactEu, 'eu', AFGESPROKEN_EXCL],
 ] as const) {
-  const o = await admin.fetch<{ items: { price: number; vatRate: number }[] }>(
-    `*[_type == "order" && contact._ref == $c][0]{items[]{price, vatRate}}`, { c: cid })
+  const o = await admin.fetch<{ items: { price: number; priceExcl: number; vatRate: number }[] }>(
+    `*[_type == "order" && contact._ref == $c][0]{items[]{price, priceExcl, vatRate}}`, { c: cid })
   const regel = o.items[0]
   const rule = vatTreatment(land as never)
   const tarief = rule.rate(Number(regel.vatRate ?? 9))
-  // De regel staat hier incl. BTW; terugrekenen naar excl. en dan het tarief
-  // van deze klant erop.
-  const excl = Math.round(regel.price / (1 + Number(regel.vatRate ?? 9) / 100))
-  const teBetalen = Math.round(excl * (1 + tarief / 100))
+  // De regel bewaart netto én wat de klant betaalt; het tarief van de klant
+  // bepaalt het verschil. Terugrekenen vanaf `price` met het werktarief zou bij
+  // een EU-klant (0%) een verkeerd netto opleveren.
+  const teBetalen = Math.round(regel.priceExcl * (1 + tarief / 100))
   check(`${land.toUpperCase()}: factuurtotaal = wat de klant zag`, teBetalen === gezien,
     `offerte €${gezien} · factuur €${teBetalen} (${tarief}% btw)`)
   if (rule.note) console.log(`    vermelding: ${rule.note.nl}`)

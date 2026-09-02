@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { isValidAdminCookie } from '@/lib/adminAuth'
 import { createClient } from '@sanity/client'
 
 const TORCH_PROJECT_ID = '53tz2hh0'
@@ -15,7 +16,7 @@ async function isAuthorized(req: NextRequest): Promise<boolean> {
   const sanityToken = req.headers.get('x-sanity-token')
 
   if (process.env.CRON_SECRET && authHeader === `Bearer ${process.env.CRON_SECRET}`) return true
-  if (session === process.env.ADMIN_PASSWORD) return true
+  if (isValidAdminCookie(session)) return true
 
   if (sanityToken) {
     try {

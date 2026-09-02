@@ -1,21 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getStripeClient } from '@/lib/stripe'
+import { getSanityReadClient } from '@/lib/sanityClient'
+import { priceCart, applyCoupon, CheckoutError } from '@/lib/checkoutPricing'
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000'
 
 export async function POST(req: NextRequest) {
   try {
-    const { items, coupon } = await req.json()
+    const { items: cart, coupon: couponIn } = await req.json() as {
+      items: { id: string; quantity?: number }[]
+      coupon?: { code?: string } | null
+    }
 
-    if (!items?.length) {
+    if (!cart?.length) {
       return NextResponse.json({ error: 'Geen producten' }, { status: 400 })
     }
 
+    // Prijs, voorraad en kortingscode komen van de server — zie
+    // lib/checkoutPricing.ts voor waarom. De browser zegt alleen wát en hoeveel.
+    const sanity = getSanityReadClient()
+    const items = await priceCart(sanity, cart)
+    const subtotal = items.reduce((s, i) => s + i.priceIncl * i.quantity, 0)
+    const coupon = await applyCoupon(sanity, couponIn?.code, subtotal)
+
     const stripe = getStripeClient()
 
-    // If a validated coupon is provided, create a Stripe coupon on-the-fly
     let stripeCouponId: string | undefined
-    if (coupon?.code && coupon?.discountAmount > 0) {
+    if (coupon && coupon.discountAmount > 0) {
       const stripeCoupon = await stripe.coupons.create({
         name: `Coupon ${coupon.code}`,
         ...(coupon.type === 'percentage'
@@ -30,16 +41,16 @@ export async function POST(req: NextRequest) {
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
       payment_method_types: ['card', 'ideal', 'bancontact'],
-      line_items: items.map((item: { id?: string; title: string; priceIncl: number; imageUrl?: string }) => ({
+      line_items: items.map((item) => ({
         price_data: {
           currency: 'eur',
           product_data: {
             name: item.title,
             ...(item.imageUrl ? { images: [item.imageUrl] } : {}),
           },
-          unit_amount: Math.round(item.priceIncl * 100), // in centen
+          unit_amount: Math.round(item.priceIncl * 100), // in centen, serverprijs
         },
-        quantity: 1,
+        quantity: item.quantity,
       })),
       phone_number_collection: { enabled: true },
       shipping_address_collection: {
@@ -68,19 +79,25 @@ export async function POST(req: NextRequest) {
       success_url: `${BASE_URL}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${BASE_URL}/cart`,
       metadata: {
-        items: JSON.stringify(items.map((i: { title: string }) => i.title)),
-        itemsJson: JSON.stringify(items.map((i: { id?: string; title: string; priceIncl: number }) => ({
+        items: JSON.stringify(items.map((i) => i.title)),
+        itemsJson: JSON.stringify(items.map((i) => ({
           title:     i.title,
           price:     i.priceIncl,
-          quantity:  1,
-          artworkId: i.id ? i.id.split('::')[0] : null,
+          priceExcl: i.priceExcl,
+          vatRate:   i.vatRate,
+          quantity:  i.quantity,
+          artworkId: i.artworkId,
+          ...(i.variantLabel ? { variant: i.variantLabel } : {}),
         }))),
-        ...(coupon ? { couponCode: coupon.code, couponSanityId: coupon.sanityId ?? '' } : {}),
+        ...(coupon ? { couponCode: coupon.code, couponSanityId: coupon.sanityId } : {}),
       },
     })
 
     return NextResponse.json({ url: session.url })
   } catch (err) {
+    if (err instanceof CheckoutError) {
+      return NextResponse.json({ error: err.message }, { status: 400 })
+    }
     console.error('Stripe error:', err)
     return NextResponse.json(
       { error: err instanceof Error ? err.message : 'Sessie aanmaken mislukt' },

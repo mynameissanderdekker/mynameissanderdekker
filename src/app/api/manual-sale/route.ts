@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { isValidAdminCookie } from '@/lib/adminAuth'
 import { getSanityWriteClient } from '@/lib/sanityClient'
 import { getResendClient } from '@/lib/resend'
 import { syncToMailchimp } from '@/lib/mailchimp'
 import { markSold } from '@/lib/markSold'
+import { vatTreatment, type ClientLocation } from '@/lib/invoiceVat'
 
 const FROM = 'Sander Dekker <hello@mynameissanderdekker.com>'
 
@@ -20,7 +22,7 @@ export async function POST(req: NextRequest) {
   const session     = req.cookies.get('admin_session')?.value
   const sanityToken = req.headers.get('x-sanity-token')
 
-  let authorized = session === process.env.ADMIN_PASSWORD
+  let authorized = isValidAdminCookie(session)
 
   if (!authorized && sanityToken) {
     try {
@@ -129,7 +131,13 @@ export async function POST(req: NextRequest) {
   // boekhoudbedrag — €3000 excl. plus 9% werd €3270.0000000000005 — en die
   // ruis telt door in de omzet- en BTW-overzichten.
   const cent = (n: number) => Math.round(n * 100) / 100
-  const totalIncl = cent(body.items.reduce((sum, i) => sum + i.priceExclVAT * (1 + i.vatRate / 100), 0))
+
+  // Het tarief hangt af van waar de klant zit — EU verlegd, export 0%. De
+  // factuur wist dat al; dit totaal rekende met het tarief van het werk en
+  // zette op een Duitse order het Nederlandse bedrag.
+  const clientLocation = await sanity.fetch<string | null>(`*[_id == $id][0].clientLocation`, { id: contactId })
+  const vatRule = vatTreatment(clientLocation as ClientLocation)
+  const totalIncl = cent(body.items.reduce((sum, i) => sum + i.priceExclVAT * (1 + vatRule.rate(i.vatRate) / 100), 0))
   const totalExcl = cent(body.items.reduce((sum, i) => sum + i.priceExclVAT, 0))
 
   await sanity.create({
@@ -156,13 +164,19 @@ export async function POST(req: NextRequest) {
       country:    body.country || '',
     } : undefined,
     items: body.items.map(item => ({
-      _key:     crypto.randomUUID(),
-      title:    `${item.artworkTitle}${item.artworkYear ? ` (${item.artworkYear})` : ''}${item.copyNumber ? ` — ${item.copyNumber}` : ''}`,
-      quantity: 1,
-      price:    cent(item.priceExclVAT * (1 + item.vatRate / 100)),
-      vatRate:  item.vatRate,
+      _key:      crypto.randomUUID(),
+      // Verwijzing naar het werk en het nettobedrag: zonder de eerste wist de
+      // order niet wat er verkocht was, zonder de tweede viel de regel in de
+      // BTW-aangifte terug op een benadering.
+      item:      { _type: 'reference', _ref: item.artworkId },
+      title:     `${item.artworkTitle}${item.artworkYear ? ` (${item.artworkYear})` : ''}${item.copyNumber ? ` — ${item.copyNumber}` : ''}`,
+      quantity:  1,
+      price:     cent(item.priceExclVAT * (1 + vatRule.rate(item.vatRate) / 100)),
+      priceExcl: cent(item.priceExclVAT),
+      vatRate:   item.vatRate,
     })),
     totalAmount: totalIncl,
+    totalExcl,
     createdAt:   new Date().toISOString(),
     statusHistory: [{
       _key:      crypto.randomUUID(),

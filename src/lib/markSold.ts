@@ -3,19 +3,39 @@ import type { SanityClient } from '@sanity/client'
 /**
  * Wat er met een werk gebeurt zodra het verkocht is.
  *
- * Dit gebeurde hier hélemaal niet. Noch de verkooptool (`/api/manual-sale`)
- * noch de webshop-webhook raakte het werk aan: alleen de synchronisatie vanuit
- * Torch zette ooit een status op `sold`. Verkocht je iets via je eigen site,
- * dan bleef het op `available` staan — zichtbaar in de webshop, opnieuw te
- * koop, en de voorraad liep niet terug.
+ * Gebeurde hier lange tijd hélemaal niet: noch de verkooptool
+ * (`/api/manual-sale`) noch de webshop-webhook raakte het werk aan — alleen de
+ * synchronisatie vanuit Torch zette ooit een status op `sold`. Verkocht je iets
+ * via je eigen site, dan bleef het op `available` staan.
  *
  * Eén regel, één plek, gedeeld met de gallery-template.
  */
 export async function markSold(
   client: SanityClient,
   itemId: string,
-  quantity = 1
+  quantity = 1,
+  variant?: string
 ): Promise<void> {
+  // Een variant (bv. "Signed") heeft eigen voorraad, los van het basisproduct.
+  // Die werd nooit afgeboekt: een gesigneerde editie van 2 bleef na verkoop
+  // gewoon op 2 staan en kon opnieuw worden besteld.
+  if (variant) {
+    const v = await client.fetch<{ _key: string; stock?: number } | null>(
+      `*[_id == $id][0].shopVariants[lower(badge) == lower($b)][0]{ _key, stock }`,
+      { id: itemId, b: variant }
+    )
+    if (v) {
+      const remaining = Math.max((v.stock ?? 1) - quantity, 0)
+      await client.patch(itemId)
+        .set({
+          [`shopVariants[_key=="${v._key}"].stock`]: remaining,
+          ...(remaining === 0 ? { [`shopVariants[_key=="${v._key}"].status`]: 'sold' } : {}),
+        })
+        .commit()
+    }
+    return
+  }
+
   const art = await client.fetch<{
     _type?: string
     editionType?: string

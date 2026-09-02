@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { isValidAdminCookie } from '@/lib/adminAuth'
 import { createClient } from '@sanity/client'
 
 const client = createClient({
@@ -11,7 +12,7 @@ const client = createClient({
 
 export async function GET(req: NextRequest) {
   const session = req.cookies.get('admin_session')?.value
-  if (session !== process.env.ADMIN_PASSWORD) {
+  if (!isValidAdminCookie(session)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

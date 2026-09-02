@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
     const newsletterOptIn = true
 
     // Parse items — ondersteun zowel oud formaat (string[]) als nieuw (json met prijs + artworkId)
-    let parsedItems: { title: string; price: number; quantity: number; artworkId?: string | null }[] = []
+    let parsedItems: { title: string; price: number; priceExcl?: number; vatRate?: number; quantity: number; artworkId?: string | null; variant?: string }[] = []
     try {
       parsedItems = JSON.parse(session.metadata?.itemsJson ?? '[]')
     } catch {
@@ -115,11 +115,19 @@ export async function POST(req: NextRequest) {
           city:       shipping.city ?? '',
           country:    shipping.country ?? '',
         } : undefined,
+        // Netto, tarief en uitvoering komen mee uit de sessie (create-session
+        // bepaalt ze op de server). Zonder `priceExcl` en `vatRate` viel de
+        // regel in de BTW-aangifte terug op een benadering; zonder `item`
+        // wist de order niet welk werk het was.
         items: parsedItems.map(item => ({
           _key:     crypto.randomUUID(),
+          ...(item.artworkId ? { item: { _type: 'reference', _ref: item.artworkId.replace(/^drafts\./, '') } } : {}),
           title:    item.title,
+          ...(item.variant ? { variant: item.variant } : {}),
           quantity: item.quantity ?? 1,
           price:    item.price ?? 0,
+          ...(item.priceExcl != null ? { priceExcl: item.priceExcl } : {}),
+          ...(item.vatRate != null ? { vatRate: item.vatRate } : {}),
         })),
         totalAmount: total,
         createdAt:   new Date().toISOString(),

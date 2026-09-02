@@ -78,14 +78,36 @@ await admin.createOrReplace({
 } as never)
 console.log('  ✓ uniek werk (€545) en editie van 5 (€327)')
 
-// ── 2. Afrekenen ─────────────────────────────────────────────────────────────
-// De sessie die Stripe zou aanmaken, met dezelfde metadata als de checkout
-// meestuurt — daar leest de webhook de regels uit.
-const sessionId = `cs_test_${Date.now()}`
-const itemsJson = JSON.stringify([
-  { title: 'Shopwerk Uniek',  price: 545, quantity: 1, artworkId: ID.uniek },
-  { title: 'Shopwerk Editie', price: 327, quantity: 1, artworkId: ID.editie },
-])
+// ── 2. Afrekenen via de echte create-session ─────────────────────────────────
+// Met een gemanipuleerde prijs en een verzonnen kortingscode: de server hoort
+// beide te negeren en zelf te bepalen wat het kost.
+console.log('\n── 2. Afrekenen (create-session) ──')
+const createSession = await import('../src/app/api/checkout/create-session/route')
+const cs = await createSession.POST({ json: async () => ({
+  items: [
+    { id: ID.uniek,  title: 'Shopwerk Uniek',  priceIncl: 1 },      // echte prijs €545
+    { id: ID.editie, title: 'Shopwerk Editie', priceIncl: 1 },      // echte prijs €327
+  ],
+  coupon: { code: 'NEPCODE', type: 'percentage', value: 100, discountAmount: 872 },
+}) } as never)
+const csBody = await cs.json()
+check('sessie aangemaakt', cs.status === 200 && !!csBody.url, `${cs.status} ${JSON.stringify(csBody).slice(0, 60)}`)
+
+// Wat er werkelijk naar Stripe ging, halen we terug uit de sessie zelf.
+const { getStripeClient } = await import('../src/lib/stripe')
+const sessionId = String(csBody.url ?? '').match(/cs_test_[A-Za-z0-9]+/)?.[0] ?? ''
+const stripeSession = await getStripeClient().checkout.sessions.retrieve(sessionId, { expand: ['line_items', 'total_details'] })
+const stripeTotaal = (stripeSession.amount_total ?? 0) / 100
+check('Stripe rekent de serverprijs (€872), niet €2', stripeTotaal === 872, `Stripe amount_total €${stripeTotaal}`)
+check('verzonnen coupon genegeerd', !(stripeSession.total_details?.amount_discount), `korting €${(stripeSession.total_details?.amount_discount ?? 0) / 100}`)
+
+const cs2 = await createSession.POST({ json: async () => ({ items: [{ id: ID.editie, title: 'x', priceIncl: 1, quantity: 9 }] }) } as never)
+check('9 stuks bij voorraad 5 wordt geweigerd', cs2.status === 400, `${cs2.status} ${JSON.stringify(await cs2.json()).slice(0, 70)}`)
+
+// De webhook krijgt de metadata die create-session heeft gezet — die nemen we
+// letterlijk over, zodat de keten klopt van winkelwagen tot order.
+const itemsJson = String(stripeSession.metadata?.itemsJson ?? '[]')
+const sessionIdForHook = sessionId
 
 const event = {
   id: `evt_test_${Date.now()}`,
@@ -93,19 +115,12 @@ const event = {
   type: 'checkout.session.completed',
   data: {
     object: {
-      id: sessionId,
+      id: sessionIdForHook,
       object: 'checkout.session',
-      amount_total: 87200,           // €872 in centen
+      amount_total: 87200,
       currency: 'eur',
       customer_details: { email: KOPER, name: 'Yara Yildiz', phone: '+31 6 22222222' },
-      collected_information: {
-        shipping_details: {
-          address: {
-            line1: 'Weblaan 5', line2: null,
-            postal_code: '1012 AB', city: 'Amsterdam', country: 'NL',
-          },
-        },
-      },
+      collected_information: { shipping_details: { address: { line1: 'Weblaan 5', line2: null, postal_code: '1012 AB', city: 'Amsterdam', country: 'NL' } } },
       custom_fields: [],
       metadata: { itemsJson },
     },
@@ -141,6 +156,8 @@ check('order staat op betaald', order?.status === 'paid', String(order?.status))
 check('kanaal = webshop', order?.channel === 'webshop', String(order?.channel))
 check('twee regels', order?.n === 2, `${order?.n}`)
 check('bedrag klopt', Number(order?.totalAmount) === 872, `€${order?.totalAmount}`)
+const regels = await admin.fetch<{ priceExcl?: number; vatRate?: number; item?: string }[]>(`*[_type == "order" && customerEmail == $mail][0].items[]{priceExcl, vatRate, "item": item._ref}`, { mail: KOPER })
+check('regels hebben netto, tarief en verwijzing naar het werk', regels.every((r) => r.priceExcl != null && r.vatRate != null && !!r.item), JSON.stringify(regels))
 
 const contactId = order?.contact as string | undefined
 check('order gekoppeld aan een contact', !!contactId, String(contactId ?? 'leeg'))

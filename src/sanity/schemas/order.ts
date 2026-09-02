@@ -108,6 +108,7 @@ export const order = defineType({
           { name: 'item', title: 'Shop item', type: 'reference', to: [{ type: 'artwork' }, { type: 'publication' }] },
           { name: 'artworkId', title: 'Artwork ID (legacy)', type: 'string', hidden: true },
           { name: 'title',     title: 'Title (at time of purchase)', type: 'string' },
+          { name: 'variant',   title: 'Variant', type: 'string' },
           { name: 'quantity',  title: 'Quantity', type: 'number' },
           { name: 'price',     title: 'Price per unit (at time of purchase)', type: 'number' },
           { name: 'priceExcl', title: 'Price excl. BTW', type: 'number' },
@@ -161,7 +162,8 @@ export const order = defineType({
       readOnly: true,
       description: 'Calculated from the percentage — used for the totals.',
     }),
-    defineField({ name: 'totalAmount', title: 'Total amount (EUR)', type: 'number', group: 'amounts' }),
+    defineField({ name: 'totalAmount', title: 'Total amount incl. BTW (EUR)', description: 'Wat de klant betaalt. Voor omzet en aangifte: Total excl. BTW.', type: 'number', group: 'amounts' }),
+    defineField({ name: 'totalExcl', title: 'Total excl. BTW (EUR)', type: 'number', group: 'amounts', readOnly: true }),
 
     // ── Shipping ──────────────────────────────────────────────────────────────
     // Hoe het werk bij de klant komt. Een webshopbestelling wordt verzonden,

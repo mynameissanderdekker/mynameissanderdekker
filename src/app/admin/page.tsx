@@ -1,4 +1,5 @@
 import { cookies } from 'next/headers'
+import { isValidAdminCookie } from '@/lib/adminAuth'
 import { redirect } from 'next/navigation'
 
 const tools = [
@@ -23,7 +24,7 @@ const tools = [
 export default async function AdminPage() {
   const cookieStore = await cookies()
   const session = cookieStore.get('admin_session')?.value
-  if (session !== process.env.ADMIN_PASSWORD) redirect('/admin/login')
+  if (!isValidAdminCookie(session)) redirect('/admin/login')
 
   return (
     <div style={{ minHeight: '100vh', background: '#fafaf9', fontFamily: 'Georgia, serif' }}>
