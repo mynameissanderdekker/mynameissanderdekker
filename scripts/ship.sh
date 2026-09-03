@@ -9,9 +9,10 @@
 #   ./scripts/ship.sh --force               # pushen ook al is de controle rood
 #   ./scripts/ship.sh --full                # ook de schrijvende testruns (duurt minuten)
 #
-# Vóór het pushen draait een controle: TypeScript, de leesaudits (galerie in
-# de code, lijsten, data, documenten) en de formulierbeveiliging. Is er iets rood, dan gaat er
-# niets live. Dat is de enige manier waarop wat vandaag klopt ook morgen nog
+# Vóór het pushen draait een controle: TypeScript en elke leesaudit die deze
+# repo heeft (`audit-*.mts` en de niet-schrijvende testruns). Wat niet bestaat
+# wordt overgeslagen — het script is hetzelfde in alle repo's, de inhoud van de
+# controle verschilt per repo. Is er iets rood, dan gaat er niets live. Dat is de enige manier waarop wat vandaag klopt ook morgen nog
 # klopt — een fout die de test vindt, kan zo simpelweg niet meer gedeployed
 # worden. `--full` draait ook de testruns die echt verkopen en bestellingen
 # doorlopen; die schrijven in productie (met TEST-ids) en ruimen zichzelf op.
