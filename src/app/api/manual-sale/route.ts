@@ -4,6 +4,7 @@ import { getSanityWriteClient } from '@/lib/sanityClient'
 import { getResendClient } from '@/lib/resend'
 import { syncToMailchimp } from '@/lib/mailchimp'
 import { markSold } from '@/lib/markSold'
+import { createNumberedOrder } from '@/lib/createOrder'
 import { vatTreatment, type ClientLocation } from '@/lib/invoiceVat'
 
 const FROM = 'Sander Dekker <hello@mynameissanderdekker.com>'
@@ -67,6 +68,33 @@ export async function POST(req: NextRequest) {
 
   const sanity = getSanityWriteClient()
 
+  // ── Is het werk nog te verkopen? ──────────────────────────────────────
+  // Ontbrak. Een verkocht uniek werk kon nog een keer verkocht worden — twee
+  // orders, twee facturen, één werk. Gemeten met scripts/testrun-double-sale.mts
+  // in de gallery-template; hier dezelfde route, dus hetzelfde gat. `_rev`
+  // gaat mee: de order en het werk worden straks in één transactie
+  // geschreven, en alleen als het werk sinds dit moment niet is veranderd.
+  const werken = await sanity.fetch<{
+    _id: string; _rev: string; _type: string; title?: string; status?: string
+    editionType?: string; editionTotal?: number; stock?: number
+  }[]>(
+    `*[_id in $ids]{ _id, _rev, _type, title, status, editionType, editionTotal, stock }`,
+    { ids: body.items.map((i) => i.artworkId) }
+  )
+  const revVan = new Map(werken.map((w) => [w._id, w._rev]))
+  for (const item of body.items) {
+    const w = werken.find((x) => x._id === item.artworkId)
+    if (!w) return NextResponse.json({ error: `Werk ${item.artworkId} bestaat niet (meer).` }, { status: 409 })
+    const isEdition = w._type === 'publication' || (w.editionType === 'edition' && (w.editionTotal ?? 0) > 1)
+    if (isEdition) {
+      if ((w.stock ?? w.editionTotal ?? 1) < 1 || w.status === 'sold') {
+        return NextResponse.json({ error: `"${w.title ?? w._id}" is uitverkocht.` }, { status: 409 })
+      }
+    } else if (w.status === 'sold' || w.status === 'sold_out') {
+      return NextResponse.json({ error: `"${w.title ?? w._id}" is al verkocht.` }, { status: 409 })
+    }
+  }
+
   // ── Contact aanmaken of bijwerken ─────────────────────────────────────
   let contactId: string
 
@@ -110,22 +138,6 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // ── Purchases toevoegen aan contact (één per item) ────────────────────
-  const purchaseEntries = body.items.map(item => ({
-    _key:          crypto.randomUUID(),
-    artwork:       { _type: 'reference', _ref: item.artworkId },
-    copyNumber:    item.copyNumber || undefined,
-    soldVia:       body.soldVia,
-    editionNumber: body.invoiceNumber,
-    date:          body.saleDate,
-    price:         item.priceExclVAT,
-  }))
-
-  await sanity.patch(contactId)
-    .setIfMissing({ purchases: [] })
-    .append('purchases', purchaseEntries)
-    .commit()
-
   // ── Order document aanmaken ───────────────────────────────────────────
   // Op centen afronden. Zonder dit belandt er drijvende-komma-ruis in een
   // boekhoudbedrag — €3000 excl. plus 9% werd €3270.0000000000005 — en die
@@ -140,9 +152,14 @@ export async function POST(req: NextRequest) {
   const totalIncl = cent(body.items.reduce((sum, i) => sum + i.priceExclVAT * (1 + vatRule.rate(i.vatRate) / 100), 0))
   const totalExcl = cent(body.items.reduce((sum, i) => sum + i.priceExclVAT, 0))
 
-  await sanity.create({
-    _type:         'order',
-    orderNumber:   body.invoiceNumber,
+  // Order en werk in één transactie, met revisiecontrole op het werk en een
+  // order-id dat het nummer uniek maakt. Het nummer uit de tool is een
+  // voorkeur: twee open tools hebben allebei hetzelfde "volgende" nummer
+  // opgehaald, en de tweede krijgt hier dan een vers nummer. Zie
+  // src/lib/createOrder.ts.
+  let orderNumber: string
+  try {
+    const aangemaakt = await createNumberedOrder(sanity, () => ({
     // De koper erbij. Ontbrak dit, dan bleef "Bill to" op de factuur leeg —
     // die leest uit `contact->`, niet uit de losse klantvelden hieronder — en
     // was er vanaf het contact geen weg terug naar de order.
@@ -186,22 +203,42 @@ export async function POST(req: NextRequest) {
       changedBy: 'admin',
       note:      `Handmatige verkoop — ${body.soldVia}`,
     }],
-  })
-
-  // ── Verkocht werk bijwerken ────────────────────────────────────────────
-  // Gebeurde hier niet: een verkocht werk bleef op 'available' staan, zichtbaar
-  // in de webshop en opnieuw te koop. De regel staat in `lib/markSold.ts`,
-  // gedeeld met de webshop-webhook en met de gallery-template.
-  await Promise.all(
-    body.items.map(async (item) => {
-      try {
-        await markSold(sanity, item.artworkId)
-      } catch (err) {
-        // Niet fataal: de verkoop zelf is al vastgelegd.
-        console.error('[manual-sale] kon artwork niet bijwerken', item.artworkId, err)
-      }
+    }), {
+      preferredNumber: body.invoiceNumber,
+      numberOpts: { fallbackPrefix: 'SDK' },
+      // Het verkochte werk bijwerken — in dezelfde transactie. Eerder stond
+      // dit los ná de order en was een fout "niet fataal"; nu is er zonder
+      // bijgewerkt werk ook geen order.
+      addToTx: async (tx) => {
+        for (const item of body.items) {
+          await markSold(sanity, item.artworkId, 1, undefined, { tx, ifRevisionId: revVan.get(item.artworkId) })
+        }
+      },
     })
-  )
+    orderNumber = aangemaakt.orderNumber
+  } catch (err) {
+    const msg = String((err as Error).message)
+    if (/zojuist door iemand anders/.test(msg)) return NextResponse.json({ error: msg }, { status: 409 })
+    throw err
+  }
+
+  // ── Purchases toevoegen aan contact (één per item) ────────────────────
+  // Pas ná de order: dan staat het werkelijke factuurnummer erbij, en laat
+  // een geweigerde verkoop geen spoor achter in het CRM.
+  const purchaseEntries = body.items.map(item => ({
+    _key:          crypto.randomUUID(),
+    artwork:       { _type: 'reference', _ref: item.artworkId },
+    copyNumber:    item.copyNumber || undefined,
+    soldVia:       body.soldVia,
+    editionNumber: orderNumber,
+    date:          body.saleDate,
+    price:         item.priceExclVAT,
+  }))
+
+  await sanity.patch(contactId)
+    .setIfMissing({ purchases: [] })
+    .append('purchases', purchaseEntries)
+    .commit()
 
   // ── Mailchimp sync ─────────────────────────────────────────────────────
   try {
@@ -245,8 +282,8 @@ export async function POST(req: NextRequest) {
       from: FROM,
       to:   body.email,
       subject: body.paid
-        ? `Thank you for your purchase — ${body.invoiceNumber}`
-        : `Invoice ${body.invoiceNumber} — Sander Dekker`,
+        ? `Thank you for your purchase — ${orderNumber}`
+        : `Invoice ${orderNumber} — Sander Dekker`,
       html: `
         <div style="font-family:Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;color:#111;font-size:15px;line-height:1.6">
           <p>Dear ${body.firstName},</p>
@@ -254,7 +291,7 @@ export async function POST(req: NextRequest) {
           <table style="width:100%;border-collapse:collapse;margin:24px 0;font-size:14px">
             <tr style="border-bottom:1px solid #eee">
               <td style="padding:8px 0;color:#666">${body.paid ? 'Order number' : 'Invoice number'}</td>
-              <td style="padding:8px 0;text-align:right">${body.invoiceNumber}</td>
+              <td style="padding:8px 0;text-align:right">${orderNumber}</td>
             </tr>
             <tr style="border-bottom:2px solid #111">
               <td style="padding:8px 0;color:#666">Date</td>
@@ -283,16 +320,16 @@ export async function POST(req: NextRequest) {
     await resend.emails.send({
       from: FROM,
       to:   'hello@mynameissanderdekker.com',
-      subject: `${body.paid ? 'Sale registered' : 'Invoice created'} — ${body.invoiceNumber}`,
+      subject: `${body.paid ? 'Sale registered' : 'Invoice created'} — ${orderNumber}`,
       html: `
         <p><strong>${body.paid ? 'Manual sale registered (paid)' : 'Invoice created (awaiting payment)'}</strong></p>
         <p>${itemList}</p>
         <p>Buyer: ${body.firstName} ${body.lastName} (${body.email})</p>
         <p>Total excl. BTW: €${totalExcl.toLocaleString('nl-NL')} · Total incl.: €${totalIncl.toLocaleString('nl-NL')}</p>
-        <p>Invoice: ${body.invoiceNumber} · via ${body.soldVia}</p>
+        <p>Invoice: ${orderNumber} · via ${body.soldVia}</p>
       `,
     }).catch(console.error)
   }
 
-  return NextResponse.json({ ok: true, contactId, invoiceNumber: body.invoiceNumber })
+  return NextResponse.json({ ok: true, contactId, invoiceNumber: orderNumber })
 }

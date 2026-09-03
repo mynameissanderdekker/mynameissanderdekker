@@ -5,7 +5,7 @@ import { getResendClient } from '@/lib/resend'
 import { getSanityWriteClient } from '@/lib/sanityClient'
 import { syncToMailchimp } from '@/lib/mailchimp'
 import { markSold } from '@/lib/markSold'
-import { nextNumber } from '@/lib/nextNumber'
+import { createNumberedOrder } from '@/lib/createOrder'
 // Terugval als Shop Settings nog niet is ingevuld. De instelling wint, zodat
 // je het adres kunt wijzigen zonder de code aan te raken.
 const FROM_FALLBACK   = 'Sander Dekker <hello@mynameissanderdekker.com>'
@@ -104,7 +104,10 @@ export async function POST(req: NextRequest) {
     // `SD-${Date.now()}`, dus webshopbestellingen kregen een tijdstempel naast
     // de doorlopende factuurnummering — twee reeksen, waarvan er één niet aan
     // de nummeringseis voldoet.
-    const orderNumber = await nextNumber(sanity, { type: 'invoice' })
+    // Het nummer wordt bij het aanmaken bepaald (createNumberedOrder), zodat
+    // een webshopbestelling en een verkoop in de Studio op hetzelfde moment
+    // nooit hetzelfde nummer krijgen. Tot die tijd is het `orderNumber` leeg.
+    let orderNumber = ''
 
     // ── Verhoog coupon usageCount indien gebruikt ─────────────────────────
     const couponSanityId = session.metadata?.couponSanityId
@@ -121,9 +124,7 @@ export async function POST(req: NextRequest) {
     // daarna alsnog op deze order te staan.
     let createdOrderId: string | null = null
     try {
-      const createdOrder = await sanity.create({
-        _type:           'order',
-        orderNumber,
+      const createdOrder = await createNumberedOrder(sanity, () => ({
         stripeSessionId: session.id,
         // De webhook vuurt pas ná een geslaagde betaling, dus dit is 'paid'.
         status:          'paid',
@@ -163,8 +164,9 @@ export async function POST(req: NextRequest) {
         } : {}),
         createdAt:   new Date().toISOString(),
         statusHistory: [buildStatusEntry('paid', `Betaling ontvangen via Stripe (${session.id})`)],
-      })
+      }), { numberOpts: { type: 'invoice', fallbackPrefix: 'SDK' } })
       createdOrderId = createdOrder._id
+      orderNumber = createdOrder.orderNumber
     } catch (err) {
       console.error('[webhook] Sanity order aanmaken mislukt:', err)
       // Ga door met emails, ook als Sanity faalt

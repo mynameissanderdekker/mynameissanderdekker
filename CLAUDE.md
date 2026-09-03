@@ -138,6 +138,27 @@ en `invoiceLanguage` (`'nl'`, want de webshop rekent inclusief BTW af).
 
 ---
 
+## Eén werk, één verkoop
+
+Zelfde gat als in de gallery-template, zelfde oplossing (`src/lib/createOrder.ts`,
+gedeeld via `sync-shared.mjs`): `manual-sale` keek niet of het werk nog te koop
+was, en het nummer uit de verkooptool ging ongecontroleerd de order in — twee
+open tools hadden allebei hetzelfde "volgende" nummer.
+
+Nu: statuscontrole vooraf (409 bij "al verkocht"), order en werk in één
+transactie met revisiecontrole, en het nummer uit de tool is een **voorkeur**:
+is het intussen bezet, dan krijgt de order het volgende vrije nummer en de
+tool het werkelijke nummer terug (`invoiceNumber` in het antwoord). De
+webhook van de webshop gebruikt dezelfde weg. `scripts/testrun-double-sale.mts`
+meet alle drie de gevallen.
+
+Ook opgeruimd: acht contacten met een aankoop die naar `drafts.<id>` verwees
+(historische import) — hun Collectie-tab toonde een leeg vak
+(`scripts/fix-purchase-draft-refs.mjs`). Nog open: twee dubbele contacten
+(Shirien van Maurik, Frans Oomen — één echt, één uit de import).
+
+---
+
 ## Botbeveiliging: `src/lib/verifyTurnstile.ts`
 
 Gedeeld met de gallery-template (staat in `sync-shared.mjs`). De uitleg staat

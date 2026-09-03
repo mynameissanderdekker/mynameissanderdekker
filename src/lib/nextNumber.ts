@@ -15,11 +15,13 @@ import type { SanityClient } from '@sanity/client'
  * Alle drie de ingangen lopen nu hierlangs, zodat een webshopbestelling en
  * een verkoop aan de balie in dezelfde reeks vallen.
  *
- * Let op de volgorde: het nummer wordt bepaald vlak vóór het schrijven, en
- * `taken` controleert of het intussen niet bezet is geraakt. Twee bestellingen
- * op precies hetzelfde moment blijven theoretisch mogelijk — dat vraagt een
- * teller in Sanity, en bij dit volume is de kans op twee gelijktijdige
- * afrekeningen kleiner dan de kans dat niemand die teller onderhoudt.
+ * Let op: dit geeft alleen een kandidaat. Twee aanroepen op hetzelfde moment
+ * krijgen hetzelfde nummer — "theoretisch mogelijk" stond hier, en het bleek
+ * bij de eerste meting gewoon te gebeuren (scripts/testrun-double-sale.mts:
+ * twee orders, allebei -006). Wie een order aanmaakt gebruikt daarom
+ * `createNumberedOrder` in lib/createOrder.ts: die maakt het nummer uniek via
+ * het document-id en probeert bij een botsing opnieuw. Roep `nextNumber` dus
+ * niet rechtstreeks aan om een order te schrijven.
  */
 export async function nextNumber(
   client: SanityClient,

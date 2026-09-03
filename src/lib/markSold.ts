@@ -1,20 +1,39 @@
-import type { SanityClient } from '@sanity/client'
+import type { SanityClient, Transaction } from '@sanity/client'
 
 /**
  * Wat er met een werk gebeurt zodra het verkocht is.
  *
- * Gebeurde hier lange tijd hélemaal niet: noch de verkooptool
- * (`/api/manual-sale`) noch de webshop-webhook raakte het werk aan — alleen de
- * synchronisatie vanuit Torch zette ooit een status op `sold`. Verkocht je iets
- * via je eigen site, dan bleef het op `available` staan.
+ * Dit stond twee keer, en de twee versies deden iets anders. `createSale` (de
+ * verkooptool en de mobiele app) boekte bij een editie de voorraad af en zette
+ * pas op `sold` bij nul, en haalde het werk uit de webshop. `processOrder` (de
+ * Stripe-webhook) zette elk artwork meteen op `sold` — ook een editie van vijf
+ * — en liet `availableInShop` aan staan, zodat een verkocht stuk in de winkel
+ * bleef liggen. Publicaties vielen daar bovendien in een tak die bedoeld was
+ * voor het inmiddels verwijderde `webshopItem`, en werden nooit als verkocht
+ * gemarkeerd.
  *
- * Eén regel, één plek, gedeeld met de gallery-template.
+ * Eén regel, één plek. Wie het aanroept maakt niet uit — de uitkomst hoort
+ * hetzelfde te zijn.
  */
 export async function markSold(
   client: SanityClient,
   itemId: string,
   quantity = 1,
-  variant?: string
+  variant?: string,
+  opts: {
+    /**
+     * Onderdeel van een grotere transactie (order + werk in één keer). Dan
+     * wordt hier niets gecommit; de aanroeper doet dat.
+     */
+    tx?: Transaction
+    /**
+     * Alleen schrijven als het werk sinds het lezen niet is veranderd. Twee
+     * verkopen op hetzelfde moment lezen allebei "beschikbaar"; met deze
+     * controle slaagt er precies één en faalt de transactie van de ander.
+     * Zonder: scripts/testrun-double-sale.mts liet twee orders ontstaan.
+     */
+    ifRevisionId?: string
+  } = {}
 ): Promise<void> {
   // Een variant (bv. "Signed") heeft eigen voorraad, los van het basisproduct.
   // Die werd nooit afgeboekt: een gesigneerde editie van 2 bleef na verkoop
@@ -26,12 +45,13 @@ export async function markSold(
     )
     if (v) {
       const remaining = Math.max((v.stock ?? 1) - quantity, 0)
-      await client.patch(itemId)
+      const vp = client.patch(itemId)
         .set({
           [`shopVariants[_key=="${v._key}"].stock`]: remaining,
           ...(remaining === 0 ? { [`shopVariants[_key=="${v._key}"].status`]: 'sold' } : {}),
         })
-        .commit()
+      if (opts.ifRevisionId) vp.ifRevisionId(opts.ifRevisionId)
+      if (opts.tx) opts.tx.patch(vp); else await vp.commit()
     }
     return
   }
@@ -49,6 +69,7 @@ export async function markSold(
   if (!art) return
 
   const patch = client.patch(itemId)
+  if (opts.ifRevisionId) patch.ifRevisionId(opts.ifRevisionId)
 
   // Een publicatie is per definitie een oplage: daar telt de voorraad, niet
   // het editietype.
@@ -71,5 +92,6 @@ export async function markSold(
   // reserveringspaneel "verlengen" aan voor iets dat verkocht is.
   patch.unset(['reservedFor', 'reservedUntil', 'reservedNote'])
 
-  await patch.commit()
+  if (opts.tx) opts.tx.patch(patch)
+  else await patch.commit()
 }
