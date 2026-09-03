@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { useFormValue, useDocumentOperation } from 'sanity'
+import { useFormValue, useDocumentOperation, useCurrentUser } from 'sanity'
 
 /**
  * Eén paneel bovenaan de order dat de hele afhandeling doet.
@@ -45,9 +45,24 @@ export function OrderCompletion(props: { documentId?: string }) {
   const closed = status === 'cancelled' || status === 'refunded'
   const complete = paid && sent
 
+  const currentUser = useCurrentUser()
+
   function apply(patches: { set?: Record<string, unknown>; unset?: string[] }) {
     setBusy(true)
-    patch.execute([patches])
+    // Een statuswijziging hoort in de geschiedenis. `withStatusHistory` doet
+    // dat voor de Publish-knop, maar dit paneel publiceert rechtstreeks via de
+    // operatie en liep daar omheen: "Mark as paid" liet het History-tabblad
+    // leeg. Zelfde vorm als lib/orderStatusHistory, inline omdat de
+    // artist-template dat bestand niet heeft en dit paneel gedeeld is.
+    const nieuweStatus = patches.set?.status
+    const geschiedenis = typeof nieuweStatus === 'string' ? [
+      { setIfMissing: { statusHistory: [] } },
+      { insert: { before: 'statusHistory[0]', items: [{
+        _key: crypto.randomUUID(), _type: 'statusHistoryEntry', status: nieuweStatus,
+        changedAt: new Date().toISOString(), changedBy: currentUser?.name || 'system',
+      }] } },
+    ] : []
+    patch.execute([patches, ...geschiedenis])
     // Meteen publiceren: een concept verandert niets aan de lijsten waar de
     // galerie naar kijkt, en dat is precies waar de verwarring vandaan kwam.
     setTimeout(() => { publish.execute(); setBusy(false) }, 120)
