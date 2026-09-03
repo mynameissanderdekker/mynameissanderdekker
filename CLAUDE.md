@@ -201,6 +201,47 @@ Dat is echte data en dus een migratie.
 
 ---
 
+## De verkooptool viel terug op een willekeurig factuurnummer
+
+`RegisterSaleTool` haalde het volgnummer op met een kale
+`fetch('/api/admin/generate-number?type=invoice')` — **zonder het Sanity-token**
+van de ingelogde Studio-gebruiker. Die route wil een admin-cookie óf een token;
+in de Studio heb je die cookie meestal niet, dus kwam er een 401 en viel de tool
+terug op `SD-202609-473`: een willekeurig getal buiten de doorlopende reeks.
+
+Of je factuurnummer in de reeks zat hing dus af van de vraag of je toevallig in
+dezelfde browser bij `/admin` was ingelogd. Voor een factuurreeks is dat niet
+goed genoeg — die hoort doorlopend te zijn.
+
+Nu via `haalVolgnummer(client)`, die het token meestuurt zoals
+`ProposalCompletion` al deed. De terugval blijft bestaan voor het geval de route
+echt onbereikbaar is; `manual-sale` behandelt het meegestuurde nummer sowieso
+als een **voorkeur** en pakt het volgende vrije nummer als het bezet is.
+
+De gallery-template heeft dit niet: daar vraagt de verkooptool geen nummer op
+maar krijgt het terug van de server.
+
+---
+
+## Wat de rondgang verder opleverde
+
+`scripts/walkthrough.mts` (overgenomen uit de gallery-template) opent elke
+pagina en elke leesbare API. Twee dingen om te onthouden bij het lezen van de
+uitslag:
+
+- **Negen van de pagina's zijn client-componenten** en zijn buiten Next niet te
+  renderen — JSX draait hier zonder Next-runtime niet. Die worden overgeslagen
+  met een `·`, niet als fout geteld.
+- **Een expositie krijgt alleen een pagina als `hasPage` aanstaat.** De CV-lijst
+  en de projectpagina linken er ook alleen dán naartoe, dus een 404 op een
+  expositie zonder dat vinkje is geen dode link. De rondgang filtert erop.
+
+**Nooit backticks in commentaar binnen een template-literal.** Een GROQ-query
+staat in een template-literal; een `// noot met `backticks`` erin breekt de
+string en geeft een onbegrijpelijke esbuild-fout. Twee keer op ingelopen.
+
+---
+
 ## Twee gaten die uit de gallery-template kwamen
 
 **Het wachtwoord op een prijslijst stelde niets voor.** `page.tsx` haalde het

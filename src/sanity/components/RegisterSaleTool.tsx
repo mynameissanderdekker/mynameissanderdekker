@@ -45,6 +45,32 @@ function isPublication(artwork: ArtworkResult) {
   return !artwork.editionTotal || PUBLICATION_CATEGORIES.includes(artwork.category ?? '')
 }
 
+
+/**
+ * Het volgnummer ophalen — mét het Sanity-token van de ingelogde Studio-gebruiker.
+ *
+ * Stond hier als een kale `fetch('/api/admin/generate-number?type=invoice')`.
+ * Die route vraagt om een admin-cookie óf een Sanity-token; de Studio heeft die
+ * cookie meestal niet, dus kwam er een 401 terug en viel de tool terug op
+ * `SD-202609-473` — een willekeurig nummer buiten de doorlopende factuurreeks.
+ * Of je factuurnummer in de reeks zat hing dus af van de vraag of je toevallig
+ * in dezelfde browser bij /admin was ingelogd.
+ */
+async function haalVolgnummer(client: unknown): Promise<string | null> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const token = (client as any)?.config?.()?.token ?? ''
+  try {
+    const res = await fetch('/api/admin/generate-number?type=invoice', {
+      headers: token ? { 'x-sanity-token': token } : {},
+    })
+    if (!res.ok) return null
+    const d = await res.json()
+    return d?.number ?? null
+  } catch {
+    return null
+  }
+}
+
 // Terugval: alleen als de nummerroute onbereikbaar is. Een willekeurig getal
 // kan botsen en deelt geen reeks met de offertes — daarom niet meer de norm.
 function fallbackInvoiceNumber() {
@@ -121,10 +147,7 @@ export function RegisterSaleTool() {
 
   // Volgnummer uit de gedeelde reeks met de offertes.
   useEffect(() => {
-    fetch('/api/admin/generate-number?type=invoice')
-      .then(r => (r.ok ? r.json() : null))
-      .then(d => { if (d?.number) setInvoiceNumber(d.number) })
-      .catch(() => { /* de terugval staat er al in */ })
+    haalVolgnummer(client).then((n) => { if (n) setInvoiceNumber(n) })
   }, [])
 
   // Komt de bezoeker van de knop op een offerte, dan staan contact en werken
@@ -386,10 +409,7 @@ export function RegisterSaleTool() {
     setTermDays('14'); setNotes(''); setSendConf(true)
     setFromProposal(null)
     // Na een verkoop is het volgende nummer een hoger nummer, dus opnieuw halen.
-    fetch('/api/admin/generate-number?type=invoice')
-      .then(r => (r.ok ? r.json() : null))
-      .then(d => setInvoiceNumber(d?.number ?? fallbackInvoiceNumber()))
-      .catch(() => setInvoiceNumber(fallbackInvoiceNumber()))
+    haalVolgnummer(client).then((n) => setInvoiceNumber(n ?? fallbackInvoiceNumber()))
   }
 
   const stepLabels = ['Buyer', 'Items', 'Invoice']
