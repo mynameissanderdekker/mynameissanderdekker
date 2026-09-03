@@ -207,10 +207,18 @@ Schrijven en testen gebeurt in de sessie; committen, pushen en Vercel hebben
 sleutels nodig die alleen op Sanders machine staan. Dat laatste is één commando:
 
 ```bash
-./scripts/ship.sh "wat je hebt gedaan"   # add (alleen gewijzigde bestanden), commit, push
+./scripts/ship.sh "wat je hebt gedaan"   # controle, add (alleen gewijzigde bestanden), commit, push
 ./scripts/ship.sh --env                  # ook de Turnstile-sleutels naar Vercel
 ./scripts/ship.sh --dry                  # eerst laten zien wat er zou gebeuren
+./scripts/ship.sh --full                 # ook de schrijvende testruns (minuten)
+./scripts/ship.sh --force                # pushen ook al is de controle rood
 ```
+
+**Vóór elke push draait een controle**: TypeScript, `audit-studio-lists`,
+`audit-data`, `testrun-print` en `testrun-turnstile` — alles wat alleen leest.
+Is er iets rood, dan gaat er niets live. Dat is de afspraak die maakt dat wat
+vandaag klopt ook morgen nog klopt: een fout die een test vindt, kan niet meer
+gedeployed worden zonder `--force`, en dan is het een bewuste keuze.
 
 De push naar `main` start de productiebuild — `vercel --prod` is alleen nodig
 als je buiten git om iets wilt uitrollen, of nadat je een env-variabele hebt

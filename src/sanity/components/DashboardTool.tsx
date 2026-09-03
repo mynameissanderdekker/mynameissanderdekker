@@ -332,7 +332,8 @@ export function DashboardTool() {
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const [ord, exh, fairs, noPriceWorks, noCatWorks, settings] = await Promise.all([
+      const [ord, exh, fairs, noPrice, noCat, settings] = await Promise.all([
+
 
         client.fetch<NewOrder[]>(
           `*[_type == "order" && status == "new" && !(_id in path("drafts.**"))] | order(createdAt desc) [0..19] { _id, orderNumber, customerName, customerEmail, createdAt }`
@@ -354,14 +355,23 @@ export function DashboardTool() {
           { today, inNinetyDays } as any
         ),
 
-        // Artworks available without price and not on-request
-        client.fetch<Array<{ _id: string; title: string }>>(
-          `*[_type == "artwork" && status == "available" && !defined(priceIncVat) && !(category in ["Zine","book"]) && !(_id in path("drafts.**"))] | order(title asc) [0..49] { _id, title }`
+        // Artworks available without price and not on-request.
+        // Totaal apart: de lijst is afgekapt op 50 en het label toonde de
+        // lengte van die lijst als aantal — bij de gallery-template stond er
+        // "50" waar het 649 waren.
+        client.fetch<{ totaal: number; werken: Array<{ _id: string; title: string }> }>(
+          `{
+            "totaal": count(*[_type == "artwork" && status == "available" && !defined(priceIncVat) && !(category in ["Zine","book"]) && !(_id in path("drafts.**"))]),
+            "werken": *[_type == "artwork" && status == "available" && !defined(priceIncVat) && !(category in ["Zine","book"]) && !(_id in path("drafts.**"))] | order(title asc) [0..49] { _id, title }
+          }`
         ),
 
         // Artworks without category
-        client.fetch<Array<{ _id: string; title: string }>>(
-          `*[_type == "artwork" && (!defined(category) || category == "") && !(_id in path("drafts.**"))] | order(title asc) [0..49] { _id, title }`
+        client.fetch<{ totaal: number; werken: Array<{ _id: string; title: string }> }>(
+          `{
+            "totaal": count(*[_type == "artwork" && (!defined(category) || category == "") && !(_id in path("drafts.**"))]),
+            "werken": *[_type == "artwork" && (!defined(category) || category == "") && !(_id in path("drafts.**"))] | order(title asc) [0..49] { _id, title }
+          }`
         ),
 
         client.fetch<{ _id: string; quickActions?: string[] } | null>(
@@ -409,22 +419,24 @@ export function DashboardTool() {
         }
       })
 
-      if (noPriceWorks.length > 0) {
+      const noPriceWorks = noPrice.werken, noPriceTotaal = noPrice.totaal
+      const noCatWorks = noCat.werken, noCatTotaal = noCat.totaal
+      if (noPriceTotaal > 0) {
         newNudges.push({
           id: 'no-price',
-          label: `${noPriceWorks.length} beschikbaar werk${noPriceWorks.length !== 1 ? 'en' : ''} zonder prijs`,
-          labelEn: `${noPriceWorks.length} available work${noPriceWorks.length !== 1 ? 's' : ''} without a price`,
+          label: `${noPriceTotaal} beschikbaar werk${noPriceTotaal !== 1 ? 'en' : ''} zonder prijs`,
+          labelEn: `${noPriceTotaal} available work${noPriceTotaal !== 1 ? 's' : ''} without a price`,
           hint: 'Klik om uit te vouwen — stel een prijs in of zet op "Price on request".',
           hintEn: 'Click to expand — set a price or enable "Price on request".',
           items: noPriceWorks.map(w => ({ id: w._id, label: w.title })),
         })
       }
 
-      if (noCatWorks.length > 0) {
+      if (noCatTotaal > 0) {
         newNudges.push({
           id: 'no-category',
-          label: `${noCatWorks.length} werk${noCatWorks.length !== 1 ? 'en' : ''} zonder categorie`,
-          labelEn: `${noCatWorks.length} work${noCatWorks.length !== 1 ? 's' : ''} without a category`,
+          label: `${noCatTotaal} werk${noCatTotaal !== 1 ? 'en' : ''} zonder categorie`,
+          labelEn: `${noCatTotaal} work${noCatTotaal !== 1 ? 's' : ''} without a category`,
           hint: 'Klik om uit te vouwen — categorie is nodig voor filters op de website.',
           hintEn: 'Click to expand — category is needed for filters on the website.',
           items: noCatWorks.map(w => ({ id: w._id, label: w.title })),

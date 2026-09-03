@@ -6,6 +6,15 @@
 #   ./scripts/ship.sh "wat je hebt gedaan"  # commit met je eigen boodschap
 #   ./scripts/ship.sh --env                 # ook de Turnstile-sleutels naar Vercel
 #   ./scripts/ship.sh --dry                 # laat zien wat er zou gebeuren
+#   ./scripts/ship.sh --force               # pushen ook al is de controle rood
+#   ./scripts/ship.sh --full                # ook de schrijvende testruns (duurt minuten)
+#
+# Vóór het pushen draait een controle: TypeScript, de leesaudits (lijsten,
+# data, documenten) en de formulierbeveiliging. Is er iets rood, dan gaat er
+# niets live. Dat is de enige manier waarop wat vandaag klopt ook morgen nog
+# klopt — een fout die de test vindt, kan zo simpelweg niet meer gedeployed
+# worden. `--full` draait ook de testruns die echt verkopen en bestellingen
+# doorlopen; die schrijven in productie (met TEST-ids) en ruimen zichzelf op.
 #
 # Waarom dit bestaat: het schrijven en testen gebeurt in de sessie, maar
 # committen, pushen en Vercel hebben sleutels nodig die alleen op deze machine
@@ -22,10 +31,14 @@ REPO=$(basename "$PWD")
 
 DRY=0
 ENVPUSH=0
+FORCE=0
+FULL=0
 BOODSCHAP=""
 for arg in "$@"; do
   case "$arg" in
     --dry) DRY=1 ;;
+    --force) FORCE=1 ;;
+    --full) FULL=1 ;;
     --env) ENVPUSH=1 ;;
     *) BOODSCHAP="$arg" ;;
   esac
@@ -69,6 +82,40 @@ if [ "$ENVPUSH" = 1 ]; then
     unset VAL
   done
   unset SECRET SITE
+  echo
+fi
+
+# ── 1b. Controle vóór het pushen ─────────────────────────────────────────────
+# Alleen als er code is veranderd; voor een lege push hoeft dit niet.
+if [ "$DRY" = 0 ] && [ "$FORCE" = 0 ] && [ -n "$(git status --porcelain)" ]; then
+  echo "── Controle vóór het pushen ──"
+  ROOD=0
+  stap() {
+    local naam="$1"; shift
+    if "$@" >/tmp/ship-check.log 2>&1; then
+      echo "   ✓ $naam"
+    else
+      echo "   ✗ $naam"; grep -E "✗|error TS|Error" /tmp/ship-check.log | head -8 | sed 's/^/       /'
+      ROOD=1
+    fi
+  }
+  stap "TypeScript" npx tsc --noEmit
+  for t in audit-studio-lists audit-data testrun-print testrun-turnstile; do
+    [ -f "scripts/$t.mts" ] && stap "$t" npx tsx --env-file=.env.local "scripts/$t.mts"
+  done
+  if [ "$FULL" = 1 ]; then
+    for t in testrun-compare testrun-double-sale testrun-checkout testrun-webshop testrun-proposal testrun-flow testrun-app; do
+      [ -f "scripts/$t.mts" ] || continue
+      stap "$t" npx tsx --env-file=.env.local "scripts/$t.mts"
+      npx tsx --env-file=.env.local "scripts/$t.mts" --cleanup >/dev/null 2>&1 || true
+    done
+  fi
+  if [ "$ROOD" = 1 ]; then
+    echo
+    echo "Er is iets rood. Niets gepusht."
+    echo "Toch pushen (op eigen risico):  ./scripts/ship.sh --force \"$BOODSCHAP\""
+    exit 1
+  fi
   echo
 fi
 
