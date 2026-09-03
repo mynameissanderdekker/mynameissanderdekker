@@ -201,6 +201,27 @@ Dat is echte data en dus een migratie.
 
 ---
 
+## Twee gaten die uit de gallery-template kwamen
+
+**Het wachtwoord op een prijslijst stelde niets voor.** `page.tsx` haalde het
+wachtwoord én alle werken met prijzen op en gaf ze mee aan de client, die in de
+browser vergeleek. Wie de link had kon de prijslijst uit de paginabron lezen
+zonder iets in te tikken. De werken komen nu via `POST /api/private-sale/[token]`,
+ná controle op de server. `scripts/testrun-private-sale.mts` toetst het.
+
+**De Mailchimp-webhook controleerde niets zonder sleutel.**
+`src/app/api/webhooks/sanity-contact/route.ts` had `if (secret) { …verify… }`:
+ontbreekt `SANITY_WEBHOOK_SECRET` in de omgeving, dan kon iedereen een
+contactpayload sturen die doorschrijft naar Mailchimp. Nu 503 zonder sleutel —
+dezelfde regel als bij `ADMIN_PASSWORD` en `TURNSTILE_SECRET_KEY`. Ook opgelost:
+`timingSafeEqual` gooide een fout bij een verminkte handtekening, dus je kreeg
+een 500 in plaats van een 401.
+
+`audit-data` en `audit-studio-lists` stonden hard op `dataset: 'production'` en
+lezen die nu uit de omgeving.
+
+---
+
 ## Uitrollen: `./scripts/ship.sh`
 
 Schrijven en testen gebeurt in de sessie; committen, pushen en Vercel hebben

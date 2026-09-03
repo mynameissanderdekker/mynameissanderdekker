@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { vatTreatment, type ClientLocation } from '@/lib/invoiceVat'
 
 interface ArtworkItem {
@@ -29,14 +29,44 @@ interface Sale {
 
 interface Props {
   sale: Sale
+  /** Het token uit de URL — nodig om de werken op te halen na het wachtwoord. */
+  token: string
   requiresPassword: boolean
-  correctPassword: string | null
 }
 
-export default function PrivateSaleClient({ sale, requiresPassword, correctPassword }: Props) {
-  const [unlocked, setUnlocked] = useState(!requiresPassword)
+export default function PrivateSaleClient({ sale, token, requiresPassword }: Props) {
+  const [unlocked, setUnlocked] = useState(false)
   const [pwInput, setPwInput] = useState('')
   const [pwError, setPwError] = useState(false)
+  const [bezig, setBezig] = useState(false)
+  // De werken komen niet meer met de pagina mee: die stonden in de bron van
+  // iedereen die de link had, ook zonder het wachtwoord in te tikken.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [artworks, setArtworks] = useState<any[]>([])
+
+  async function haalOp(wachtwoord?: string) {
+    setBezig(true)
+    try {
+      const res = await fetch(`/api/private-sale/${token}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: wachtwoord ?? '' }),
+      })
+      if (!res.ok) { setPwError(true); setPwInput(''); setBezig(false); return }
+      const d = await res.json()
+      setArtworks(d.artworks ?? [])
+      setUnlocked(true)
+      setPwError(false)
+    } catch {
+      setPwError(true)
+    }
+    setBezig(false)
+  }
+
+  useEffect(() => {
+    if (!requiresPassword) haalOp()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [requiresPassword])
   const printRef = useRef<HTMLDivElement>(null)
 
   // Dezelfde regel als op de factuur, zodat prijslijst en factuur niet
@@ -45,12 +75,7 @@ export default function PrivateSaleClient({ sale, requiresPassword, correctPassw
 
   function handlePassword(e: React.FormEvent) {
     e.preventDefault()
-    if (pwInput === correctPassword) {
-      setUnlocked(true)
-    } else {
-      setPwError(true)
-      setPwInput('')
-    }
+    if (!bezig) haalOp(pwInput)
   }
 
   function handlePrint() {
@@ -143,7 +168,7 @@ export default function PrivateSaleClient({ sale, requiresPassword, correctPassw
           className="artwork-grid"
           style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 40, marginBottom: 64 }}
         >
-          {sale.artworks.map((item, i) => {
+          {artworks.map((item, i) => {
             const { artwork, priceOverride, note, imageUrl } = item
             const priceExcl = priceOverride ?? artwork.priceExclVAT
             // Het tarief hangt af van waar de koper zit: binnen Nederland het

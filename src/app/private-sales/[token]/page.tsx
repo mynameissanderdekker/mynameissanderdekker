@@ -33,28 +33,17 @@ export default async function PrivateSalePage({ params }: Props) {
       _id,
       title,
       recipientName,
-      password,
+      // Geen wachtwoord en geen werken in deze projectie: beide gingen naar
+      // de browser, waar het wachtwoord werd vergeleken — de prijslijst stond
+      // dus in de paginabron van iedereen die de link had. De werken komen nu
+      // via /api/private-sale, ná controle op de server.
+      "heeftWachtwoord": defined(password),
       expiresAt,
       introText,
       footerText,
       // Stond wel in het schema maar werd nooit gelezen: elke prijslijst toonde
       // Nederlandse BTW, ook aan een koper in Duitsland of daarbuiten.
       clientLocation,
-      artworks[]{
-        priceOverride,
-        note,
-        artwork->{
-          _id,
-          title,
-          year,
-          medium,
-          dimensions,
-          "priceExclVAT": select(defined(priceIncVat) => round(priceIncVat / (1 + select(vatRate == "21" => 21, vatRate == "0" => 0, 9) / 100) * 100) / 100, priceExclVAT),
-          priceIncVat,
-          vatRate,
-          images,
-        }
-      }
     }`,
     { token }
   )
@@ -73,24 +62,11 @@ export default async function PrivateSalePage({ params }: Props) {
     )
   }
 
-  // Build image URLs server-side
-  const artworksWithUrls = (sale.artworks ?? []).map((item: {
-    artwork: { images?: { asset?: SanityImageSource }[] } & Record<string, unknown>
-    priceOverride?: number
-    note?: string
-  }) => {
-    const img = item.artwork?.images?.[0]
-    return {
-      ...item,
-      imageUrl: img ? urlFor(img).width(800).height(800).fit('max').url() : null,
-    }
-  })
-
   return (
     <PrivateSaleClient
-      sale={{ ...sale, artworks: artworksWithUrls }}
-      requiresPassword={!!sale.password}
-      correctPassword={sale.password ?? null}
+      sale={sale}
+      token={token}
+      requiresPassword={sale.heeftWachtwoord === true}
     />
   )
 }

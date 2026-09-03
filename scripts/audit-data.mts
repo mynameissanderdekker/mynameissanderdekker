@@ -22,7 +22,9 @@ import { existsSync } from 'node:fs'
 
 const client = createClient({
   projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!,
-  dataset: 'production',
+  // De dataset uit de omgeving, niet hard 'production': anders meet je altijd
+  // dezelfde installatie, ook als je een andere aan het nakijken bent.
+  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET ?? 'production',
   apiVersion: '2026-06-18',
   token: process.env.SANITY_WRITE_TOKEN || process.env.SANITY_API_WRITE_TOKEN,
   useCdn: false,

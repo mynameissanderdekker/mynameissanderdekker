@@ -32,19 +32,34 @@ function verifySignature(body: string, signature: string | null, secret: string)
     .createHmac('sha256', secret)
     .update(body)
     .digest('hex')
-  return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))
+  // `timingSafeEqual` gooit een fout als de lengtes verschillen — een
+  // verminkte handtekening gaf daardoor een 500 in plaats van een nette 401.
+  const a = Buffer.from(signature)
+  const b = Buffer.from(expected)
+  return a.length === b.length && crypto.timingSafeEqual(a, b)
 }
 
 export async function POST(req: NextRequest) {
   const body = await req.text()
 
-  // ── Verify Sanity webhook signature ────────────────────────────────────────
+  // ── Handtekening van Sanity controleren ──────────────────────────────────
+  // Stond als `if (secret) { …controleren… }`: ontbreekt die variabele in de
+  // omgeving, dan werd er niets gecontroleerd en kon iedereen een
+  // contactpayload naar deze route sturen — die schrijft door naar Mailchimp.
+  // Dezelfde fail-open als bij ADMIN_PASSWORD, TURNSTILE_SECRET_KEY en de
+  // pincode van de app: een ontbrekende sleutel hoort niemand binnen te laten,
+  // niet iedereen.
   const secret = process.env.SANITY_WEBHOOK_SECRET
-  if (secret) {
-    const sig = req.headers.get('sanity-webhook-signature')
-    if (!verifySignature(body, sig, secret)) {
-      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
-    }
+  if (!secret) {
+    console.error('[webhook] SANITY_WEBHOOK_SECRET ontbreekt — verzoek geweigerd')
+    return NextResponse.json(
+      { error: 'Webhook is niet ingesteld' },
+      { status: 503 }
+    )
+  }
+  const sig = req.headers.get('sanity-webhook-signature')
+  if (!verifySignature(body, sig, secret)) {
+    return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
   }
 
   let payload: SanityContactPayload

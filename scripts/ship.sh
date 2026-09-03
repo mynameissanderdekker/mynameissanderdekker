@@ -101,14 +101,27 @@ if [ "$DRY" = 0 ] && [ "$FORCE" = 0 ] && [ -n "$(git status --porcelain)" ]; the
     fi
   }
   stap "TypeScript" npx tsc --noEmit
-  for t in audit-tenant audit-studio-lists audit-data testrun-print testrun-turnstile; do
+
+  # De snelle poort: alles wat alleen leest.
+  SNEL="audit-tenant audit-studio-lists audit-data testrun-print testrun-turnstile"
+  for t in $SNEL; do
     [ -f "scripts/$t.mts" ] && stap "$t" npx tsx --env-file=.env.local "scripts/$t.mts"
   done
+
+  # `--full`: élke testrun die er ís, gevonden met een glob in plaats van een
+  # lijst. Er stond `testrun-flow` in die lijst; dat bestand bestaat niet, en de
+  # `[ -f ]`-controle sloeg het stil over — je dacht dus dat het draaide.
+  # Andersom stonden zes bestaande testruns er niet in en draaiden nooit mee.
+  #
+  # Uitgezonderd: `testrun-tenant`, die wil een lege dataset (zie het script),
+  # en `audit-onboarding`, die over de inrichting van een galerie gaat en geen
+  # reden mag zijn om code tegen te houden.
   if [ "$FULL" = 1 ]; then
-    for t in testrun-compare testrun-double-sale testrun-checkout testrun-webshop testrun-proposal testrun-flow testrun-app; do
-      [ -f "scripts/$t.mts" ] || continue
-      stap "$t" npx tsx --env-file=.env.local "scripts/$t.mts"
-      npx tsx --env-file=.env.local "scripts/$t.mts" --cleanup >/dev/null 2>&1 || true
+    for f in scripts/testrun-*.mts; do
+      t=$(basename "$f" .mts)
+      case " $SNEL testrun-tenant " in *" $t "*) continue ;; esac
+      stap "$t" npx tsx --env-file=.env.local "$f"
+      npx tsx --env-file=.env.local "$f" --cleanup >/dev/null 2>&1 || true
     done
   fi
   if [ "$ROOD" = 1 ]; then
