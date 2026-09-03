@@ -9,8 +9,8 @@
 #   ./scripts/ship.sh --force               # pushen ook al is de controle rood
 #   ./scripts/ship.sh --full                # ook de schrijvende testruns (duurt minuten)
 #
-# Vóór het pushen draait een controle: TypeScript, de leesaudits (lijsten,
-# data, documenten) en de formulierbeveiliging. Is er iets rood, dan gaat er
+# Vóór het pushen draait een controle: TypeScript, de leesaudits (galerie in
+# de code, lijsten, data, documenten) en de formulierbeveiliging. Is er iets rood, dan gaat er
 # niets live. Dat is de enige manier waarop wat vandaag klopt ook morgen nog
 # klopt — een fout die de test vindt, kan zo simpelweg niet meer gedeployed
 # worden. `--full` draait ook de testruns die echt verkopen en bestellingen
@@ -100,7 +100,7 @@ if [ "$DRY" = 0 ] && [ "$FORCE" = 0 ] && [ -n "$(git status --porcelain)" ]; the
     fi
   }
   stap "TypeScript" npx tsc --noEmit
-  for t in audit-studio-lists audit-data testrun-print testrun-turnstile; do
+  for t in audit-tenant audit-studio-lists audit-data testrun-print testrun-turnstile; do
     [ -f "scripts/$t.mts" ] && stap "$t" npx tsx --env-file=.env.local "scripts/$t.mts"
   done
   if [ "$FULL" = 1 ]; then
