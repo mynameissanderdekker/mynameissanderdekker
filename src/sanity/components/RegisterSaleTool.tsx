@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { PROPOSAL_HANDOFF_KEY } from './ProposalToSale'
 import { useListClient } from './useListClient'
+import { contactSearchFilter } from '../../lib/contactSearch'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -219,9 +220,11 @@ export function RegisterSaleTool() {
 
   const searchContacts = useCallback(async (q: string) => {
     if (!q) { setContactResults([]); return }
+    // Per woord, zie lib/contactSearch.ts — "Tessa Testklant" vond hier niets.
+    const { filter, params } = contactSearchFilter(q)
     const res = await client.fetch<ContactResult[]>(
-      `*[_type == "contact" && (firstName match $q || lastName match $q || email match $q)][0...10]{ _id, firstName, lastName, email, company }`,
-      { q: `${q}*` }
+      `*[_type == "contact" && !(_id in path("drafts.**")) && ${filter}][0...10]{ _id, firstName, lastName, email, company }`,
+      params
     )
     setContactResults(res)
   }, [client])

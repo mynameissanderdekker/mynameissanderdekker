@@ -18,7 +18,10 @@ function addNewItem(S: StructureBuilder, type: string, label: string) {
 import type { StructureBuilder, StructureResolver } from 'sanity/structure'
 import React from 'react'
 import { attentionBadge } from './components/AttentionBadge'
-import { OPEN_ORDER_FILTER, DONE_ORDER_FILTER } from '../lib/orderStatus'
+import {
+  OPEN_ORDER_FILTER, DONE_ORDER_FILTER,
+  WEBSHOP_ORDER_FILTER, GALLERY_ORDER_FILTER,
+} from '../lib/orderStatus'
 import { MailingListExport } from './components/MailingListExport'
 import { RegisterSaleTool } from './components/RegisterSaleTool'
 import { SalesOverviewTool } from './components/SalesOverviewTool'
@@ -283,14 +286,14 @@ function orderListItem(S: StructureBuilder) {
     .title('Orders')
     .id('order')
     .icon(attentionBadge(
-      `count(*[_type == "order" && ${OPEN_ORDER_FILTER}])`,
+      `count(*[_type == "order" && ${OPEN_ORDER_FILTER} && ${GALLERY_ORDER_FILTER}])`,
       { label: 'open orders', listenOn: 'order' }
     ))
     .child(
       S.documentList()
         .title('Orders')
         .schemaType('order')
-        .filter(`_type == "order" && ${OPEN_ORDER_FILTER}`)
+        .filter(`_type == "order" && ${OPEN_ORDER_FILTER} && ${GALLERY_ORDER_FILTER}`)
         .defaultOrdering([{ field: 'createdAt', direction: 'desc' }])
     )
 }
@@ -303,7 +306,7 @@ function orderArchiveListItem(S: StructureBuilder) {
       S.documentList()
         .title('Archive')
         .schemaType('order')
-        .filter(`_type == "order" && ${DONE_ORDER_FILTER}`)
+        .filter(`_type == "order" && ${DONE_ORDER_FILTER} && ${GALLERY_ORDER_FILTER}`)
         .defaultOrdering([{ field: 'createdAt', direction: 'desc' }])
     )
 }
@@ -327,21 +330,57 @@ function noCreate<T extends { canHandleIntent(fn: typeof noCreateIntent): T; ini
  * ontstaan bij het afrekenen, nooit met de hand.
  */
 function webshopOrderListItem(S: StructureBuilder) {
+  const lijst = (title: string, filter: string) =>
+    noCreate(
+      S.documentList()
+        .title(title)
+        .schemaType('order')
+        .filter(filter)
+        .defaultOrdering([{ field: 'createdAt', direction: 'desc' }])
+    )
+
   return S.listItem()
     .title('Webshop orders')
     .id('webshop-orders')
+    // Op `OPEN_ORDER_FILTER`, niet op `awaiting-payment`: een betaalde
+    // bestelling die nog verstuurd moet worden vraagt net zo goed actie, en
+    // telde in het oude bolletje niet mee.
     .icon(attentionBadge(
-      `count(*[_type == "order" && status == "awaiting-payment" && (defined(stripeSessionId) || channel == "webshop")])`,
+      `count(*[_type == "order" && ${WEBSHOP_ORDER_FILTER} && ${OPEN_ORDER_FILTER}])`,
       { label: 'webshopbestellingen', listenOn: 'order' }
     ))
     .child(
-      noCreate(
-        S.documentList()
-          .title('Webshop orders')
-          .schemaType('order')
-          .filter('_type == "order" && (defined(stripeSessionId) || channel == "webshop")')
-          .defaultOrdering([{ field: 'createdAt', direction: 'desc' }])
-      )
+      S.list()
+        .title('Webshop orders')
+        .items([
+          S.listItem()
+            .title('Nog te doen')
+            .id('webshop-orders-open')
+            .icon(attentionBadge(
+              `count(*[_type == "order" && ${WEBSHOP_ORDER_FILTER} && ${OPEN_ORDER_FILTER}])`,
+              { label: 'webshopbestellingen', listenOn: 'order' }
+            ))
+            .child(lijst(
+              'Webshop — te betalen, te versturen of klaar te leggen',
+              `_type == "order" && ${WEBSHOP_ORDER_FILTER} && ${OPEN_ORDER_FILTER}`
+            )),
+
+          S.listItem()
+            .title('Afgehandeld')
+            .id('webshop-orders-done')
+            .child(lijst(
+              'Webshop — afgehandeld',
+              `_type == "order" && ${WEBSHOP_ORDER_FILTER} && ${DONE_ORDER_FILTER}`
+            )),
+
+          S.listItem()
+            .title('Alle bestellingen')
+            .id('webshop-orders-all')
+            .child(lijst(
+              'Webshop — alle bestellingen uit de winkel',
+              `_type == "order" && ${WEBSHOP_ORDER_FILTER}`
+            )),
+        ])
     )
 }
 

@@ -27,7 +27,7 @@ const SRC = existsSync(new URL('../src/sanity/structure.ts', import.meta.url)) ?
 
 // Dynamisch, net als de andere testruns: een statische import van een .ts
 // vanuit .mts struikelt hier over de module-interop.
-const { OPEN_ORDER_FILTER, DONE_ORDER_FILTER } = await import(`${SRC}/lib/orderStatus`)
+const { OPEN_ORDER_FILTER, DONE_ORDER_FILTER, WEBSHOP_ORDER_FILTER, GALLERY_ORDER_FILTER } = await import(`${SRC}/lib/orderStatus`)
 
 const client = createClient({
   projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!,
@@ -54,9 +54,18 @@ const filterRe = /\.filter\(\s*(?:'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)"|`((?:[
 // attentionBadge(`count(…)`, …)
 const badgeRe = /attentionBadge\(\s*`([^`]+)`/g
 
+// Elke constante uit lib/orderStatus.ts die in structure.ts wordt ingevuld.
+// Vergeet je er één, dan draait dat filter niet en telt het als fout — wat op
+// zich klopt, maar de melding wijst dan naar de query in plaats van naar deze
+// lijst. Vandaar bij naam.
+const CONSTANTEN: Record<string, string> = {
+  OPEN_ORDER_FILTER, DONE_ORDER_FILTER, WEBSHOP_ORDER_FILTER, GALLERY_ORDER_FILTER,
+}
 const vervang = (q: string) =>
-  q.replace(/\$\{OPEN_ORDER_FILTER\}/g, OPEN_ORDER_FILTER)
-   .replace(/\$\{DONE_ORDER_FILTER\}/g, DONE_ORDER_FILTER)
+  Object.entries(CONSTANTEN).reduce(
+    (s, [naam, waarde]) => s.replace(new RegExp(`\\$\\{${naam}\\}`, 'g'), waarde),
+    q
+  )
 
 const filters: { q: string; regel: number }[] = []
 for (const m of bron.matchAll(filterRe)) {
@@ -131,6 +140,25 @@ const o = await client.fetch<{ alle: number; open: number; klaar: number; beide:
 }`)
 check('geen order staat tegelijk in Orders én Archive', o.beide === 0, `${o.beide}`)
 check('elke order staat in Orders óf Archive', o.geen === 0, `${o.geen} nergens · ${o.open} open · ${o.klaar} archief · ${o.alle} totaal`)
+
+// SALES toont wat je zelf verkoopt, WEBSHOP wat er uit de winkel komt.
+// Sinds die scheiding is de vraag niet meer of de lijsten overlappen, maar of
+// een order tússen de twee door kan vallen: een bestelling die nergens meer
+// staat is erger dan een die dubbel staat, want niemand mist hem.
+const k = await client.fetch<{ shop: number; galerie: number; beide: number; geen: number; wees: number }>(`{
+  "shop":    count(*[_type == "order" && ${WEBSHOP_ORDER_FILTER}]),
+  "galerie": count(*[_type == "order" && ${GALLERY_ORDER_FILTER}]),
+  "beide":   count(*[_type == "order" && (${WEBSHOP_ORDER_FILTER}) && (${GALLERY_ORDER_FILTER})]),
+  "geen":    count(*[_type == "order" && !(${WEBSHOP_ORDER_FILTER}) && !(${GALLERY_ORDER_FILTER})]),
+  "wees":    count(*[_type == "order" && !(
+    ((${GALLERY_ORDER_FILTER}) && ((${OPEN_ORDER_FILTER}) || (${DONE_ORDER_FILTER}))) ||
+    ((${WEBSHOP_ORDER_FILTER}) && ((${OPEN_ORDER_FILTER}) || (${DONE_ORDER_FILTER})))
+  )])
+}`)
+check('elke order is óf webshop óf galerie, nooit allebei', k.beide === 0 && k.geen === 0,
+  `${k.shop} webshop · ${k.galerie} galerie · ${k.beide} dubbel · ${k.geen} nergens`)
+check('geen order valt tussen SALES en WEBSHOP door', k.wees === 0,
+  k.wees ? `${k.wees} order(s) staan in geen enkele lijst` : 'alle orders zijn ergens te vinden')
 
 const e = await client.fetch<{ alle: number; up: number; cur: number; arch: number; geen: number; zonderEind: number }>(`{
   "alle": count(*[_type == "exhibition"]),

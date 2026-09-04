@@ -263,16 +263,26 @@ export const order = defineType({
       status:       'status',
       totalAmount:  'totalAmount',
       createdAt:    'createdAt',
+      channel:      'channel',
+      stripeSessionId: 'stripeSessionId',
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    prepare({ customerName, contactFirst, contactLast, orderNumber, status, totalAmount, createdAt }: any) {
+    prepare({ customerName, contactFirst, contactLast, orderNumber, status, totalAmount, createdAt, channel, stripeSessionId }: any) {
       const dateLabel = createdAt ? new Date(createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : ''
       const statusLabel = ORDER_STATUS_LIST.find(s => s.value === status)?.title || status || 'Awaiting payment'
       const name = [contactFirst, contactLast].filter(Boolean).join(' ') || customerName
+      // Waar de bestelling vandaan komt. Zonder dit label lijkt een
+      // webshopbestelling tussen de eigen verkopen te staan. Oudere orders
+      // hebben `channel` niet en zijn te herkennen aan een betaal-id; is er
+      // geen van beide, dan blijft het label weg in plaats van iets te gokken.
+      const kanaal = channel ?? (stripeSessionId ? 'webshop' : null)
+      const kanaalLabel = kanaal
+        ? ({ gallery: 'Gallery', direct: 'Direct', artfair: 'Art Fair', webshop: 'Webshop' } as Record<string, string>)[kanaal] ?? kanaal
+        : ''
       // Ordernummer voorop: daar zoek je op, en het staat op de factuur.
       return {
         title: [orderNumber, name].filter(Boolean).join(' · ') || 'Order',
-        subtitle: [dateLabel, totalAmount != null ? `€${Number(totalAmount).toFixed(2)}` : '', statusLabel].filter(Boolean).join('  ·  '),
+        subtitle: [kanaalLabel, dateLabel, totalAmount != null ? `€${Number(totalAmount).toFixed(2)}` : '', statusLabel].filter(Boolean).join('  ·  '),
         media: () => React.createElement(OrderStatusBadge, { status }),
       }
     },

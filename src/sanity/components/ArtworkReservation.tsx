@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react'
 import { useFormValue, useDocumentOperation } from 'sanity'
+import { PROPOSAL_HANDOFF_KEY } from './ProposalToSale'
+import { contactSearchFilter } from '../../lib/contactSearch'
 import { useListClient } from './useListClient'
 
 /**
@@ -69,15 +71,14 @@ export function ArtworkReservation() {
   async function search(q: string) {
     setQuery(q)
     if (q.trim().length < 2) { setHits([]); return }
+    // Per woord, zie lib/contactSearch.ts — "Tessa Testklant" vond hier niets.
+    const { filter, params } = contactSearchFilter(q)
     const res = await client.fetch<ContactHit[]>(
-      `*[_type == "contact" && (
-          firstName match $q + "*" || lastName match $q + "*" ||
-          company match $q + "*" || email match $q + "*"
-        )][0...8]{
+      `*[_type == "contact" && !(_id in path("drafts.**")) && ${filter}][0...8]{
           _id,
           "label": coalesce(firstName + " " + lastName, firstName, company, email)
         }`,
-      { q: q.trim() }
+      params
     ).catch(() => [])
     setHits(res)
   }
@@ -154,7 +155,18 @@ export function ArtworkReservation() {
           <button style={btn()} disabled={busy} onClick={release}>
             Release
           </button>
+          {/* De verkooptool krijgt werk én klant mee. Zonder dit kwam je op
+              een leeg formulier en moest je allebei opnieuw opzoeken — terwijl
+              beide hier al bekend zijn. Zelfde overdracht als bij een offerte. */}
           <a href="/studio/structure/register-sale"
+             onClick={() => {
+               try {
+                 sessionStorage.setItem(PROPOSAL_HANDOFF_KEY, JSON.stringify({
+                   artworkId: (rawId ?? '').replace(/^drafts\./, ''),
+                   contactId: reservedFor?._ref ?? null,
+                 }))
+               } catch { /* dan gewoon een leeg formulier */ }
+             }}
              style={{ ...btn(), textDecoration: 'none', display: 'inline-block' }}>
             Register a sale →
           </a>

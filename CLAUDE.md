@@ -263,6 +263,133 @@ lezen die nu uit de omgeving.
 
 ---
 
+## Expositie- en beurspagina: drie dingen die niet pasten
+
+- **De datum brak middenin af.** "17 September 2026 – 20 September 2026" in een
+  kolom van 20% gaf "20 [enter] September 2026". Nu twee regels met een eigen
+  label: *Start* en *End*, met de korte maandnaam (`month: 'short'` → "17 Sept
+  2026"). Is er maar één datum, dan staat er *Date*.
+- **De beschrijving liep van het scherm.** `gridTemplateColumns: '20% 80%'` met
+  `gap: 48px` telt op tot méér dan de volle breedte, dus stak de rechterkolom
+  eruit. Nu `minmax(140px, 200px) minmax(0, 1fr)` — die `minmax(0, …)` is de
+  kern: een grid-kolom krimpt standaard niet onder de inhoud, waardoor lange
+  tekst de kolom oprekt in plaats van af te breken.
+- **De terugknop wees altijd naar `/works`.** Kwam je uit de CV, uit een project
+  of uit de aankondiging op de homepage, dan zette hij je ergens anders neer.
+  `src/components/BackLink.tsx` gaat terug in de geschiedenis — maar alleen als
+  je van deze site komt (`document.referrer` op dezelfde origin én
+  `history.length > 1`). Zonder die controle stuurt een gedeelde link de
+  bezoeker terug naar Google. Anders de opgegeven pagina, standaard `/works`.
+
+**Zet geen `//`-commentaar tussen JSX-attributen.** Ik deed dat bij het
+`style`-attribuut van de banner; dat is geen commentaar maar onzin in de
+opening tag. Commentaar hoort vóór het element, in `{/* … */}`.
+
+---
+
+## De banner-afbeelding werd nergens uitgelezen
+
+`image` ("Banner Image") staat op zowel `exhibition` als `artFair`, maar géén
+van de twee publieke pagina's las het veld op. Je kon hem uploaden en er
+gebeurde niets — niet op de pagina, niet in de social preview, niet in de
+aankondiging op de homepage. Alleen `images[]` (de standfoto's) werd getoond, en
+die vul je pas ná afloop.
+
+Nu leest elk van de drie plekken hem: de beurspagina, de expositiepagina en
+`generateMetadata` (die nam de eerste standfoto, ook als er een banner was).
+Boven de titel, volle breedte, `maxHeight: 420`.
+
+**De aankondiging valt terug tot er beeld ís:** banner → standfoto → het eerste
+werk dat aan het evenement hangt, los gekoppeld of via `artworkSeries`. Zonder
+die terugval stond er een kale witte doos op de homepage zodra iemand vergat een
+banner te kiezen — en dat gebeurde meteen bij de eerste beurs.
+
+Let op bij het formaat: de banner is liggend, de terugval is een **werk** en dat
+is vaak staand. Daarom geen `h=560&fit=crop` meer maar volle breedte met een
+begrensde hoogte, anders sneed de crop de helft van het werk weg.
+
+**Het kopje hangt van de datum af.** Er stond vast "At the fair", ook als de
+beurs nog moest beginnen — precies het geval waarvoor je een aankondiging
+gebruikt. Nu: *Upcoming art fair* / *At the fair* en *Upcoming exhibition* /
+*Now on view*. De stand staat er ook bij; op een beurs is dat het enige waarmee
+een bezoeker je terugvindt.
+
+---
+
+## Annuleren draait de verkoop terug
+
+Overgenomen uit de gallery-template (`src/lib/reverseSale.ts`, gedeeld via
+`sync-shared.mjs`). `cancelled` en `refunded` waren alleen een status: het werk
+bleef op `sold`, de voorraad bleef afgeboekt en de aankoop bleef in het CRM
+staan. De knoppen staan onderaan `OrderCompletion` en roepen
+`/api/admin/reverse-sale` aan; die route staat hier apart omdat MNSDK
+`getSanityWriteClient()` gebruikt waar de gallery-template `writeClient` heeft.
+
+`scripts/testrun-reverse.mts` draait in beide repo's — het bestand zoekt zelf
+uit of er een `src/`-map is, en accepteert zowel `SANITY_WRITE_TOKEN` als
+`SANITY_API_WRITE_TOKEN`. Zonder die twee aanpassingen viel hij hier om op een
+lege `artist`-verwijzing (deze site heeft geen `artist`-documenten) en op
+ontbrekende schrijfrechten.
+
+---
+
+## Webshop en eigen verkoop staan nu los van elkaar
+
+Zelfde scheiding als in de gallery-template, en om dezelfde reden: een
+bestelling uit de winkel is klein spul dat vanzelf binnenkomt, een verkoop is
+een werk dat je zelf sluit en invoert. `WEBSHOP_ORDER_FILTER` /
+`GALLERY_ORDER_FILTER` staan in `src/lib/orderStatus.ts` (gedeeld, dus via
+`sync-shared.mjs`).
+
+SALES → Orders en Archive tonen alleen wat je zelf hebt ingevoerd; WEBSHOP →
+Webshop orders heeft nu drie sublijsten (Nog te doen / Afgehandeld / Alle
+bestellingen). Dat "nog te doen" is er bewust: zonder die lijst zou een
+betaalde bestelling die nog verstuurd moet worden nergens meer opvallen.
+
+**Het bolletje op Webshop orders telde alleen `awaiting-payment`** en dus niet
+de bestellingen die betaald zijn maar nog de deur uit moeten. Het staat nu op
+`OPEN_ORDER_FILTER`, net als in de gallery-template.
+
+De lijstweergave toont het kanaal (`TEST-WEB · Webshopklant` / `Webshop · 3
+Sept 2026 · €100.00 · Paid`). Heeft een order geen `channel` én geen betaal-id,
+dan blijft het label weg in plaats van iets te gokken. `pickup` staat hier
+bewust niet in de preview: afhalen is alleen in de gallery-template gebouwd.
+
+Sales Overview telt beide kanalen op — dat is het overzicht, niet de werklijst.
+
+---
+
+## De zoekfout op contacten stond hier nog wél
+
+`lib/contactSearch.ts` bestond in de gallery-template maar was hier nooit
+overgenomen, terwijl drie plekken hun eigen zoekregel hadden:
+`/api/admin/search-contacts`, `RegisterSaleTool` en `ArtworkReservation`. Typ je
+"Tessa Testklant" — het meest voor de hand liggende — dan vond je niets: geen
+enkel veld bevat de volledige naam. Alle drie gebruiken nu dezelfde functie, en
+het bestand staat in `sync-shared.mjs`.
+
+`ArtworkReservation.tsx` was hier bovendien de oudere versie: de overdracht naar
+de verkooptool (werk én klant mee) ontbrak.
+
+---
+
+## De sync bestond, maar niets riep hem aan
+
+`scripts/sync-shared.mjs` houdt de gedeelde bestanden tussen de twee templates
+woord voor woord gelijk — en dat werkte alleen als iemand eraan dácht. Gevolg:
+een fix in de ene repo werd in de andere pas opgemerkt als er iets stuk was.
+
+`ship.sh` draait nu `sync-shared.mjs --check` vóór elke push, in **beide**
+repo's. Loopt een gedeeld bestand uiteen, dan gaat er niets live en zegt het
+script welk bestand het is. Staat de andere repo niet naast deze (exitcode 2),
+dan wordt de controle overgeslagen in plaats van geblokkeerd — dat is een andere
+werkplek, geen fout.
+
+Wat níet gedeeld is en dus met de hand moet: `structure.ts` (de Studio-secties
+verschillen echt per template) en de order-preview in `src/sanity/schemas/order.ts`.
+
+---
+
 ## Uitrollen: `./scripts/ship.sh`
 
 Schrijven en testen gebeurt in de sessie; committen, pushen en Vercel hebben

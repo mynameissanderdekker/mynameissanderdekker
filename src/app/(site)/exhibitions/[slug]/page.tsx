@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { client } from '@/sanity/lib/client'
 import { urlFor } from '@/sanity/lib/image'
+import BackLink from '@/components/BackLink'
 
 export const revalidate = 3600
 
@@ -12,7 +13,7 @@ export async function generateMetadata({ params }: Props) {
   const { slug } = await params
   const ex = await getExhibition(slug)
   if (!ex) return {}
-  const img = ex.images?.[0]?.asset?.url
+  const img = ex.image?.asset?.url ?? ex.images?.[0]?.asset?.url
   return {
     title: ex.title,
     description: typeof ex.description === 'string' ? ex.description.slice(0, 160) : undefined,
@@ -28,6 +29,9 @@ async function getExhibition(slug: string) {
   return client.fetch(
     `*[_type == "exhibition" && slug.current == $slug && hasPage == true][0]{
       _id, title, slug, gallery, location, startDate, endDate, exhibitionType, isSolo, description,
+      // "Banner Image" werd hier net zo min uitgelezen als op de beurspagina:
+      // een veld dat je kunt invullen en dat nergens verschijnt.
+      image{ asset->{ _id, url }, hotspot, crop },
       images[]{ asset->{ _id, url }, hotspot, crop },
       press[]->{ _id, title, publication, date, url, image{ asset->{ _id, url }, hotspot, crop } },
       "artworks": [
@@ -44,6 +48,19 @@ function imgUrl(asset: { url?: string; _ref?: string }, width: number) {
   return urlFor({ asset: { _ref: asset._ref } }).width(width).auto('format').quality(85).url()
 }
 
+/**
+ * Eén datum, kort en op één regel.
+ *
+ * Er stond "17 September 2026 – 20 September 2026" in een kolom van 20% breed,
+ * dus dat brak middenin de tweede datum af ("20 [enter] September 2026").
+ * Start en eind staan nu onder elkaar met een eigen label — dat leest als een
+ * gegeven in plaats van als een afgebroken zin, en past altijd.
+ */
+function korteDatum(d?: string) {
+  if (!d) return null
+  return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
 function formatPrice(excl: number, vatRate = 9) {
   const incl = excl * (1 + vatRate / 100)
   return new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(incl)
@@ -58,18 +75,27 @@ export default async function ExhibitionPage({ params }: Props) {
   const artworks = ex.artworks ?? []
   const pressItems = ex.press ?? []
 
-  const dateLabel = [ex.startDate, ex.endDate]
-    .filter(Boolean)
-    .map((d: string) => new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }))
-    .join(' – ')
+  const start = korteDatum(ex.startDate)
+  const eind = korteDatum(ex.endDate)
 
   return (
     <div className="site-container" style={{ paddingTop: '3rem', paddingBottom: '4rem' }}>
 
       {/* Back link */}
-      <Link href="/works" className="text-xs tracking-widest uppercase text-gray-400 hover:text-black mb-8 inline-block">
-        ← Works
-      </Link>
+      <BackLink />
+
+      {/* Banner, 16:9 — zie de beurspagina voor de afweging. De zaalfoto's
+          komen pas ná de opening, vandaar dat dit een eigen veld is. */}
+      {ex.image?.asset && (
+        <img
+          src={`${imgUrl(ex.image.asset, 1600)}&h=900&fit=crop`}
+          alt=""
+          style={{
+            width: '100%', aspectRatio: '16 / 9', objectFit: 'cover',
+            objectPosition: 'center', display: 'block', marginBottom: '2rem',
+          }}
+        />
+      )}
 
       {/* Title */}
       <div style={{ marginBottom: '2rem' }}>
@@ -78,7 +104,7 @@ export default async function ExhibitionPage({ params }: Props) {
       </div>
 
       {/* 2-col: details | description */}
-      <div style={{ display: 'grid', gridTemplateColumns: '20% 80%', gap: '48px', alignItems: 'start', marginBottom: '4rem', borderTop: '1px solid #eee', paddingTop: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(140px, 200px) minmax(0, 1fr)', gap: '48px', alignItems: 'start', marginBottom: '4rem', borderTop: '1px solid #eee', paddingTop: '24px' }}>
 
         {/* Left: details */}
         <dl style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.9rem', margin: 0 }}>
@@ -94,11 +120,23 @@ export default async function ExhibitionPage({ params }: Props) {
               <dd style={{ margin: 0 }}>{ex.location}</dd>
             </div>
           )}
-          {dateLabel && (
+          {start && !eind && (
             <div>
-              <dt style={{ color: '#999' }}>Dates</dt>
-              <dd style={{ margin: 0 }}>{dateLabel}</dd>
+              <dt style={{ color: '#999' }}>Date</dt>
+              <dd style={{ margin: 0 }}>{start}</dd>
             </div>
+          )}
+          {start && eind && (
+            <>
+              <div>
+                <dt style={{ color: '#999' }}>Start</dt>
+                <dd style={{ margin: 0 }}>{start}</dd>
+              </div>
+              <div>
+                <dt style={{ color: '#999' }}>End</dt>
+                <dd style={{ margin: 0 }}>{eind}</dd>
+              </div>
+            </>
           )}
           {(ex.exhibitionType || ex.isSolo) && (
             <div>

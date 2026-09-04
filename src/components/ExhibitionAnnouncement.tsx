@@ -25,6 +25,7 @@ export interface AnnouncedExhibition {
   startDate?: string
   endDate?: string
   venueName?: string
+  booth?: string
   imageUrl?: string
 }
 
@@ -64,6 +65,17 @@ export default function ExhibitionAnnouncement({ exhibition }: { exhibition: Ann
   }
 
   const dates = [fmt(exhibition.startDate), fmt(exhibition.endDate)].filter(Boolean).join(' – ')
+
+  // Het kopje vertelt wat dit ís, en dat hangt van de datum af. "At the fair"
+  // stond er ook als de beurs nog moest beginnen — precies het geval waarvoor
+  // je een aankondiging gebruikt. Aan het publiek gericht, niet aan de agenda:
+  // "Upcoming" als het nog komt, "Now on view" / "On view now" als het loopt.
+  const vandaag = new Date().toISOString().slice(0, 10)
+  const nogNietBegonnen = !!exhibition.startDate && exhibition.startDate > vandaag
+  const beurs = exhibition._type === 'artFair'
+  const kopje = beurs
+    ? (nogNietBegonnen ? 'Upcoming art fair' : 'At the fair')
+    : (nogNietBegonnen ? 'Upcoming exhibition' : 'Now on view')
   // Een beurs woont op een andere route dan een expositie.
   const base = exhibition._type === 'artFair' ? '/art-fairs' : '/exhibitions'
   const href = exhibition.hasPage && exhibition.slug ? `${base}/${exhibition.slug}` : null
@@ -102,22 +114,31 @@ export default function ExhibitionAnnouncement({ exhibition }: { exhibition: Ann
         </button>
 
         {exhibition.imageUrl && (
+          // Geen vaste bijsnijding: de banner is meestal liggend, maar de
+          // terugval is een wérk en dat is vaak staand — een 840×560-crop
+          // haalde daar de helft af. Volle breedte, en de hoogte begrensd
+          // zodat een staand werk de aankondiging niet overneemt.
           <img
-            src={`${exhibition.imageUrl}?w=840&h=560&fit=crop&auto=format`}
+            src={`${exhibition.imageUrl}?w=840&auto=format`}
             alt=""
-            style={{ width: '100%', height: 'auto', display: 'block' }}
+            style={{
+              width: '100%', maxHeight: 300, objectFit: 'cover',
+              objectPosition: 'center', display: 'block',
+            }}
           />
         )}
 
         <div style={{ padding: '20px 22px 24px' }}>
           <p style={{ margin: 0, fontSize: 11, letterSpacing: '.18em', textTransform: 'uppercase', color: '#9ca3af' }}>
-            {exhibition._type === 'artFair' ? 'At the fair' : 'Now on view'}
+            {kopje}
           </p>
           <h2 style={{ margin: '8px 0 6px', fontSize: 21, fontWeight: 500, lineHeight: 1.25 }}>
             {exhibition.title}
           </h2>
           <p style={{ margin: 0, fontSize: 14, color: '#6b7280' }}>
-            {[exhibition.venueName, dates].filter(Boolean).join(' · ')}
+            {/* De stand hoort erbij: op een beurs is dat het enige waarmee
+                een bezoeker je terugvindt. */}
+            {[exhibition.venueName, exhibition.booth, dates].filter(Boolean).join(' · ')}
           </p>
 
           {href && (

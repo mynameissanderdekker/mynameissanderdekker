@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { isValidAdminCookie } from '@/lib/adminAuth'
 import { createClient } from '@sanity/client'
+import { contactSearchFilter } from '@/lib/contactSearch'
 
 const client = createClient({
   projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!,
@@ -19,14 +20,13 @@ export async function GET(req: NextRequest) {
   const q = req.nextUrl.searchParams.get('q') ?? ''
   if (q.length < 2) return NextResponse.json([])
 
+  // Per woord, zie lib/contactSearch.ts — "Tessa Testklant" vond hier niets.
+  const { filter, params } = contactSearchFilter(q)
   const results = await client.fetch(
-    `*[_type == "contact" && (
-      firstName match $q || lastName match $q || email match $q ||
-      pt::text(firstName + " " + lastName) match $q
-    )][0...10]{
+    `*[_type == "contact" && !(_id in path("drafts.**")) && ${filter}][0...10]{
       _id, firstName, lastName, email, company
     }`,
-    { q: `${q}*` }
+    params
   )
 
   return NextResponse.json(results)

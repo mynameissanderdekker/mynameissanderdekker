@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { useFormValue, useDocumentOperation, useCurrentUser } from 'sanity'
+import { useFormValue, useDocumentOperation, useCurrentUser, useClient } from 'sanity'
 
 /**
  * Eén paneel bovenaan de order dat de hele afhandeling doet.
@@ -46,6 +46,47 @@ export function OrderCompletion(props: { documentId?: string }) {
   const complete = paid && sent
 
   const currentUser = useCurrentUser()
+  const client = useClient({ apiVersion: '2026-06-18' })
+  const [terugmelding, setTerugmelding] = useState<string[] | null>(null)
+
+  /**
+   * Annuleren of terugbetalen draait óók de verkoop terug.
+   *
+   * Zonder dit veranderde alleen de status: het werk bleef op verkocht, bleef
+   * uit de webshop, de voorraad bleef afgeboekt en de aankoop bleef in het CRM
+   * staan. De route doet het werk (lib/reverseSale.ts); hier zetten we daarna
+   * pas de status, zodat er geen order op "cancelled" staat terwijl het
+   * terugdraaien is mislukt.
+   */
+  async function sluit(nieuweStatus: 'cancelled' | 'refunded') {
+    const woord = nieuweStatus === 'cancelled' ? 'annuleren' : 'als terugbetaald markeren'
+    if (!window.confirm(
+      `Deze order ${woord}?\n\n` +
+      'Het verkochte werk gaat terug naar beschikbaar, de voorraad wordt ' +
+      'teruggeboekt en de aankoop verdwijnt uit het overzicht van de klant.'
+    )) return
+
+    setBusy(true)
+    try {
+      const token = (client as unknown as { config?: () => { token?: string } }).config?.()?.token ?? ''
+      const res = await fetch('/api/admin/reverse-sale', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-sanity-token': token },
+        body: JSON.stringify({ orderId: id }),
+      })
+      const body = await res.json()
+      if (!res.ok) {
+        setBusy(false)
+        setTerugmelding([`Niet gelukt: ${body.error ?? res.status}. De order is niet gewijzigd.`])
+        return
+      }
+      setTerugmelding([...(body.changes ?? []), ...(body.skipped ?? []).map((s: string) => `— ${s}`)])
+      apply({ set: { status: nieuweStatus } })
+    } catch (e) {
+      setBusy(false)
+      setTerugmelding([`Niet gelukt: ${(e as Error).message}. De order is niet gewijzigd.`])
+    }
+  }
 
   function apply(patches: { set?: Record<string, unknown>; unset?: string[] }) {
     setBusy(true)
@@ -95,10 +136,23 @@ export function OrderCompletion(props: { documentId?: string }) {
     }}>{done ? '✓' : ''}</span>
   )
 
+  // Wat er is teruggedraaid, direct na de handeling. Niet bewaard: het staat in
+  // de statusgeschiedenis dát het gebeurd is, en de werken spreken voor zich.
+  const melding = terugmelding && (
+    <div style={{ padding: '12px 16px', background: '#f9fafb', borderTop: '1px solid #f3f4f6', fontSize: 12, color: '#6b7280' }}>
+      {terugmelding.length
+        ? terugmelding.map((r, i) => <div key={i}>{r}</div>)
+        : <div>Er was niets terug te draaien.</div>}
+    </div>
+  )
+
   if (closed) {
     return (
-      <div style={{ ...box, padding: '14px 16px', color: '#6b7280' }}>
-        This order is {status === 'cancelled' ? 'cancelled' : 'refunded'}. Nothing left to do.
+      <div style={box}>
+        <div style={{ padding: '14px 16px', color: '#6b7280' }}>
+          This order is {status === 'cancelled' ? 'cancelled' : 'refunded'}. Nothing left to do.
+        </div>
+        {melding}
       </div>
     )
   }
@@ -192,6 +246,31 @@ export function OrderCompletion(props: { documentId?: string }) {
             : `Waiting for ${[!paid && 'payment', !sent && 'handover'].filter(Boolean).join(' and ')}.`}
         </div>
       </div>
+
+      {/* ── Terugdraaien ──
+          Onderaan en zonder nadruk: dit is de uitzondering, niet de normale
+          weg. Maar hij hoort er wél te zijn — een verkoop op het verkeerde
+          werk was alleen met de hand te repareren, en dan moest je weten dat
+          er vier dingen terug moesten. */}
+      <div style={{
+        padding: '10px 16px', borderTop: '1px solid #f3f4f6',
+        display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap',
+      }}>
+        <span style={{ flex: 1, fontSize: 12, color: '#9ca3af' }}>
+          Sale entered by mistake, or money returned?
+        </span>
+        <button style={{ ...btn(), fontSize: 12, padding: '6px 10px', color: '#9b1c1c' }}
+          disabled={busy} onClick={() => sluit('cancelled')}>
+          Cancel order
+        </button>
+        {paid && (
+          <button style={{ ...btn(), fontSize: 12, padding: '6px 10px', color: '#9b1c1c' }}
+            disabled={busy} onClick={() => sluit('refunded')}>
+            Refunded
+          </button>
+        )}
+      </div>
+      {melding}
     </div>
   )
 }

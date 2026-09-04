@@ -50,7 +50,19 @@ export default async function SiteLayout({
         title,
         "slug": slug.current,
         "venueName": coalesce(venue.name, gallery, location),
-        "imageUrl": coalesce(image.asset->url, images[0].asset->url)
+        booth,
+        // Terugvallen tot er beeld ís. De banner is een apart veld dat je
+        // makkelijk vergeet, en dan stond er een kale witte doos op de
+        // homepage. Volgorde: de banner, dan een foto van de stand, dan het
+        // eerste werk dat aan dit evenement hangt — los gekoppeld of via een
+        // serie. Blijft alles leeg, dan toont de aankondiging alleen tekst;
+        // dat is nog altijd beter dan een lege afbeelding.
+        "imageUrl": coalesce(
+          image.asset->url,
+          images[0].asset->url,
+          artworks[0]->images[0].asset->url,
+          artworkSeries[0]->artworks[0]->images[0].asset->url
+        )
       }`,
       { today },
       { next: { revalidate: 300 } }
