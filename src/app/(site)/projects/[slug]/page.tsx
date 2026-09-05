@@ -152,7 +152,7 @@ function ArtworksGrid({ artworks, label = 'Artworks' }: { artworks: LinkedArtwor
               <div className="works-grid-img-wrap">
                 {imgUrl
                   ? <img src={imgUrl} alt={a.title} className="works-grid-img" />
-                  : <div className="works-grid-img" style={{ background: '#f0f0f0' }} />
+                  : <div className="works-grid-img" style={{ background: 'var(--color-surface-2)' }} />
                 }
                 {soldOut && <span className="works-badge works-badge-sold">SOLD OUT</span>}
               </div>
@@ -217,7 +217,7 @@ function ExhibitionsList({ exhibitions }: { exhibitions: LinkedExhibition[] }) {
                 : label
               }
               {e.location && `, ${e.location}`}
-              {detail && <span style={{ color: '#888', fontSize: '0.85em' }}> ({detail})</span>}
+              {detail && <span style={{ color: 'var(--tone-500)', fontSize: '0.85em' }}> ({detail})</span>}
             </li>
           )
         })}

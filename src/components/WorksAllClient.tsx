@@ -28,7 +28,7 @@ function WorkCard({ w }: { w: ArtworkItem }) {
           // eslint-disable-next-line @next/next/no-img-element
           <img src={imgUrl} alt={w.title} className="works-grid-img" />
         ) : (
-          <div className="works-grid-img" style={{ background: '#f0f0f0' }} />
+          <div className="works-grid-img" style={{ background: 'var(--color-surface-2)' }} />
         )}
         {soldOut && <span className="works-badge works-badge-sold">SOLD OUT</span>}
       </div>
@@ -121,7 +121,7 @@ export function WorksAllClient({ works, categories, initialCat }: Props) {
 
       {featured.length === 0 && rest.length === 0 && (
         <section className="works-section">
-          <p style={{ color: '#999' }}>Geen werken gevonden in deze categorie.</p>
+          <p style={{ color: 'var(--color-subtle)' }}>Geen werken gevonden in deze categorie.</p>
         </section>
       )}
 

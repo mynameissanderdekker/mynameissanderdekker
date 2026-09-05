@@ -9,12 +9,58 @@ export default defineType({
   // Contact is geen apart tabblad — een groep geldt voor het hele object.
   groups: [
     { name: 'site',    title: 'Site', default: true },
+    { name: 'appearance', title: 'Appearance' },
     { name: 'social',  title: 'Social'  },
     { name: 'contact', title: 'Locations' },
     { name: 'invoice', title: 'Invoice & business' },
     { name: 'legal',   title: 'Legal'   },
   ],
   fields: [
+    {
+      // Wat een kunstenaar zelf aan het uiterlijk mag veranderen, zonder code.
+      // Elk veld is een CSS-variabele uit globals.css; leeg = zoals het thema
+      // het zegt. Kort gehouden met opzet: accent, achtergrond, tekst en
+      // hoeken vangen "kan het iets meer van ons zijn?" zonder dat iemand
+      // de site onleesbaar kan maken. Lettertypen zijn het thema (moeten bij
+      // het bouwen bekend zijn), lay-out is de core. Zie lib/appearance.ts.
+      name: 'appearance',
+      group: 'appearance',
+      title: 'Appearance',
+      type: 'object',
+      description: 'Leave a field empty to keep the default. Changes are live within a few minutes.',
+      options: { collapsible: false },
+      fields: [
+        {
+          name: 'accentColor', title: 'Accent colour', type: 'string',
+          description: 'Buttons and strong text. Hex, e.g. #111111.',
+          validation: (Rule: any) => Rule.regex(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/, { name: 'hex colour', invert: false }).warning('Use a hex colour like #1a1a1a'),
+        },
+        {
+          name: 'accentTextColor', title: 'Text on accent', type: 'string',
+          description: 'Text colour on buttons. Usually white or black.',
+          validation: (Rule: any) => Rule.regex(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/).warning('Use a hex colour like #ffffff'),
+        },
+        {
+          name: 'backgroundColor', title: 'Background', type: 'string',
+          description: 'Page background. Hex.',
+          validation: (Rule: any) => Rule.regex(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/).warning('Use a hex colour like #fbfaf7'),
+        },
+        {
+          name: 'textColor', title: 'Text colour', type: 'string',
+          description: 'Body text and headings. Hex.',
+          validation: (Rule: any) => Rule.regex(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/).warning('Use a hex colour like #111111'),
+        },
+        {
+          name: 'borderRadius', title: 'Corners', type: 'string',
+          options: { list: [
+            { title: 'Sharp (default)', value: 'none' },
+            { title: 'Slightly rounded', value: 'small' },
+            { title: 'Rounded', value: 'medium' },
+            { title: 'Pill buttons', value: 'round' },
+          ], layout: 'radio' },
+        },
+      ],
+    },
 
     // ── Identity ────────────────────────────────────────────────────────────
     defineField({

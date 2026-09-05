@@ -106,36 +106,36 @@ export default async function ArtFairPage({ params }: Props) {
       </div>
 
       {/* 2-col: details | description */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(140px, 200px) minmax(0, 1fr)', gap: '48px', alignItems: 'start', marginBottom: '4rem', borderTop: '1px solid #eee', paddingTop: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(140px, 200px) minmax(0, 1fr)', gap: '48px', alignItems: 'start', marginBottom: '4rem', borderTop: '1px solid var(--tone-200)', paddingTop: '24px' }}>
 
         <dl style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.9rem', margin: 0 }}>
           {fair.location && (
             <div>
-              <dt style={{ color: '#999' }}>Location</dt>
+              <dt style={{ color: 'var(--color-subtle)' }}>Location</dt>
               <dd style={{ margin: 0 }}>{fair.location}</dd>
             </div>
           )}
           {start && !eind && (
             <div>
-              <dt style={{ color: '#999' }}>Date</dt>
+              <dt style={{ color: 'var(--color-subtle)' }}>Date</dt>
               <dd style={{ margin: 0 }}>{start}</dd>
             </div>
           )}
           {start && eind && (
             <>
               <div>
-                <dt style={{ color: '#999' }}>Start</dt>
+                <dt style={{ color: 'var(--color-subtle)' }}>Start</dt>
                 <dd style={{ margin: 0 }}>{start}</dd>
               </div>
               <div>
-                <dt style={{ color: '#999' }}>End</dt>
+                <dt style={{ color: 'var(--color-subtle)' }}>End</dt>
                 <dd style={{ margin: 0 }}>{eind}</dd>
               </div>
             </>
           )}
           {fair.booth && (
             <div>
-              <dt style={{ color: '#999' }}>Booth</dt>
+              <dt style={{ color: 'var(--color-subtle)' }}>Booth</dt>
               <dd style={{ margin: 0 }}>{fair.booth}</dd>
             </div>
           )}
@@ -150,7 +150,7 @@ export default async function ArtFairPage({ params }: Props) {
         </dl>
 
         {Array.isArray(fair.description) && fair.description.length > 0 && (
-          <div style={{ fontSize: '0.9rem', color: '#444', lineHeight: 1.7 }}>
+          <div style={{ fontSize: '0.9rem', color: 'var(--tone-700)', lineHeight: 1.7 }}>
             <PortableText value={fair.description} />
           </div>
         )}
@@ -189,7 +189,7 @@ export default async function ArtFairPage({ params }: Props) {
               const inner = (
                 <>
                   <div className="works-grid-img-wrap">
-                    {imgSrc ? <img src={imgSrc} alt={a.title} className="works-grid-img" /> : <div className="works-grid-img" style={{ background: '#f0f0f0' }} />}
+                    {imgSrc ? <img src={imgSrc} alt={a.title} className="works-grid-img" /> : <div className="works-grid-img" style={{ background: 'var(--color-surface-2)' }} />}
                     {soldOut && <span className="works-badge works-badge-sold">SOLD OUT</span>}
                   </div>
                   <h3 className="works-grid-title">{a.title}</h3>
@@ -200,7 +200,7 @@ export default async function ArtFairPage({ params }: Props) {
               if (enquire) return (
                 <div key={a._id} className="works-grid-item">
                   <Link href={`/works/${a.slug.current}`} className="works-grid-img-wrap">
-                    {imgSrc ? <img src={imgSrc} alt={a.title} className="works-grid-img" /> : <div className="works-grid-img" style={{ background: '#f0f0f0' }} />}
+                    {imgSrc ? <img src={imgSrc} alt={a.title} className="works-grid-img" /> : <div className="works-grid-img" style={{ background: 'var(--color-surface-2)' }} />}
                   </Link>
                   <h3 className="works-grid-title">{a.title}</h3>
                   {price && <p className="works-price">{price}</p>}

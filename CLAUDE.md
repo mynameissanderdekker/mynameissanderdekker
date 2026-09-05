@@ -1,9 +1,53 @@
 @AGENTS.md
 
-# mynameissanderdekker — artist template
+# gingerbeard-artist — de artist-core
+
+Dit is de **artist-core** van GingerBeard.Works; mynameissanderdekker.com is de
+eerste installatie ervan. De repo heet op schijf mogelijk nog
+`mynameissanderdekker` — `package.json` heet al `gingerbeard-artist`, en
+`sync-shared.mjs` vindt de andere core op indeling, niet op naam.
+
+## Core en uiterlijk staan los: `src/themes/`, `globals.css`, Appearance
+
+Zelfde opzet als in `gingerbeard-gallery` (zie de CLAUDE.md daar voor het
+model en `PLATFORM.md` voor het waarom). Wat hier anders lag:
+
+- **De vormgeving zat in `globals.css`, niet in componenten** — 3125 regels met
+  182 losse hexkleuren, plus 226 in componenten. Alle kleuren staan nu als
+  token in `:root` (met de oude waarden als standaard), en de rest van het
+  bestand leest alleen die variabelen.
+- **Tailwind 3**, dus de grijsschaal hangt in `tailwind.config.ts` aan de
+  tokens (`gray.400 → var(--tone-400)`, `black → var(--tone-ink)`), niet in
+  een `@theme`-blok.
+- **Geen `next/font`**: de site gebruikt de systeemstack (Helvetica Neue).
+  `themes/default.ts` heeft dus een lege `fontClassName`; een thema dat wél
+  een webfont wil, zet daar zijn `next/font`-klassen en `--font-body` in
+  `tokens`.
+- **`--brand-1`** is de Mindmap-roze van de homepage. `MindmapHomepage.tsx`
+  is merk en geen functionaliteit; de kleuren komen nu uit het thema, de
+  component zelf nog niet. Dat is de eerste kandidaat voor een echte
+  thema-component.
+- **`AddToCalendar.tsx` houdt zeven hexkleuren**: die van Google en Outlook
+  in de iconen. Dat zijn hún merken; `audit-theme` staat ze bij naam toe.
+
+**Wat hier — anders dan bij de gallery — nog wél in de core zit: de
+identiteit.** "Sander Dekker" en "mynameissanderdekker" staan **68×** hard in
+publieke code — metadata in `layout.tsx`, teksten op about/contact/works, de
+sitemap. De gallery-core heeft daar `lib/siteIdentity.ts` voor; deze core nog
+niet. `audit-theme` heeft de grens op 68 gezet en die mag alleen omlaag. Dat
+is de volgende verbouwing, en een grotere dan de styling.
+
+Site Settings → **Appearance** (accent, achtergrond, tekst, hoeken) werkt
+hier net als in de gallery; `src/lib/appearance.ts` is gedeeld via
+`sync-shared.mjs`.
+
+---
 
 Referentie-implementatie van de **artist template** van GingerBeard.Works.
-`ia-kahkonen` draait hierop; wat hier landt erft die.
+`ia-kahkonen` draaide hier ooit op, maar is sinds 5 september 2026 een op zichzelf
+staande site: van de 208 bestanden hier stonden er 16 op dezelfde plek daar,
+waarvan één identiek. Wat hier landt komt daar dus **niet** aan, en dat is de
+bedoeling.
 
 Gedeelde afspraken (ordermodel, GROQ-valkuilen, het paneelpatroon, Studio-regels)
 staan in de kennisbasis van het Claude-project. Hier staat alleen wat voor deze

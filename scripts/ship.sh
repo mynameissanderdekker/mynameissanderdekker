@@ -130,7 +130,7 @@ if [ "$DRY" = 0 ] && [ "$FORCE" = 0 ] && [ -n "$(git status --porcelain)" ]; the
 
 
   # De snelle poort: alles wat alleen leest.
-  SNEL="audit-tenant audit-studio-lists audit-data testrun-print testrun-turnstile"
+  SNEL="audit-tenant audit-theme audit-studio-lists audit-data testrun-print testrun-turnstile"
   for t in $SNEL; do
     [ -f "scripts/$t.mts" ] && stap "$t" npx tsx --env-file=.env.local "scripts/$t.mts"
   done

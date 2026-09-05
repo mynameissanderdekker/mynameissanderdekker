@@ -245,16 +245,16 @@ function WorkCard({ w }: { w: ArtworkCard }) {
 
   // Badge style per type
   const BADGE_STYLES: Record<string, { bg: string; color: string; icon: string }> = {
-    'Signed':          { bg: '#1a1a1a', color: '#fff', icon: '✦' },
-    'Limited Edition': { bg: '#6b4f12', color: '#fff', icon: '◈' },
-    'Special Edition': { bg: '#1a56c4', color: '#fff', icon: '★' },
+    'Signed':          { bg: 'var(--color-text)', color: 'var(--tone-paper)', icon: '✦' },
+    'Limited Edition': { bg: 'var(--color-warn-text)', color: 'var(--tone-paper)', icon: '◈' },
+    'Special Edition': { bg: 'var(--color-link)', color: 'var(--tone-paper)', icon: '★' },
   }
   // Ook op voorvoegsel, zodat "Special Edition Box 1" de kleur van Special
   // Edition krijgt in plaats van de neutrale terugval.
   const badgeStyle = badge
     ? (BADGE_STYLES[badge] ??
        Object.entries(BADGE_STYLES).find(([k]) => badge.startsWith(k))?.[1] ??
-       { bg: '#333', color: '#fff', icon: '' })
+       { bg: 'var(--tone-800)', color: 'var(--tone-paper)', icon: '' })
     : null
 
   const overlayLabel = isGetInTouch
@@ -276,7 +276,7 @@ function WorkCard({ w }: { w: ArtworkCard }) {
           // eslint-disable-next-line @next/next/no-img-element
           <img src={imgUrl} alt={w.title} className="works-grid-img" />
         ) : (
-          <div className="works-grid-img" style={{ background: '#f0f0f0' }} />
+          <div className="works-grid-img" style={{ background: 'var(--color-surface-2)' }} />
         )}
         {isVariant && !soldOut && badgeStyle && (
           <span className="works-badge" style={{ background: badgeStyle.bg, color: badgeStyle.color, fontSize: '0.65rem', letterSpacing: '0.08em' }}>
@@ -284,7 +284,7 @@ function WorkCard({ w }: { w: ArtworkCard }) {
           </span>
         )}
         {isVariant && !soldOut && w.variantOnSale && w.variantSalePrice && (
-          <span className="works-badge works-badge-sale" style={{ top: badgeStyle ? '1.6rem' : undefined, background: '#dc2626', color: '#fff', fontSize: '0.65rem', letterSpacing: '0.08em' }}>
+          <span className="works-badge works-badge-sale" style={{ top: badgeStyle ? '1.6rem' : undefined, background: 'var(--color-danger)', color: 'var(--tone-paper)', fontSize: '0.65rem', letterSpacing: '0.08em' }}>
             SALE
           </span>
         )}
@@ -293,8 +293,8 @@ function WorkCard({ w }: { w: ArtworkCard }) {
       </div>
       <h3 className="works-grid-title">
         {w.title}
-        {isVariant && badge && <span style={{ color: '#999', fontStyle: 'normal' }}> — {badge.toLowerCase()}</span>}
-        {!isVariant && isZine && <span style={{ color: '#999', fontStyle: 'normal' }}> (click to read)</span>}
+        {isVariant && badge && <span style={{ color: 'var(--color-subtle)', fontStyle: 'normal' }}> — {badge.toLowerCase()}</span>}
+        {!isVariant && isZine && <span style={{ color: 'var(--color-subtle)', fontStyle: 'normal' }}> (click to read)</span>}
       </h3>
       {w.variantNote && (
         <p className="works-grid-medium">{w.variantNote}</p>
@@ -314,8 +314,8 @@ function WorkCard({ w }: { w: ArtworkCard }) {
       )}
       {isVariant && w.variantOnSale && w.variantSalePrice ? (
         <p className="works-price">
-          <span style={{ color: '#dc2626' }}>{formatPrice(w.variantSalePrice)}</span>
-          {w.priceIncVat && <span style={{ color: '#999', textDecoration: 'line-through', marginLeft: '0.4em', fontSize: '0.9em' }}>{formatPrice(w.priceIncVat)}</span>}
+          <span style={{ color: 'var(--color-danger)' }}>{formatPrice(w.variantSalePrice)}</span>
+          {w.priceIncVat && <span style={{ color: 'var(--color-subtle)', textDecoration: 'line-through', marginLeft: '0.4em', fontSize: '0.9em' }}>{formatPrice(w.priceIncVat)}</span>}
         </p>
       ) : price ? (
         <p className="works-price">{price}</p>
@@ -324,7 +324,7 @@ function WorkCard({ w }: { w: ArtworkCard }) {
   )
 
   const className = `works-grid-item-link${soldOut ? ' is-sold-out' : ''}${isVariant ? ' is-variant-card' : ''}`
-  const cardStyle = isVariant ? { background: '#f7f5f0' } : undefined
+  const cardStyle = isVariant ? { background: 'var(--color-surface)' } : undefined
 
   if (isExternalHref) {
     return (

@@ -104,43 +104,43 @@ export default async function ExhibitionPage({ params }: Props) {
       </div>
 
       {/* 2-col: details | description */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(140px, 200px) minmax(0, 1fr)', gap: '48px', alignItems: 'start', marginBottom: '4rem', borderTop: '1px solid #eee', paddingTop: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(140px, 200px) minmax(0, 1fr)', gap: '48px', alignItems: 'start', marginBottom: '4rem', borderTop: '1px solid var(--tone-200)', paddingTop: '24px' }}>
 
         {/* Left: details */}
         <dl style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.9rem', margin: 0 }}>
           {ex.gallery && (
             <div>
-              <dt style={{ color: '#999' }}>Gallery</dt>
+              <dt style={{ color: 'var(--color-subtle)' }}>Gallery</dt>
               <dd style={{ margin: 0 }}>{ex.gallery}</dd>
             </div>
           )}
           {ex.location && (
             <div>
-              <dt style={{ color: '#999' }}>Location</dt>
+              <dt style={{ color: 'var(--color-subtle)' }}>Location</dt>
               <dd style={{ margin: 0 }}>{ex.location}</dd>
             </div>
           )}
           {start && !eind && (
             <div>
-              <dt style={{ color: '#999' }}>Date</dt>
+              <dt style={{ color: 'var(--color-subtle)' }}>Date</dt>
               <dd style={{ margin: 0 }}>{start}</dd>
             </div>
           )}
           {start && eind && (
             <>
               <div>
-                <dt style={{ color: '#999' }}>Start</dt>
+                <dt style={{ color: 'var(--color-subtle)' }}>Start</dt>
                 <dd style={{ margin: 0 }}>{start}</dd>
               </div>
               <div>
-                <dt style={{ color: '#999' }}>End</dt>
+                <dt style={{ color: 'var(--color-subtle)' }}>End</dt>
                 <dd style={{ margin: 0 }}>{eind}</dd>
               </div>
             </>
           )}
           {(ex.exhibitionType || ex.isSolo) && (
             <div>
-              <dt style={{ color: '#999' }}>Type</dt>
+              <dt style={{ color: 'var(--color-subtle)' }}>Type</dt>
               <dd style={{ margin: 0 }}>
                 {ex.exhibitionType === 'solo' || ex.isSolo ? 'Solo exhibition'
                   : ex.exhibitionType === 'duo' ? 'Duo exhibition'
@@ -155,7 +155,7 @@ export default async function ExhibitionPage({ params }: Props) {
 
         {/* Right: description */}
         {ex.description && typeof ex.description === 'string' && (
-          <p style={{ margin: 0, fontSize: '0.9rem', color: '#444', lineHeight: 1.7 }}>{ex.description}</p>
+          <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--tone-700)', lineHeight: 1.7 }}>{ex.description}</p>
         )}
       </div>
 
@@ -192,7 +192,7 @@ export default async function ExhibitionPage({ params }: Props) {
               const inner = (
                 <>
                   <div className="works-grid-img-wrap">
-                    {imgSrc ? <img src={imgSrc} alt={a.title} className="works-grid-img" /> : <div className="works-grid-img" style={{ background: '#f0f0f0' }} />}
+                    {imgSrc ? <img src={imgSrc} alt={a.title} className="works-grid-img" /> : <div className="works-grid-img" style={{ background: 'var(--color-surface-2)' }} />}
                     {soldOut && <span className="works-badge works-badge-sold">SOLD OUT</span>}
                   </div>
                   <h3 className="works-grid-title">{a.title}</h3>
@@ -203,7 +203,7 @@ export default async function ExhibitionPage({ params }: Props) {
               if (enquire) return (
                 <div key={a._id} className="works-grid-item">
                   <Link href={`/works/${a.slug.current}`} className="works-grid-img-wrap">
-                    {imgSrc ? <img src={imgSrc} alt={a.title} className="works-grid-img" /> : <div className="works-grid-img" style={{ background: '#f0f0f0' }} />}
+                    {imgSrc ? <img src={imgSrc} alt={a.title} className="works-grid-img" /> : <div className="works-grid-img" style={{ background: 'var(--color-surface-2)' }} />}
                   </Link>
                   <h3 className="works-grid-title">{a.title}</h3>
                   {price && <p className="works-price">{price}</p>}
@@ -223,12 +223,12 @@ export default async function ExhibitionPage({ params }: Props) {
             {pressItems.map((item: { _id: string; title?: string; publication?: string; url?: string; image?: { asset?: { url?: string } } }) => {
               const imgUrl2 = item.image?.asset?.url
               return (
-                <div key={item._id} style={{ display: 'flex', gap: '24px', alignItems: 'flex-start', borderTop: '1px solid #eee', paddingTop: '20px' }}>
+                <div key={item._id} style={{ display: 'flex', gap: '24px', alignItems: 'flex-start', borderTop: '1px solid var(--tone-200)', paddingTop: '20px' }}>
                   {imgUrl2 && (
                     <img src={`${imgUrl2}?w=200&auto=format`} alt={item.title ?? ''} style={{ width: 120, flexShrink: 0, objectFit: 'cover' }} />
                   )}
                   <div>
-                    {item.publication && <p style={{ margin: '0 0 4px', fontSize: '0.8rem', color: '#999', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{item.publication}</p>}
+                    {item.publication && <p style={{ margin: '0 0 4px', fontSize: '0.8rem', color: 'var(--color-subtle)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{item.publication}</p>}
                     {item.url ? (
                       <a href={item.url} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 500, textDecoration: 'underline' }}>{item.title}</a>
                     ) : (

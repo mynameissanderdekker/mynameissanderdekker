@@ -96,7 +96,7 @@ export default function ExhibitionAnnouncement({ exhibition }: { exhibition: Ann
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: '#fff', maxWidth: 420, width: '100%',
+          background: 'var(--tone-paper)', maxWidth: 420, width: '100%',
           borderRadius: 4, overflow: 'hidden', position: 'relative',
         }}
       >
@@ -129,13 +129,13 @@ export default function ExhibitionAnnouncement({ exhibition }: { exhibition: Ann
         )}
 
         <div style={{ padding: '20px 22px 24px' }}>
-          <p style={{ margin: 0, fontSize: 11, letterSpacing: '.18em', textTransform: 'uppercase', color: '#9ca3af' }}>
+          <p style={{ margin: 0, fontSize: 11, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--tone-400)' }}>
             {kopje}
           </p>
           <h2 style={{ margin: '8px 0 6px', fontSize: 21, fontWeight: 500, lineHeight: 1.25 }}>
             {exhibition.title}
           </h2>
-          <p style={{ margin: 0, fontSize: 14, color: '#6b7280' }}>
+          <p style={{ margin: 0, fontSize: 14, color: 'var(--color-muted)' }}>
             {/* De stand hoort erbij: op een beurs is dat het enige waarmee
                 een bezoeker je terugvindt. */}
             {[exhibition.venueName, exhibition.booth, dates].filter(Boolean).join(' · ')}
@@ -147,7 +147,7 @@ export default function ExhibitionAnnouncement({ exhibition }: { exhibition: Ann
               onClick={dismiss}
               style={{
                 display: 'inline-block', marginTop: 16, padding: '10px 18px',
-                background: '#111', color: '#fff', textDecoration: 'none',
+                background: 'var(--tone-900)', color: 'var(--tone-paper)', textDecoration: 'none',
                 fontSize: 14, borderRadius: 2,
               }}
             >

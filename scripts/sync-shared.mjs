@@ -55,7 +55,7 @@ function vindAndere() {
       if (existsSync(join(d, 'scripts', 'sync-shared.mjs')) && kenmerk(d)) return d
     }
   } catch { /* geen leesrechten op de bovenliggende map */ }
-  return join(buren, ARTIST_HIER ? 'gingerbeard-gallery-template' : 'mynameissanderdekker')
+  return join(buren, ARTIST_HIER ? 'gingerbeard-gallery' : 'gingerbeard-artist')
 }
 const OTHER = vindAndere()
 
@@ -74,6 +74,7 @@ const SHARED = [
   ['lib/invoiceVat.ts',                             'src/lib/invoiceVat.ts'],
   ['lib/markSold.ts',                               'src/lib/markSold.ts'],
   ['lib/reverseSale.ts',                            'src/lib/reverseSale.ts'],
+  ['lib/appearance.ts',                             'src/lib/appearance.ts'],
   ['lib/createOrder.ts',                            'src/lib/createOrder.ts'],
   ['lib/adminAuth.ts',                              'src/lib/adminAuth.ts'],
   ['lib/verifyTurnstile.ts',                        'src/lib/verifyTurnstile.ts'],

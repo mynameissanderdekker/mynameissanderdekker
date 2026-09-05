@@ -43,7 +43,7 @@ const MAP_ITEMS: MapItem[] = [
     cta: 'Discover the project',
     url: '/projects/the-social-media-project/',
     x: 320, y: 420, r: 420, xMobile: 400, yMobile: 500, rMobile: 350,
-    color: '#F6B8B8', opacity: 0.60, fontSize: 30, fontWeight: 700,
+    color: 'var(--color-danger-soft)', opacity: 0.60, fontSize: 30, fontWeight: 700,
   },
   {
     title: 'The Social Landscape',
@@ -53,7 +53,7 @@ const MAP_ITEMS: MapItem[] = [
     cta: 'Discover the project',
     url: '/projects/the-social-landscape/',
     x: 210, y: 230, r: 180, xMobile: 450, yMobile: 250, rMobile: 180,
-    color: '#F7D7C4', opacity: 0.60, fontSize: 30, fontWeight: 700,
+    color: 'var(--color-warn-soft)', opacity: 0.60, fontSize: 30, fontWeight: 700,
   },
   {
     title: '#fun',
@@ -62,7 +62,7 @@ const MAP_ITEMS: MapItem[] = [
     cta: 'Discover the project',
     url: '/projects/fun/',
     x: 40, y: 110, r: 90, xMobile: 400, yMobile: 100, rMobile: 90,
-    color: '#F6E7A8', opacity: 0.60, fontSize: 30, fontWeight: 700,
+    color: 'var(--color-warn-soft)', opacity: 0.60, fontSize: 30, fontWeight: 700,
   },
   {
     title: 'Innate Curiosity',
@@ -71,7 +71,7 @@ const MAP_ITEMS: MapItem[] = [
     cta: 'Discover the project',
     url: '/projects/innate-curiosity/',
     x: 20, y: 680, r: 135, xMobile: 100, yMobile: 420, rMobile: 135,
-    color: '#CFE8D6', opacity: 0.60, fontSize: 30, fontWeight: 700,
+    color: 'var(--color-ok-soft)', opacity: 0.60, fontSize: 30, fontWeight: 700,
   },
   {
     title: 'It Is Us',
@@ -80,7 +80,7 @@ const MAP_ITEMS: MapItem[] = [
     cta: 'Discover the project',
     url: '/projects/it-is-us/',
     x: 580, y: 120, r: 90, xMobile: 700, yMobile: 420, rMobile: 90,
-    color: '#CFE8D6', opacity: 0.60, fontSize: 30, fontWeight: 700,
+    color: 'var(--color-ok-soft)', opacity: 0.60, fontSize: 30, fontWeight: 700,
   },
   {
     title: 'The Zine Project',
@@ -89,7 +89,7 @@ const MAP_ITEMS: MapItem[] = [
     cta: 'Discover the project',
     url: '/projects/the-zine-project/',
     x: 620, y: 520, r: 220, xMobile: 380, yMobile: 720, rMobile: 200,
-    color: '#F4C6A5', opacity: 0.60, fontSize: 30, fontWeight: 700,
+    color: 'var(--color-warn-soft)', opacity: 0.60, fontSize: 30, fontWeight: 700,
   },
   {
     title: 'Zine No2 Girls in Paris',
@@ -99,7 +99,7 @@ const MAP_ITEMS: MapItem[] = [
     cta: 'Read the zine',
     url: '/projects/girls-in-paris/',
     x: 860, y: 440, r: 135, xMobile: 620, yMobile: 780, rMobile: 130,
-    color: '#D99A9A', opacity: 0.60, fontSize: 30, fontWeight: 700,
+    color: 'var(--brand-1)', opacity: 0.60, fontSize: 30, fontWeight: 700,
   },
   {
     title: 'Zine No9 A.S.I.A.',
@@ -109,7 +109,7 @@ const MAP_ITEMS: MapItem[] = [
     cta: 'Read the zine',
     url: '/projects/asia/',
     x: 760, y: 640, r: 120, xMobile: 420, yMobile: 880, rMobile: 110,
-    color: '#D99A9A', opacity: 0.60, fontSize: 30, fontWeight: 700,
+    color: 'var(--brand-1)', opacity: 0.60, fontSize: 30, fontWeight: 700,
   },
   {
     title: 'Zine No8 Warsaw SAGA',
@@ -119,7 +119,7 @@ const MAP_ITEMS: MapItem[] = [
     cta: 'Read the zine',
     url: '/projects/warsaw-saga/',
     x: 580, y: 730, r: 120, xMobile: 220, yMobile: 880, rMobile: 110,
-    color: '#D99A9A', opacity: 0.60, fontSize: 30, fontWeight: 700,
+    color: 'var(--brand-1)', opacity: 0.60, fontSize: 30, fontWeight: 700,
   },
 ]
 
@@ -141,13 +141,13 @@ const RELATIONS: Record<string, Array<{ name: string; delay: number }>> = {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 // Exact production CSS (mynameissanderdekker.com):
-// .node:nth-child(1) circle            { fill: #FF1F1F; opacity: .55; }
-// .node:nth-child(2), :nth-child(6)    { fill: #C63F3F; opacity: .50; }
-// .node:nth-child(3-5,7-9)             { fill: #D99A9A; opacity: .45; }
+// .node:nth-child(1) circle            { fill: var(--color-danger-bright); opacity: .55; }
+// .node:nth-child(2), :nth-child(6)    { fill: var(--color-danger); opacity: .50; }
+// .node:nth-child(3-5,7-9)             { fill: var(--brand-1); opacity: .45; }
 function getCircleStyle(index: number): { fill: string; opacity: number } {
-  if (index === 0)                    return { fill: '#FF1F1F', opacity: 0.55 }
-  if (index === 1 || index === 5)     return { fill: '#C63F3F', opacity: 0.50 }
-  return                                     { fill: '#D99A9A', opacity: 0.45 }
+  if (index === 0)                    return { fill: 'var(--color-danger-bright)', opacity: 0.55 }
+  if (index === 1 || index === 5)     return { fill: 'var(--color-danger)', opacity: 0.50 }
+  return                                     { fill: 'var(--brand-1)', opacity: 0.45 }
 }
 
 const BREATHE_DURATIONS = ['5s', '7s', '8s', '9s', '6.5s', '7.5s', '8.5s', '10s', '6s']
@@ -161,7 +161,7 @@ function SvgTitle({ item, isMobile }: { item: MapItem; isMobile: boolean }) {
 
   if (displayTitle === 'The Social Landscape') {
     return (
-      <text x={x} y={y} fill="#000" fontWeight={item.fontWeight || 700} className="node-text">
+      <text x={x} y={y} fill="var(--tone-ink)" fontWeight={item.fontWeight || 700} className="node-text">
         <tspan x={x} dy="-0.55em" fontSize={fs}>The Social</tspan>
         <tspan x={x} dy="1.1em" fontSize={fs}>Landscape</tspan>
       </text>
@@ -169,7 +169,7 @@ function SvgTitle({ item, isMobile }: { item: MapItem; isMobile: boolean }) {
   }
   if (item.title === 'Innate Curiosity') {
     return (
-      <text x={x} y={y} fill="#000" fontWeight={item.fontWeight || 700} className="node-text">
+      <text x={x} y={y} fill="var(--tone-ink)" fontWeight={item.fontWeight || 700} className="node-text">
         <tspan x={x} dy="-0.4em" fontSize={fs}>Innate</tspan>
         <tspan x={x} dy="1.1em" fontSize={fs}>Curiosity</tspan>
       </text>
@@ -177,7 +177,7 @@ function SvgTitle({ item, isMobile }: { item: MapItem; isMobile: boolean }) {
   }
   if (item.title === 'Zine No2 Girls in Paris') {
     return (
-      <text x={x} y={y} fill="#000" fontWeight={item.fontWeight || 700} className="node-text">
+      <text x={x} y={y} fill="var(--tone-ink)" fontWeight={item.fontWeight || 700} className="node-text">
         <tspan x={x} dy="-0.4em" fontSize={fs}>Zine Nº.2</tspan>
         <tspan x={x} dy="1.1em" fontSize={fs}>Girls in Paris</tspan>
       </text>
@@ -185,7 +185,7 @@ function SvgTitle({ item, isMobile }: { item: MapItem; isMobile: boolean }) {
   }
   if (item.title === 'Zine No9 A.S.I.A.') {
     return (
-      <text x={x} y={y} fill="#000" fontWeight={item.fontWeight || 700} className="node-text">
+      <text x={x} y={y} fill="var(--tone-ink)" fontWeight={item.fontWeight || 700} className="node-text">
         <tspan x={x} dy="-0.4em" fontSize={fs}>Zine Nº.9</tspan>
         <tspan x={x} dy="1.1em" fontSize={fs}>A.S.I.A.</tspan>
       </text>
@@ -193,7 +193,7 @@ function SvgTitle({ item, isMobile }: { item: MapItem; isMobile: boolean }) {
   }
   if (item.title === 'Zine No8 Warsaw SAGA') {
     return (
-      <text x={x} y={y} fill="#000" fontWeight={item.fontWeight || 700} className="node-text">
+      <text x={x} y={y} fill="var(--tone-ink)" fontWeight={item.fontWeight || 700} className="node-text">
         <tspan x={x} dy="-1.1em" fontSize={fs}>Zine Nº.8</tspan>
         <tspan x={x} dy="1.1em" fontSize={fs}>The Warsaw</tspan>
         <tspan x={x} dy="1.1em" fontSize={fs}>SAGA</tspan>
@@ -201,7 +201,7 @@ function SvgTitle({ item, isMobile }: { item: MapItem; isMobile: boolean }) {
     )
   }
   return (
-    <text x={x} y={y} fill="#000" fontWeight={item.fontWeight || 700} className="node-text">
+    <text x={x} y={y} fill="var(--tone-ink)" fontWeight={item.fontWeight || 700} className="node-text">
       <tspan x={x} dy="0.35em" fontSize={fs}>{displayTitle}</tspan>
     </text>
   )
@@ -423,7 +423,7 @@ export default function MindmapHomepage() {
                 backgroundImage: `url(${panel.image})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
-              } : { background: '#111' }}
+              } : { background: 'var(--tone-900)' }}
             />
             <p className="mm-panel-title">{panel?.title}</p>
             <p className="mm-panel-text">{panel?.text}</p>

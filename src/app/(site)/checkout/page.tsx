@@ -55,7 +55,7 @@ export default function CheckoutPage() {
     <div className="max-w-lg mx-auto px-6 py-16 text-center">
       <h1 className="text-2xl font-normal mb-8">Bestelling bevestigen</h1>
 
-      <div className="bg-[#f8f8f6] p-6 mb-8 text-left">
+      <div className="bg-[var(--tone-50)] p-6 mb-8 text-left">
         {items.map((item) => (
           <div key={item.id} className="flex justify-between text-sm mb-2 last:mb-0">
             <span>{item.title}</span>

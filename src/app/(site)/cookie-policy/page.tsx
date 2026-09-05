@@ -10,7 +10,7 @@ export default function CookiePolicyPage() {
     <div className="project-intro" style={{ maxWidth: '720px', margin: '80px auto', padding: '0 24px' }}>
       <h1 style={{ fontSize: '1.6rem', fontWeight: 700, marginBottom: '2rem' }}>Cookie Policy</h1>
 
-      <p style={{ color: '#888', marginBottom: '2rem' }}>
+      <p style={{ color: 'var(--tone-500)', marginBottom: '2rem' }}>
         Last updated: July 2026
       </p>
 

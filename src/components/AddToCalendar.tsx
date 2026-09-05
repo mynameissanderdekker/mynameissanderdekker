@@ -158,6 +158,7 @@ export function AddToCalendar(props: AddToCalendarProps) {
       label: 'Outlook',
       icon: (
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          {/* merkkleur: Outlook — geen thema-kleur, hoort bij het icoon */}
           <rect x="2" y="6" width="12" height="12" rx="1" fill="#0078D4" />
           <text x="8" y="15" textAnchor="middle" fontSize="8" fill="white" fontFamily="sans-serif" fontWeight="bold">O</text>
           <path d="M14 9h6a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-6" stroke="#0078D4" strokeWidth="1.2" />
@@ -182,9 +183,9 @@ export function AddToCalendar(props: AddToCalendarProps) {
           padding: '7px 14px',
           fontSize: 13,
           fontFamily: 'inherit',
-          color: '#333',
+          color: 'var(--tone-800)',
           background: 'transparent',
-          border: '1px solid #ccc',
+          border: '1px solid var(--tone-300)',
           borderRadius: 4,
           cursor: 'pointer',
           letterSpacing: '0.02em',
@@ -192,12 +193,12 @@ export function AddToCalendar(props: AddToCalendarProps) {
           whiteSpace: 'nowrap',
         }}
         onMouseEnter={e => {
-          ;(e.currentTarget as HTMLButtonElement).style.borderColor = '#888'
-          ;(e.currentTarget as HTMLButtonElement).style.color = '#111'
+          ;(e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--tone-500)'
+          ;(e.currentTarget as HTMLButtonElement).style.color = 'var(--tone-900)'
         }}
         onMouseLeave={e => {
-          ;(e.currentTarget as HTMLButtonElement).style.borderColor = '#ccc'
-          ;(e.currentTarget as HTMLButtonElement).style.color = '#333'
+          ;(e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--tone-300)'
+          ;(e.currentTarget as HTMLButtonElement).style.color = 'var(--tone-800)'
         }}
       >
         <CalendarIcon />
@@ -214,8 +215,8 @@ export function AddToCalendar(props: AddToCalendarProps) {
             top: 'calc(100% + 6px)',
             left: 0,
             minWidth: 180,
-            background: '#fff',
-            border: '1px solid #e0e0e0',
+            background: 'var(--tone-paper)',
+            border: '1px solid var(--color-border)',
             borderRadius: 6,
             boxShadow: '0 4px 16px rgba(0,0,0,0.10)',
             overflow: 'hidden',
@@ -236,14 +237,14 @@ export function AddToCalendar(props: AddToCalendarProps) {
                 padding: '10px 14px',
                 fontSize: 13,
                 fontFamily: 'inherit',
-                color: '#222',
+                color: 'var(--tone-800)',
                 background: 'transparent',
                 border: 'none',
                 cursor: 'pointer',
                 textAlign: 'left',
                 transition: 'background 0.1s',
               }}
-              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#f5f5f3' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-surface)' }}
               onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
             >
               {icon}

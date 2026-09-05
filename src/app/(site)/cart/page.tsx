@@ -88,7 +88,7 @@ export default function CartPage() {
               <img
                 src={item.imageUrl}
                 alt={item.title}
-                className="w-20 h-20 object-contain bg-[#f0eeeb] shrink-0"
+                className="w-20 h-20 object-contain bg-[var(--color-surface-2)] shrink-0"
               />
             )}
 

@@ -30,8 +30,8 @@ export function CookieBanner() {
           bottom: '24px',
           left: '50%',
           transform: 'translateX(-50%)',
-          background: '#111',
-          color: '#fff',
+          background: 'var(--tone-900)',
+          color: 'var(--tone-paper)',
           padding: '16px 24px',
           display: 'flex',
           alignItems: 'center',
@@ -45,15 +45,15 @@ export function CookieBanner() {
         }}>
           <span>
             This site uses Google Analytics to measure visits.{' '}
-            <a href="/cookie-policy" style={{ color: '#aaa', textDecoration: 'underline' }}>
+            <a href="/cookie-policy" style={{ color: 'var(--tone-400)', textDecoration: 'underline' }}>
               Cookie policy
             </a>
           </span>
           <button
             onClick={accept}
             style={{
-              background: '#fff',
-              color: '#111',
+              background: 'var(--tone-paper)',
+              color: 'var(--tone-900)',
               border: 'none',
               padding: '6px 16px',
               cursor: 'pointer',
@@ -68,8 +68,8 @@ export function CookieBanner() {
             onClick={decline}
             style={{
               background: 'transparent',
-              color: '#aaa',
-              border: '1px solid #444',
+              color: 'var(--tone-400)',
+              border: '1px solid var(--tone-700)',
               padding: '6px 16px',
               cursor: 'pointer',
               fontSize: '13px',

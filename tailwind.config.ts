@@ -1,5 +1,15 @@
 import type { Config } from "tailwindcss";
 
+/**
+ * De Tailwind-kleuren aan de thema-tokens hangen.
+ *
+ * `text-gray-500`, `bg-black` en `border-gray-200` stonden in ruim honderd
+ * componenten vast aan Tailwinds eigen grijsschaal. Door ze hier naar de
+ * CSS-variabelen uit globals.css te laten wijzen, volgt élke klasse het
+ * thema zonder dat er een component voor is aangeraakt. Zie audit-theme.
+ */
+const toon = (n: number) => `var(--tone-${n})`
+
 const config: Config = {
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
@@ -9,8 +19,14 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        background: "var(--color-bg)",
+        foreground: "var(--color-text)",
+        black: "var(--tone-ink)",
+        white: "var(--tone-paper)",
+        gray: {
+          50: toon(50), 100: toon(100), 200: toon(200), 300: toon(300), 400: toon(400),
+          500: toon(500), 600: toon(600), 700: toon(700), 800: toon(800), 900: toon(900),
+        },
       },
     },
   },

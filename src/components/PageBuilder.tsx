@@ -116,7 +116,7 @@ export const ptComponents = {
     h2: ({ children }: { children?: React.ReactNode }) => <h2 style={{ fontSize: '1.5em', fontWeight: 700, margin: '0.5em 0' }}>{children}</h2>,
     h3: ({ children }: { children?: React.ReactNode }) => <h3 style={{ fontSize: '1.2em', fontWeight: 700, margin: '0.5em 0' }}>{children}</h3>,
     h4: ({ children }: { children?: React.ReactNode }) => <h4 style={{ fontSize: '1.1rem', fontWeight: 700, letterSpacing: 0, marginTop: '2rem', marginBottom: '0.4rem' }}>{children}</h4>,
-    blockquote: ({ children }: { children?: React.ReactNode }) => <blockquote style={{ borderLeft: '3px solid #ccc', paddingLeft: '1em', color: '#666', margin: '1em 0', fontStyle: 'italic' }}>{children}</blockquote>,
+    blockquote: ({ children }: { children?: React.ReactNode }) => <blockquote style={{ borderLeft: '3px solid var(--tone-300)', paddingLeft: '1em', color: 'var(--tone-600)', margin: '1em 0', fontStyle: 'italic' }}>{children}</blockquote>,
   },
   marks: {
     underline: ({ children }: { children?: React.ReactNode }) => <span style={{ textDecoration: 'underline' }}>{children}</span>,
@@ -169,14 +169,14 @@ function ImageText({ block }: { block: ImageTextBlock }) {
           </div>
           <div>
             {imgUrl && <Image src={imgUrl} alt={captionText ?? ''} width={900} height={600} style={{ width: '100%', height: 'auto', display: 'block' }} sizes="50vw" />}
-            {captionText && <p style={{ fontSize: 12, color: '#888', marginTop: 8 }}>{captionText}</p>}
+            {captionText && <p style={{ fontSize: 12, color: 'var(--tone-500)', marginTop: 8 }}>{captionText}</p>}
           </div>
         </>
       ) : (
         <>
           <div>
             {imgUrl && <Image src={imgUrl} alt={captionText ?? ''} width={900} height={600} style={{ width: '100%', height: 'auto', display: 'block' }} sizes="50vw" />}
-            {captionText && <p style={{ fontSize: 12, color: '#888', marginTop: 8 }}>{captionText}</p>}
+            {captionText && <p style={{ fontSize: 12, color: 'var(--tone-500)', marginTop: 8 }}>{captionText}</p>}
           </div>
           <div className="project-intro">
             {block.content && <PortableText value={block.content as Parameters<typeof PortableText>[0]['value']} />}

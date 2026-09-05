@@ -40,7 +40,7 @@ export function NewsletterSignup({ className }: { className?: string }) {
   if (state === 'success') {
     return (
       <div className={className}>
-        <p style={{ fontSize: 14, color: '#555' }}>
+        <p style={{ fontSize: 14, color: 'var(--color-muted)' }}>
           Thank you &mdash; you&apos;re on the list.
         </p>
       </div>
@@ -58,7 +58,7 @@ export function NewsletterSignup({ className }: { className?: string }) {
         style={{
           padding:     '10px 14px',
           fontSize:    14,
-          border:      '1px solid #ddd',
+          border:      '1px solid var(--tone-300)',
           borderRadius: 0,
           outline:     'none',
           background:  'transparent',
@@ -74,14 +74,14 @@ export function NewsletterSignup({ className }: { className?: string }) {
         style={{
           padding:     '10px 14px',
           fontSize:    14,
-          border:      '1px solid #ddd',
+          border:      '1px solid var(--tone-300)',
           borderRadius: 0,
           outline:     'none',
           background:  'transparent',
         }}
       />
       {error && (
-        <p style={{ margin: 0, fontSize: 12, color: '#c00' }}>{error}</p>
+        <p style={{ margin: 0, fontSize: 12, color: 'var(--color-danger)' }}>{error}</p>
       )}
       <button
         type="submit"
@@ -91,8 +91,8 @@ export function NewsletterSignup({ className }: { className?: string }) {
           fontSize:        12,
           letterSpacing:   '1.5px',
           textTransform:   'uppercase',
-          background:      '#111',
-          color:           '#fff',
+          background:      'var(--tone-900)',
+          color:           'var(--tone-paper)',
           border:          'none',
           cursor:          state === 'loading' ? 'not-allowed' : 'pointer',
           opacity:         state === 'loading' ? 0.6 : 1,
