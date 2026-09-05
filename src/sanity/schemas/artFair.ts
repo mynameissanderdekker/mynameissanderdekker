@@ -71,6 +71,29 @@ export const artFair = defineType({
       type: 'date',
     }),
     defineField({
+      // Specifiek moment voor de opening/vernissage — niet de looptijd van de
+      // beurs, maar het ene evenement waarvoor je een agenda-uitnodiging wilt.
+      // AddToCalendar gebruikt dit op de pagina; het email-template ook.
+      name: 'openingDate',
+      group: 'details',
+      title: 'Opening / vernissage date',
+      type: 'date',
+      description: 'The specific date of the opening or vernissage, if applicable.',
+    }),
+    defineField({
+      name: 'openingTime',
+      group: 'details',
+      title: 'Opening time',
+      type: 'string',
+      description: 'E.g. "18:00". Leave empty if time is unknown.',
+      validation: (r) =>
+        r.custom((val) => {
+          if (!val) return true
+          if (/^\d{2}:\d{2}$/.test(val)) return true
+          return 'Use HH:MM format, e.g. "18:00"'
+        }),
+    }),
+    defineField({
       // Zelfde aankondiging als bij de expositie. Een beurs is bij uitstek iets
       // wat je vooraf meldt — hij duurt vier dagen, dus achteraf heeft niemand
       // er meer iets aan.

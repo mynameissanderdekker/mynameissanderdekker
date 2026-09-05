@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mindmap — Sander Dekker</title>
+<style>
+  /* Breathing keyframes — three speeds */
+  @keyframes breathe1 { 0%,100%{transform:scale(1)} 50%{transform:scale(1.04)} }
+  @keyframes breathe2 { 0%,100%{transform:scale(1)} 50%{transform:scale(1.06)} }
+  @keyframes breathe3 { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
+
+  /* Ripple pulse from core node */
+  @keyframes ripple {
+    0%   { r:12px; opacity:.18; }
+    100% { r:340px; opacity:0; }
+  }
+
+  body { margin:0; background:#f5f1eb; font-family:Helvetica Neue,Helvetica,Arial,sans-serif; }
+
+  .wrap {
+    max-width:600px;
+    margin:0 auto;
+    background:#f5f1eb;
+    padding:32px 0 24px;
+    text-align:center;
+  }
+
+  .heading {
+    font-size:13px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:#555;
+    margin:0 0 6px;
+  }
+  .sub {
+    font-size:14px;
+    color:#333;
+    margin:0 0 24px;
+    font-style:italic;
+  }
+
+  .svg-wrap {
+    display:block;
+    width:100%;
+    max-width:600px;
+    margin:0 auto;
+  }
+
+  /* Each bubble group: transform-origin on its own cx/cy */
+  .n0 { animation:breathe1 5s ease-in-out infinite; transform-origin:320px 420px; }
+  .n1 { animation:breathe2 7s ease-in-out infinite; transform-origin:210px 230px; }
+  .n2 { animation:breathe3 8s ease-in-out infinite; transform-origin:40px  110px; }
+  .n3 { animation:breathe1 9s ease-in-out infinite; transform-origin:20px  680px; }
+  .n4 { animation:breathe2 6.5s ease-in-out infinite; transform-origin:580px 120px; }
+  .n5 { animation:breathe3 7.5s ease-in-out infinite; transform-origin:620px 520px; }
+  .n6 { animation:breathe1 8.5s ease-in-out infinite; transform-origin:860px 440px; }
+  .n7 { animation:breathe2 10s  ease-in-out infinite; transform-origin:760px 640px; }
+  .n8 { animation:breathe3 6s   ease-in-out infinite; transform-origin:580px 730px; }
+
+  .ripple-ring {
+    fill:none;
+    stroke:#ff1f1f;
+    stroke-width:2;
+    animation:ripple 4s ease-out infinite;
+    transform-origin:320px 420px;
+  }
+
+  .node-label {
+    fill:#1a1a1a;
+    font-family:Helvetica Neue,Helvetica,Arial,sans-serif;
+    font-weight:700;
+    pointer-events:none;
+  }
+
+  .cal-row {
+    margin-top:24px;
+    padding:16px 20px;
+    background:#ece8e0;
+    display:inline-block;
+    text-align:left;
+  }
+  .cal-label {
+    font-size:11px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:#888;
+    margin:0 0 10px;
+  }
+  .cal-event-title {
+    font-size:14px;
+    font-weight:700;
+    color:#1a1a1a;
+    margin:0 0 2px;
+  }
+  .cal-event-date {
+    font-size:13px;
+    color:#555;
+    margin:0 0 12px;
+  }
+  .cal-links {
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  .cal-link {
+    display:inline-block;
+    padding:7px 14px;
+    font-size:12px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:#1a1a1a !important;
+    text-decoration:none;
+    border:1px solid #999;
+  }
+
+  .cta-row {
+    margin-top:20px;
+  }
+  .cta-btn {
+    display:inline-block;
+    padding:12px 28px;
+    background:#1a1a1a;
+    color:#fff !important;
+    text-decoration:none;
+    font-size:13px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="heading">Sander Dekker — Projects</p>
+  <p class="sub">Every encounter carries the seeds of the next.</p>
+
+  <a href="https://www.mynameissanderdekker.com/#mindmap" class="svg-wrap" style="text-decoration:none;display:block;">
+    <svg
+      viewBox="-450 -30 1500 950"
+      xmlns="http://www.w3.org/2000/svg"
+      style="width:100%;height:auto;display:block;"
+      preserveAspectRatio="xMidYMid meet"
+    >
+      <!-- Ripple from core node -->
+      <circle class="ripple-ring" cx="320" cy="420" r="12" />
+
+      <!-- 0: The Social Media Project (largest, center) -->
+      <g class="n0">
+        <circle cx="320" cy="420" r="420" fill="#ff1f1f" fill-opacity="0.55" />
+        <text x="320" y="420" text-anchor="middle" class="node-label" font-size="30">
+          <tspan x="320" dy="-0.55em">The Social</tspan>
+          <tspan x="320" dy="1.2em">Media Project</tspan>
+        </text>
+      </g>
+
+      <!-- 1: The Social Landscape -->
+      <g class="n1">
+        <circle cx="210" cy="230" r="180" fill="#cc0000" fill-opacity="0.50" />
+        <text x="210" y="230" text-anchor="middle" class="node-label" font-size="26">
+          <tspan x="210" dy="-0.55em">The Social</tspan>
+          <tspan x="210" dy="1.2em">Landscape</tspan>
+        </text>
+      </g>
+
+      <!-- 2: #fun -->
+      <g class="n2">
+        <circle cx="40" cy="110" r="90" fill="#d99a9a" fill-opacity="0.45" />
+        <text x="40" y="114" text-anchor="middle" class="node-label" font-size="26">#fun</text>
+      </g>
+
+      <!-- 3: Innate Curiosity -->
+      <g class="n3">
+        <circle cx="20" cy="680" r="135" fill="#d99a9a" fill-opacity="0.45" />
+        <text x="20" y="680" text-anchor="middle" class="node-label" font-size="26">
+          <tspan x="20" dy="-0.4em">Innate</tspan>
+          <tspan x="20" dy="1.2em">Curiosity</tspan>
+        </text>
+      </g>
+
+      <!-- 4: It Is Us -->
+      <g class="n4">
+        <circle cx="580" cy="120" r="90" fill="#d99a9a" fill-opacity="0.45" />
+        <text x="580" y="124" text-anchor="middle" class="node-label" font-size="26">It Is Us</text>
+      </g>
+
+      <!-- 5: The Zine Project -->
+      <g class="n5">
+        <circle cx="620" cy="520" r="220" fill="#cc0000" fill-opacity="0.50" />
+        <text x="620" y="520" text-anchor="middle" class="node-label" font-size="28">
+          <tspan x="620" dy="-0.55em">The Zine</tspan>
+          <tspan x="620" dy="1.2em">Project</tspan>
+        </text>
+      </g>
+
+      <!-- 6: Zine No2 Girls in Paris -->
+      <g class="n6">
+        <circle cx="860" cy="440" r="135" fill="#d99a9a" fill-opacity="0.45" />
+        <text x="860" y="440" text-anchor="middle" class="node-label" font-size="22">
+          <tspan x="860" dy="-0.55em">Zine Nº.2</tspan>
+          <tspan x="860" dy="1.2em">Girls in Paris</tspan>
+        </text>
+      </g>
+
+      <!-- 7: Zine No9 A.S.I.A. -->
+      <g class="n7">
+        <circle cx="760" cy="640" r="120" fill="#d99a9a" fill-opacity="0.45" />
+        <text x="760" y="640" text-anchor="middle" class="node-label" font-size="22">
+          <tspan x="760" dy="-0.55em">Zine Nº.9</tspan>
+          <tspan x="760" dy="1.2em">A.S.I.A.</tspan>
+        </text>
+      </g>
+
+      <!-- 8: Zine No8 Warsaw SAGA -->
+      <g class="n8">
+        <circle cx="580" cy="730" r="120" fill="#d99a9a" fill-opacity="0.45" />
+        <text x="580" y="730" text-anchor="middle" class="node-label" font-size="22">
+          <tspan x="580" dy="-1.1em">Zine Nº.8</tspan>
+          <tspan x="580" dy="1.1em">The Warsaw</tspan>
+          <tspan x="580" dy="1.1em">SAGA</tspan>
+        </text>
+      </g>
+    </svg>
+  </a>
+
+  <!-- Add to Calendar — NAP+ vernissage -->
+  <div style="text-align:center;">
+    <div class="cal-row">
+      <p class="cal-label">Upcoming opening</p>
+      <p class="cal-event-title">Innate Curiosity — NAP+</p>
+      <p class="cal-event-date">17 September 2026 · Amsterdam</p>
+      <div class="cal-links">
+        <a class="cal-link"
+           href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=Opening%3A+Innate+Curiosity+at+NAP%2B&dates=20260917%2F20260917&location=NAP%2B%2C+Amsterdam&details=Sander+Dekker+shows+Innate+Curiosity+for+the+first+time+at+NAP%2B.%0Ahttps%3A%2F%2Fwww.mynameissanderdekker.com%2Fart-fairs%2Fnap-plus"
+           target="_blank" rel="noopener noreferrer">
+          Google Calendar
+        </a>
+        <a class="cal-link"
+           href="https://www.mynameissanderdekker.com/nap-innate-curiosity-opening.ics"
+           target="_blank" rel="noopener noreferrer">
+          Apple / Outlook
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="cta-row">
+    <a href="https://www.mynameissanderdekker.com/#mindmap" class="cta-btn">Explore the work</a>
+  </div>
+</div>
+</body>
+</html>

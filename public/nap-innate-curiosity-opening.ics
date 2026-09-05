@@ -1,0 +1,15 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//mynameissanderdekker.com//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+SUMMARY:Opening: Innate Curiosity at NAP+
+DTSTART;VALUE=DATE:20260917
+DTEND;VALUE=DATE:20260917
+LOCATION:NAP+
+DESCRIPTION:Sander Dekker shows Innate Curiosity for the first time at NAP+.\nhttps://www.mynameissanderdekker.com/art-fairs/nap-plus
+URL:https://www.mynameissanderdekker.com/art-fairs/nap-plus
+DTSTAMP:20260905T120000
+END:VEVENT
+END:VCALENDAR

@@ -5,6 +5,7 @@ import { client } from '@/sanity/lib/client'
 import { urlFor } from '@/sanity/lib/image'
 import { PortableText } from '@portabletext/react'
 import BackLink from '@/components/BackLink'
+import { AddToCalendar } from '@/components/AddToCalendar'
 
 export const revalidate = 3600
 
@@ -29,7 +30,7 @@ export async function generateMetadata({ params }: Props) {
 async function getArtFair(slug: string) {
   return client.fetch(
     `*[_type == "artFair" && slug.current == $slug][0]{
-      _id, title, slug, booth, location, startDate, endDate, description, websiteUrl,
+      _id, title, slug, booth, location, startDate, endDate, openingDate, openingTime, description, websiteUrl,
       // "Banner Image" stond wel in het schema maar werd hier niet uitgelezen:
       // je kon hem invullen en er gebeurde niets, op de pagina noch in de
       // aankondiging op de homepage.
@@ -139,12 +140,34 @@ export default async function ArtFairPage({ params }: Props) {
               <dd style={{ margin: 0 }}>{fair.booth}</dd>
             </div>
           )}
+          {fair.openingDate && (
+            <div>
+              <dt style={{ color: 'var(--color-subtle)' }}>Opening</dt>
+              <dd style={{ margin: 0 }}>
+                {korteDatum(fair.openingDate)}
+                {fair.openingTime && ` · ${fair.openingTime}`}
+              </dd>
+            </div>
+          )}
           {fair.websiteUrl && (
             <div style={{ marginTop: '12px' }}>
               <a href={fair.websiteUrl} target="_blank" rel="noopener noreferrer"
                 style={{ fontSize: '0.85rem', textDecoration: 'underline' }}>
                 Visit website
               </a>
+            </div>
+          )}
+          {fair.openingDate && (
+            <div style={{ marginTop: '16px' }}>
+              <AddToCalendar
+                title={`Opening: ${fair.title}`}
+                startDate={fair.openingDate}
+                endDate={fair.openingDate}
+                startTime={fair.openingTime ?? undefined}
+                endTime={fair.openingTime ?? undefined}
+                location={fair.location ?? undefined}
+                url={`https://www.mynameissanderdekker.com/art-fairs/${fair.slug?.current}`}
+              />
             </div>
           )}
         </dl>
