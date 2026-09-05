@@ -20,7 +20,7 @@ function toDateStr(date: string, time?: string): string {
   const d = date.replace(/-/g, '')
   if (!time) return d
   const t = time.replace(':', '') + '00'
-  return `${d}T${t}00`
+  return `${d}T${t}`
 }
 
 function buildGoogleUrl(props: AddToCalendarProps): string {

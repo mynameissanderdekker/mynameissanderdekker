@@ -5,11 +5,11 @@ CALSCALE:GREGORIAN
 METHOD:PUBLISH
 BEGIN:VEVENT
 SUMMARY:Opening: Innate Curiosity at NAP+
-DTSTART;VALUE=DATE:20260917
-DTEND;VALUE=DATE:20260917
-LOCATION:NAP+
-DESCRIPTION:Sander Dekker shows Innate Curiosity for the first time at NAP+.\nhttps://www.mynameissanderdekker.com/art-fairs/nap-plus
-URL:https://www.mynameissanderdekker.com/art-fairs/nap-plus
+DTSTART:20260917T180000
+DTEND:20260917T210000
+LOCATION:Amsterdam, NL
+DESCRIPTION:Sander Dekker shows Innate Curiosity for the first time at NAP+.\nhttps://www.mynameissanderdekker.com/art-fairs/innate-curiosity-nap-2026
+URL:https://www.mynameissanderdekker.com/art-fairs/innate-curiosity-nap-2026
 DTSTAMP:20260905T120000
 END:VEVENT
 END:VCALENDAR
